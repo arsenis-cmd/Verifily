@@ -1,6 +1,6 @@
 # PoC MVP - AI Content Detection & Attention Verification
 
-**5-day YC MVP Demo** - Detect AI content, verify human attention, prevent ad fraud.
+##MVP Demo - Detect AI content, verify human attention, prevent ad fraud.
 
 ## 🚀 Quick Start (3 minutes)
 
