@@ -319,6 +319,74 @@
   border-color: rgba(239, 68, 68, 0.4);
 }
 
+/* PoC Certified Badge - Shared Verification System */
+.poc-verified-badge {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 14px;
+  margin-top: 8px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 500;
+  backdrop-filter: blur(8px);
+  border: 1.5px solid;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  animation: poc-badge-appear 0.4s ease-out;
+}
+
+.poc-verified-badge.human {
+  background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+  border-color: #10b981;
+  color: #065f46;
+}
+
+.poc-verified-badge.ai {
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+  border-color: #ef4444;
+  color: #991b1b;
+}
+
+.poc-badge-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  font-size: 14px;
+  margin-right: 6px;
+}
+
+.poc-verified-badge.human .poc-badge-icon {
+  color: #10b981;
+}
+
+.poc-verified-badge.ai .poc-badge-icon {
+  color: #ef4444;
+}
+
+.poc-badge-label {
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.poc-badge-verified-count {
+  font-size: 11px;
+  opacity: 0.75;
+  font-weight: 400;
+  margin-top: 2px;
+}
+
+.poc-verified-badge.human .poc-badge-verified-count {
+  color: #047857;
+}
+
+.poc-verified-badge.ai .poc-badge-verified-count {
+  color: #b91c1c;
+}
+
 .poc-spinner {
   width: 16px;
   height: 16px;

@@ -9,6 +9,7 @@ from app.routes import detect_router, stats_router, attention_router
 from app.routes.factcheck import router as factcheck_router
 from app.routes.companion import router as companion_router
 from app.routes.impressions import router as impressions_router
+from app.routes.verify import router as verify_router
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -41,6 +42,7 @@ app.add_middleware(
 app.include_router(detect_router, prefix="/api/v1")
 app.include_router(stats_router, prefix="/api/v1")
 app.include_router(attention_router, prefix="/api/v1")
+app.include_router(verify_router)  # Already has /api/v1 prefix
 app.include_router(factcheck_router)
 app.include_router(companion_router)
 app.include_router(impressions_router)

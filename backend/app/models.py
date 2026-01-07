@@ -88,3 +88,29 @@ class DailyStats(Base):
     # Attention
     attention_verifications = Column(Integer, default=0)
     human_attention_verified = Column(Integer, default=0)
+
+class Verification(Base):
+    """Shared verifications across all users - PoC Certified system"""
+    __tablename__ = "verifications"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    content_hash = Column(String(64), unique=True, index=True, nullable=False)
+
+    # Classification result
+    classification = Column(SQLEnum(Classification), nullable=False)
+    confidence = Column(Float, nullable=False)
+    ai_probability = Column(Float, nullable=False)
+
+    # Source information
+    platform = Column(String(50), nullable=True)  # twitter, reddit, web, etc.
+    post_id = Column(String(100), nullable=True)  # Tweet ID, Reddit post ID, etc.
+    post_url = Column(Text, nullable=True)
+    content_preview = Column(Text, nullable=True)  # First 200 chars
+
+    # Network effect tracking
+    view_count = Column(Integer, default=1, nullable=False)
+    first_seen = Column(DateTime, default=datetime.utcnow, nullable=False, index=True)
+    last_verified = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+    # Detailed scores (JSON string)
+    scores = Column(Text, nullable=True)
