@@ -15,18 +15,16 @@ export default function Home() {
   return (
     <SmoothScrollWrapper>
       <Navigation />
-      <main className="relative">
+      <main className="relative overflow-x-hidden">
         <Hero />
-        <div className="space-y-0">
-          <ProblemSection />
-          <HowItWorks />
-          <LiveDemo />
-          <FeaturesGrid />
-          <ForCreators />
-          <Roadmap />
-          <Testimonials />
-          <CTASection />
-        </div>
+        <ProblemSection />
+        <HowItWorks />
+        <LiveDemo />
+        <FeaturesGrid />
+        <ForCreators />
+        <Roadmap />
+        <Testimonials />
+        <CTASection />
       </main>
       <Footer />
     </SmoothScrollWrapper>
