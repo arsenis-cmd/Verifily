@@ -15,16 +15,43 @@ export default function Home() {
   return (
     <SmoothScrollWrapper>
       <Navigation />
-      <main className="relative overflow-x-hidden">
-        <Hero />
-        <ProblemSection />
-        <HowItWorks />
-        <LiveDemo />
-        <FeaturesGrid />
-        <ForCreators />
-        <Roadmap />
-        <Testimonials />
-        <CTASection />
+      <main className="w-full">
+        {/* Each section is separated with clear boundaries */}
+        <div className="w-full">
+          <Hero />
+        </div>
+
+        <div className="w-full">
+          <ProblemSection />
+        </div>
+
+        <div className="w-full bg-primary-800/20">
+          <HowItWorks />
+        </div>
+
+        <div className="w-full">
+          <LiveDemo />
+        </div>
+
+        <div className="w-full bg-primary-800/30">
+          <FeaturesGrid />
+        </div>
+
+        <div className="w-full">
+          <ForCreators />
+        </div>
+
+        <div className="w-full bg-primary-800/20">
+          <Roadmap />
+        </div>
+
+        <div className="w-full">
+          <Testimonials />
+        </div>
+
+        <div className="w-full bg-primary-800/40">
+          <CTASection />
+        </div>
       </main>
       <Footer />
     </SmoothScrollWrapper>
