@@ -106,6 +106,18 @@ section {
   clear: both;
   /* All sections already have py-32, but ensure minimum spacing */
   min-height: fit-content;
+  isolation: isolate; /* Create new stacking context to prevent z-index issues */
+}
+
+/* Fix z-index layering - background elements must stay behind */
+section > .absolute {
+  z-index: 0 !important;
+}
+
+section > .relative.z-10,
+section .container {
+  z-index: 10;
+  position: relative;
 }
 
 /* Container must be centered */
@@ -116,6 +128,8 @@ section {
   margin-right: auto;
   padding-left: 1.5rem;
   padding-right: 1.5rem;
+  position: relative;
+  z-index: 10;
 }
 
 @media (min-width: 640px) {
@@ -123,6 +137,22 @@ section {
     padding-left: 2rem;
     padding-right: 2rem;
   }
+}
+
+/* Ensure all headings are centered */
+h1, h2, h3, h4, h5, h6 {
+  text-align: center;
+}
+
+/* Fix for sections that need specific text alignment */
+.text-left h1, .text-left h2, .text-left h3,
+.text-left h4, .text-left h5, .text-left h6 {
+  text-align: left;
+}
+
+.text-right h1, .text-right h2, .text-right h3,
+.text-right h4, .text-right h5, .text-right h6 {
+  text-align: right;
 }
 
 /* Glassmorphism */

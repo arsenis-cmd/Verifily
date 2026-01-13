@@ -128,23 +128,23 @@ export default function Hero() {
   }, [prefersReducedMotion]);
 
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden isolate">
       {/* Animated Background Canvas - subtle particles */}
       <canvas
         ref={canvasRef}
-        className="absolute inset-0 z-0"
-        style={{ opacity: prefersReducedMotion ? 0 : 1 }}
+        className="absolute inset-0"
+        style={{ opacity: prefersReducedMotion ? 0 : 1, zIndex: 0 }}
       />
 
       {/* Gradient Overlays */}
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary-900/50 to-primary-900 z-0" />
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary-900/50 to-primary-900" style={{ zIndex: 1 }} />
 
-      {/* Static subtle glow orbs - no animation */}
-      <div className="absolute top-20 left-1/4 w-96 h-96 bg-accent-500/5 rounded-full blur-3xl" />
-      <div className="absolute bottom-20 right-1/4 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl" />
+      {/* Static subtle glow orbs - no animation - confined to hero */}
+      <div className="absolute top-20 left-1/4 w-96 h-96 bg-accent-500/5 rounded-full blur-3xl pointer-events-none" style={{ zIndex: 2 }} />
+      <div className="absolute bottom-20 right-1/4 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl pointer-events-none" style={{ zIndex: 2 }} />
 
       {/* Content - Account for fixed nav with pt-24 */}
-      <div className="container mx-auto px-4 sm:px-6 z-10 relative pt-24 md:pt-32 pb-16">
+      <div className="container mx-auto px-4 sm:px-6 relative pt-24 md:pt-32 pb-16" style={{ zIndex: 10 }}>
         <div className="max-w-5xl mx-auto text-center">
           {/* Badge */}
           <motion.div
@@ -242,7 +242,8 @@ export default function Hero() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.8, delay: 2.2 }}
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 hidden md:block"
+        className="absolute bottom-8 left-1/2 -translate-x-1/2 hidden md:block"
+        style={{ zIndex: 10 }}
       >
         <motion.div
           animate={{ y: [0, 8, 0] }}
