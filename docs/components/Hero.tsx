@@ -1,13 +1,22 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight, Shield, Zap, Lock } from 'lucide-react';
 
 export default function Hero() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
 
   useEffect(() => {
+    // Check for reduced motion preference
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    setPrefersReducedMotion(mediaQuery.matches);
+  }, []);
+
+  useEffect(() => {
+    if (prefersReducedMotion) return; // Skip animation if user prefers reduced motion
+
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -21,44 +30,34 @@ export default function Hero() {
     };
     setCanvasSize();
 
-    // Particle system
+    // Particle system - MUCH fewer particles for calmer effect
     const particles: Array<{
       x: number;
       y: number;
-      z: number;
       vx: number;
       vy: number;
       size: number;
       opacity: number;
     }> = [];
 
-    // Create particles
-    for (let i = 0; i < 150; i++) {
+    // Create only 50 particles (was 150) - much calmer
+    for (let i = 0; i < 50; i++) {
       particles.push({
         x: Math.random() * canvas.width,
         y: Math.random() * canvas.height,
-        z: Math.random() * 1000,
-        vx: (Math.random() - 0.5) * 0.3,
-        vy: (Math.random() - 0.5) * 0.3,
-        size: Math.random() * 2 + 0.5,
-        opacity: Math.random() * 0.5 + 0.2,
+        vx: (Math.random() - 0.5) * 0.1, // Much slower (was 0.3)
+        vy: (Math.random() - 0.5) * 0.1, // Much slower (was 0.3)
+        size: Math.random() * 1.5 + 0.3, // Smaller particles
+        opacity: Math.random() * 0.2 + 0.1, // Much more subtle (was 0.5 + 0.2)
       });
     }
 
-    let mouseX = canvas.width / 2;
-    let mouseY = canvas.height / 2;
-
-    // Mouse parallax
-    const handleMouseMove = (e: MouseEvent) => {
-      mouseX = e.clientX;
-      mouseY = e.clientY;
-    };
-    window.addEventListener('mousemove', handleMouseMove);
+    let animationId: number;
 
     function animate() {
       if (!ctx || !canvas) return;
 
-      // Clear with gradient
+      // Clear with solid gradient background
       const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
       gradient.addColorStop(0, '#0a1628');
       gradient.addColorStop(0.5, '#1a365d');
@@ -66,62 +65,44 @@ export default function Hero() {
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Update and draw particles
-      particles.forEach((particle, i) => {
-        // Mouse influence
-        const dx = mouseX - particle.x;
-        const dy = mouseY - particle.y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
-        const maxDistance = 200;
-
-        if (distance < maxDistance) {
-          const force = (1 - distance / maxDistance) * 0.5;
-          particle.vx += (dx / distance) * force * 0.1;
-          particle.vy += (dy / distance) * force * 0.1;
-        }
-
-        // Update position
+      // Update and draw particles with gentle movement
+      particles.forEach((particle) => {
+        // Very gentle, slow movement
         particle.x += particle.vx;
         particle.y += particle.vy;
-        particle.z -= 0.5;
 
-        // Damping
-        particle.vx *= 0.98;
-        particle.vy *= 0.98;
+        // Gentle damping
+        particle.vx *= 0.995;
+        particle.vy *= 0.995;
 
-        // Reset z
-        if (particle.z < 1) {
-          particle.z = 1000;
-        }
+        // Add tiny random movement for organic feel
+        particle.vx += (Math.random() - 0.5) * 0.01;
+        particle.vy += (Math.random() - 0.5) * 0.01;
 
-        // Wrap around
+        // Wrap around screen edges
         if (particle.x < 0) particle.x = canvas.width;
         if (particle.x > canvas.width) particle.x = 0;
         if (particle.y < 0) particle.y = canvas.height;
         if (particle.y > canvas.height) particle.y = 0;
 
-        // Calculate size based on z (perspective)
-        const scale = 1000 / (1000 - particle.z + 1);
-        const size = particle.size * scale;
-
-        // Draw particle
-        ctx.fillStyle = `rgba(0, 212, 255, ${particle.opacity * scale * 0.6})`;
+        // Draw particle - very subtle
+        ctx.fillStyle = `rgba(0, 212, 255, ${particle.opacity})`;
         ctx.beginPath();
-        ctx.arc(particle.x, particle.y, size, 0, Math.PI * 2);
+        ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
         ctx.fill();
       });
 
-      // Draw connections
+      // Draw very subtle connections between nearby particles
       particles.forEach((p1, i) => {
-        particles.slice(i + 1, i + 5).forEach((p2) => {
+        particles.slice(i + 1, i + 3).forEach((p2) => {
           const dx = p1.x - p2.x;
           const dy = p1.y - p2.y;
           const distance = Math.sqrt(dx * dx + dy * dy);
 
-          if (distance < 150) {
-            const opacity = (1 - distance / 150) * 0.15;
+          if (distance < 120) { // Shorter connections
+            const opacity = (1 - distance / 120) * 0.08; // Much more subtle (was 0.15)
             ctx.strokeStyle = `rgba(0, 212, 255, ${opacity})`;
-            ctx.lineWidth = 0.5;
+            ctx.lineWidth = 0.3; // Thinner lines
             ctx.beginPath();
             ctx.moveTo(p1.x, p1.y);
             ctx.lineTo(p2.x, p2.y);
@@ -130,7 +111,7 @@ export default function Hero() {
         });
       });
 
-      requestAnimationFrame(animate);
+      animationId = requestAnimationFrame(animate);
     }
 
     animate();
@@ -141,28 +122,29 @@ export default function Hero() {
     window.addEventListener('resize', handleResize);
 
     return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('resize', handleResize);
+      cancelAnimationFrame(animationId);
     };
-  }, []);
+  }, [prefersReducedMotion]);
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      {/* Animated Background Canvas */}
+      {/* Animated Background Canvas - subtle particles */}
       <canvas
         ref={canvasRef}
         className="absolute inset-0 z-0"
+        style={{ opacity: prefersReducedMotion ? 0 : 1 }}
       />
 
       {/* Gradient Overlays */}
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary-900/50 to-primary-900 z-0" />
 
-      {/* Glowing orbs */}
-      <div className="absolute top-20 left-1/4 w-96 h-96 bg-accent-500/10 rounded-full blur-3xl animate-float" />
-      <div className="absolute bottom-20 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-float" style={{ animationDelay: '2s' }} />
+      {/* Static subtle glow orbs - no animation */}
+      <div className="absolute top-20 left-1/4 w-96 h-96 bg-accent-500/5 rounded-full blur-3xl" />
+      <div className="absolute bottom-20 right-1/4 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl" />
 
       {/* Content */}
-      <div className="container mx-auto px-6 z-10 relative pt-32">
+      <div className="container mx-auto px-6 z-10 relative pt-32 pb-20">
         <div className="max-w-5xl mx-auto text-center space-y-8">
           {/* Badge */}
           <motion.div
@@ -171,7 +153,7 @@ export default function Hero() {
             transition={{ duration: 0.8, delay: 0.3 }}
             className="inline-flex items-center gap-2 glass px-6 py-3 rounded-full text-sm"
           >
-            <Zap className="w-4 h-4 text-accent-500 animate-glow-pulse" />
+            <Zap className="w-4 h-4 text-accent-500" />
             <span className="text-white/90">Powered by Advanced AI Detection</span>
           </motion.div>
 
@@ -257,7 +239,7 @@ export default function Hero() {
         </div>
       </div>
 
-      {/* Scroll Indicator */}
+      {/* Scroll Indicator - gentler animation */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -265,8 +247,8 @@ export default function Hero() {
         className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10"
       >
         <motion.div
-          animate={{ y: [0, 12, 0] }}
-          transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+          animate={{ y: [0, 8, 0] }}
+          transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
           className="w-6 h-10 border-2 border-accent-500/50 rounded-full p-1 flex justify-center"
         >
           <div className="w-1.5 h-3 bg-accent-500 rounded-full" />

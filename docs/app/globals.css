@@ -227,7 +227,7 @@ body {
     opacity: 1;
   }
   50% {
-    opacity: 0.5;
+    opacity: 0.8; /* Much more subtle (was 0.5) */
   }
 }
 
@@ -236,7 +236,7 @@ body {
     transform: translateY(0px);
   }
   50% {
-    transform: translateY(-20px);
+    transform: translateY(-10px); /* Less movement (was -20px) */
   }
 }
 
@@ -249,11 +249,11 @@ body {
 }
 
 .animate-glow-pulse {
-  animation: glow-pulse 2s ease-in-out infinite;
+  animation: glow-pulse 4s ease-in-out infinite; /* Much slower (was 2s) */
 }
 
 .animate-float {
-  animation: float 6s ease-in-out infinite;
+  animation: float 12s ease-in-out infinite; /* Much slower (was 6s) */
 }
 
 /* Reduced motion */
