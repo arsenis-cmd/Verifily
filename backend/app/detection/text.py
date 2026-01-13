@@ -79,8 +79,8 @@ class TextDetector:
             )
         
         # Run detection methods in parallel
-        # Try Hugging Face first (free), falls back to GPTZero if needed
-        api_task = self._huggingface_detect(text)
+        # Priority: ZeroGPT/GPTZero (paid, best) > External Model Server > Pattern matching
+        api_task = self._zerogpt_detect(text)  # Try ZeroGPT first (best accuracy)
         pattern_task = asyncio.to_thread(self._pattern_analysis, text)
 
         api_result, pattern_result = await asyncio.gather(
@@ -97,7 +97,82 @@ class TextDetector:
         final_result.content_hash = content_hash
         
         return final_result
-    
+
+    async def _external_model_detect(self, text: str) -> Dict:
+        """Call external AI model server (if configured)"""
+        if not settings.AI_MODEL_SERVER_URL:
+            # No external server configured, try Hugging Face
+            return await self._huggingface_detect(text)
+
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.post(
+                    f"{settings.AI_MODEL_SERVER_URL}/detect",
+                    headers={"Content-Type": "application/json"},
+                    json={"text": text},
+                    timeout=10.0
+                )
+
+                if response.status_code == 200:
+                    data = response.json()
+                    return {
+                        'ai_probability': data.get('ai_probability', 0.5),
+                        'available': True,
+                        'source': f'external_model:{data.get("model_name", "unknown")}'
+                    }
+                else:
+                    print(f"External model server error: {response.status_code}")
+                    # Fall back to Hugging Face
+                    return await self._huggingface_detect(text)
+
+        except Exception as e:
+            print(f"External model server connection failed: {e}")
+            # Fall back to Hugging Face
+            return await self._huggingface_detect(text)
+
+    async def _zerogpt_detect(self, text: str) -> Dict:
+        """Call ZeroGPT API"""
+        if not settings.ZEROGPT_API_KEY:
+            # No ZeroGPT key, try GPTZero
+            return await self._gptzero_detect(text)
+
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.post(
+                    "https://api.zerogpt.com/api/detect/detectText",
+                    headers={
+                        "ApiKey": settings.ZEROGPT_API_KEY,
+                        "Content-Type": "application/json"
+                    },
+                    json={"input_text": text},
+                    timeout=15.0
+                )
+
+                if response.status_code == 200:
+                    data = response.json()
+                    # ZeroGPT returns: {"success": true, "data": {"fakePercentage": 85.5, "isHuman": 100}}
+                    if data.get('success') and 'data' in data:
+                        result_data = data['data']
+                        # fakePercentage is AI probability (0-100)
+                        fake_percentage = float(result_data.get('fakePercentage', 50.0))
+                        ai_prob = fake_percentage / 100.0  # Convert to 0-1
+
+                        return {
+                            'ai_probability': float(ai_prob),
+                            'available': True,
+                            'source': 'zerogpt'
+                        }
+                    else:
+                        print(f"ZeroGPT unexpected response: {data}")
+                        return await self._gptzero_detect(text)
+                else:
+                    print(f"ZeroGPT API error: {response.status_code} - {response.text}")
+                    return await self._gptzero_detect(text)
+
+        except Exception as e:
+            print(f"ZeroGPT API error: {e}")
+            return await self._gptzero_detect(text)
+
     async def _huggingface_detect(self, text: str) -> Dict:
         """Call Hugging Face Inference API (FREE!)"""
 
@@ -251,24 +326,32 @@ class TextDetector:
 
         # Weight distribution
         if api_result.get('available') and api_result.get('ai_probability') is not None:
-            # API available (Hugging Face or GPTZero): 65% API, 25% patterns, 10% variance
             api_score = api_result['ai_probability']
             pattern_score = patterns['pattern_score']
             variance_score = patterns['variance_score']
 
-            combined = (
-                0.65 * api_score +
-                0.25 * pattern_score +
-                0.10 * variance_score
-            )
+            # ZeroGPT/GPTZero are more accurate, give them more weight
+            if api_result.get('source') in ['zerogpt', 'gptzero']:
+                # ZeroGPT/GPTZero (92%+ accuracy): 85% API, 10% patterns, 5% variance
+                combined = (
+                    0.85 * api_score +
+                    0.10 * pattern_score +
+                    0.05 * variance_score
+                )
+                base_confidence = 0.92  # ZeroGPT/GPTZero are very reliable
+            else:
+                # Other APIs: 65% API, 25% patterns, 10% variance
+                combined = (
+                    0.65 * api_score +
+                    0.25 * pattern_score +
+                    0.10 * variance_score
+                )
+                base_confidence = 0.85
 
             scores['api'] = api_score
             scores['api_source'] = api_result.get('source', 'unknown')
             scores['patterns'] = pattern_score
             scores['variance'] = variance_score
-
-            # Higher confidence when API is available
-            base_confidence = 0.85
         else:
             # Fallback: 70% patterns, 30% variance
             pattern_score = patterns['pattern_score']
@@ -311,7 +394,7 @@ class TextDetector:
             classification=classification,
             ai_probability=round(combined, 4),
             confidence=round(confidence, 4),
-            scores={k: round(v, 4) for k, v in scores.items()},
+            scores={k: round(v, 4) if isinstance(v, (int, float)) else v for k, v in scores.items()},
             content_hash=""
         )
     
