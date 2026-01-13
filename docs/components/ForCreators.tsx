@@ -1,182 +1,162 @@
 'use client';
 
-import { motion } from 'framer-motion';
-import { Pencil, Users, TrendingUp, Award } from 'lucide-react';
+import { motion, useInView, useScroll, useTransform } from 'framer-motion';
+import { useRef } from 'react';
+import { Pen, Users, TrendingUp, Award } from 'lucide-react';
 
 export default function ForCreators() {
-  const benefits = [
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, margin: '-100px' });
+
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ['start end', 'end start'],
+  });
+
+  // Parallax values
+  const y1 = useTransform(scrollYProgress, [0, 1], [100, -100]);
+  const y2 = useTransform(scrollYProgress, [0, 1], [150, -150]);
+  const y3 = useTransform(scrollYProgress, [0, 1], [80, -80]);
+
+  const creators = [
     {
-      icon: Pencil,
-      title: 'Prove Your Authenticity',
-      description: 'Show readers your work is genuinely human-written. Stand out in an AI-flooded world.',
-    },
-    {
-      icon: Users,
-      title: 'Build Trust',
-      description: 'Verified human content builds stronger connections with your audience.',
-    },
-    {
-      icon: TrendingUp,
-      title: 'Boost Credibility',
-      description: 'Higher trust = more engagement, shares, and loyal followers.',
+      icon: Pen,
+      title: 'Writers & Journalists',
+      description: 'Finally prove your articles are original. Build trust with editors and readers.',
+      emoji: '✍️',
+      gradient: 'from-accent-500 to-accent-300',
+      parallaxY: y1,
     },
     {
       icon: Award,
-      title: 'Own Your Voice',
-      description: 'Protect your unique perspective in the age of machine-generated content.',
+      title: 'Artists & Designers',
+      description: 'Protect your creative work. Verify your human artistry in an AI world.',
+      emoji: '🎨',
+      gradient: 'from-purple-500 to-purple-400',
+      parallaxY: y2,
+    },
+    {
+      icon: Users,
+      title: 'Developers & Builders',
+      description: 'Document your original code. Prove your contributions are authentic.',
+      emoji: '💻',
+      gradient: 'from-success-500 to-success-400',
+      parallaxY: y3,
     },
   ];
 
   return (
-    <section className="py-24 relative overflow-hidden">
-      {/* Background Effects */}
-      <div className="absolute top-1/2 left-1/4 w-96 h-96 bg-purple/10 rounded-full blur-3xl" />
-      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-cyan/10 rounded-full blur-3xl" />
+    <section id="for-creators" ref={ref} className="py-32 relative overflow-hidden">
+      {/* Background */}
+      <div className="absolute inset-0 dot-pattern opacity-10" />
+      <div className="absolute top-1/4 left-0 w-96 h-96 bg-accent-500/5 rounded-full blur-3xl" />
+      <div className="absolute bottom-1/4 right-0 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl" />
 
       <div className="container mx-auto px-6 relative z-10">
-        <div className="max-w-6xl mx-auto">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            {/* Left Content */}
+        {/* Section Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.8 }}
+          className="text-center max-w-3xl mx-auto mb-20"
+        >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={isInView ? { opacity: 1, scale: 1 } : {}}
+            transition={{ duration: 0.6 }}
+            className="inline-block px-6 py-2 glass rounded-full mb-6"
+          >
+            <span className="text-purple-400 font-semibold text-sm uppercase tracking-wider">For Creators</span>
+          </motion.div>
+
+          <h2 className="text-5xl md:text-6xl lg:text-7xl font-bold font-heading mb-6">
+            Built for People Who{' '}
+            <span className="gradient-text">Create</span>
+          </h2>
+        </motion.div>
+
+        {/* Creators Grid */}
+        <div className="max-w-6xl mx-auto space-y-12">
+          {creators.map((creator, index) => (
             <motion.div
-              initial={{ opacity: 0, x: -50 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-              className="space-y-8"
+              key={index}
+              initial={{ opacity: 0, y: 60 }}
+              animate={isInView ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.8, delay: 0.2 + index * 0.2 }}
+              className="group"
             >
-              <div>
-                <span className="text-purple text-sm font-semibold uppercase tracking-wider">
-                  For Content Creators
-                </span>
-                <h2 className="text-4xl md:text-5xl font-bold mt-4 mb-6">
-                  Your Words,
-                  <br />
-                  <span className="gradient-text">Your Proof</span>
-                </h2>
-                <p className="text-xl text-foreground/70">
-                  In a world where AI can write anything, proving you're human is your competitive advantage.
-                </p>
-              </div>
+              <div className="glass-strong p-10 md:p-16 rounded-3xl relative overflow-hidden hover:scale-[1.02] transition-all duration-500">
+                {/* Gradient Background */}
+                <div className={`absolute inset-0 bg-gradient-to-br ${creator.gradient} opacity-0 group-hover:opacity-5 transition-opacity duration-500`} />
 
-              {/* Benefits Grid */}
-              <div className="space-y-6">
-                {benefits.map((benefit, index) => (
-                  <motion.div
-                    key={index}
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.6, delay: index * 0.1 }}
-                    className="flex gap-4 items-start group"
-                  >
-                    <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-purple to-cyan p-2.5 group-hover:scale-110 group-hover:rotate-6 transition-all">
-                      <benefit.icon className="w-full h-full text-navy" />
+                <div className="grid md:grid-cols-2 gap-12 items-center relative z-10">
+                  {/* Content */}
+                  <div className={`space-y-6 ${index % 2 === 1 ? 'md:order-2' : ''}`}>
+                    <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${creator.gradient} bg-opacity-10 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-500`}>
+                      <creator.icon className="w-8 h-8 text-white" strokeWidth={1.5} />
                     </div>
-                    <div>
-                      <h3 className="text-xl font-bold mb-2">{benefit.title}</h3>
-                      <p className="text-foreground/70">{benefit.description}</p>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
 
-              {/* CTA */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: 0.4 }}
-              >
-                <a
-                  href="#cta"
-                  className="inline-block px-8 py-4 glass rounded-full font-semibold hover:bg-white/5 transition-all"
-                >
-                  Start Verifying Your Content
-                </a>
-              </motion.div>
-            </motion.div>
+                    <h3 className="text-3xl md:text-4xl font-bold font-heading text-white">
+                      {creator.title}
+                    </h3>
 
-            {/* Right Visual */}
-            <motion.div
-              initial={{ opacity: 0, x: 50 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-              className="relative"
-            >
-              {/* Mockup Card */}
-              <div className="glass p-8 rounded-3xl relative overflow-hidden">
-                {/* Decorative Elements */}
-                <div className="absolute -top-12 -right-12 w-48 h-48 bg-cyan/20 rounded-full blur-3xl" />
-                <div className="absolute -bottom-12 -left-12 w-48 h-48 bg-purple/20 rounded-full blur-3xl" />
-
-                {/* Content */}
-                <div className="relative z-10 space-y-6">
-                  {/* Profile */}
-                  <div className="flex items-center gap-4">
-                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-cyan to-purple" />
-                    <div>
-                      <div className="font-bold text-lg">Sarah Chen</div>
-                      <div className="text-foreground/60">Tech Writer</div>
-                    </div>
-                  </div>
-
-                  {/* Post Content */}
-                  <div className="space-y-4">
-                    <p className="text-foreground/80 leading-relaxed">
-                      "After years of building my voice online, I wanted to make sure my readers knew my work was authentically mine. Verifily gives me that proof."
+                    <p className="text-xl text-white/70 leading-relaxed">
+                      {creator.description}
                     </p>
 
-                    {/* Verification Badge */}
-                    <motion.div
-                      initial={{ scale: 0.8, opacity: 0 }}
-                      whileInView={{ scale: 1, opacity: 1 }}
-                      viewport={{ once: true }}
-                      transition={{ duration: 0.6, delay: 0.3 }}
-                      className="inline-flex items-center gap-2 bg-cyan/20 border border-cyan/50 px-4 py-2 rounded-full"
-                    >
-                      <Award className="w-5 h-5 text-cyan" />
-                      <span className="font-semibold text-cyan">Verified Human Content</span>
-                    </motion.div>
+                    <div className={`h-1 w-24 bg-gradient-to-r ${creator.gradient} rounded-full opacity-50 group-hover:w-full group-hover:opacity-100 transition-all duration-500`} />
                   </div>
 
-                  {/* Stats */}
-                  <div className="grid grid-cols-3 gap-4 pt-6 border-t border-white/10">
-                    {[
-                      { label: 'Engagement', value: '+47%' },
-                      { label: 'Trust Score', value: '98%' },
-                      { label: 'Followers', value: '+2.3K' },
-                    ].map((stat, index) => (
-                      <div key={index} className="text-center">
-                        <div className="text-2xl font-bold gradient-text">
-                          {stat.value}
-                        </div>
-                        <div className="text-xs text-foreground/60 mt-1">
-                          {stat.label}
-                        </div>
+                  {/* Visual with Parallax */}
+                  <motion.div
+                    style={{ y: creator.parallaxY }}
+                    className={`${index % 2 === 1 ? 'md:order-1' : ''}`}
+                  >
+                    <div className="relative">
+                      <div className={`aspect-square rounded-3xl bg-gradient-to-br ${creator.gradient} opacity-20 group-hover:opacity-30 transition-opacity duration-500 flex items-center justify-center`}>
+                        <div className="text-9xl">{creator.emoji}</div>
                       </div>
-                    ))}
-                  </div>
+
+                      {/* Floating badge */}
+                      <motion.div
+                        animate={{
+                          y: [0, -10, 0],
+                        }}
+                        transition={{
+                          duration: 3,
+                          repeat: Infinity,
+                          ease: 'easeInOut',
+                        }}
+                        className="absolute -top-6 -right-6 glass px-4 py-2 rounded-full flex items-center gap-2"
+                      >
+                        <div className={`w-2 h-2 rounded-full bg-gradient-to-r ${creator.gradient} animate-pulse`} />
+                        <span className="text-sm font-semibold">Verified</span>
+                      </motion.div>
+                    </div>
+                  </motion.div>
                 </div>
               </div>
-
-              {/* Floating Badge */}
-              <motion.div
-                initial={{ y: 20, opacity: 0 }}
-                whileInView={{ y: 0, opacity: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: 0.4 }}
-                animate={{ y: [0, -10, 0] }}
-                className="absolute -top-8 -right-8 glass p-4 rounded-2xl"
-              >
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-cyan rounded-full animate-pulse" />
-                  <span className="font-semibold text-sm">Live Verified</span>
-                </div>
-              </motion.div>
             </motion.div>
-          </div>
+          ))}
         </div>
+
+        {/* Bottom CTA */}
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.8, delay: 0.8 }}
+          className="text-center mt-20"
+        >
+          <p className="text-xl text-white/60 mb-8">
+            Join <span className="gradient-text font-bold">10,000+ creators</span> on the waitlist
+          </p>
+          <a
+            href="#cta"
+            className="btn btn-ghost text-lg hover:glow-hover-cyan"
+          >
+            Get Early Access
+          </a>
+        </motion.div>
       </div>
     </section>
   );

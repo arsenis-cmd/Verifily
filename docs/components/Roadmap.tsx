@@ -1,201 +1,162 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import { motion, useInView } from 'framer-motion';
+import { useRef } from 'react';
 import { CheckCircle, Clock, Sparkles } from 'lucide-react';
 
 export default function Roadmap() {
-  const phases = [
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, margin: '-100px' });
+
+  const milestones = [
     {
-      status: 'completed',
-      quarter: 'Q4 2024',
-      title: 'Foundation',
-      items: [
-        'Chrome Extension Launch',
-        'Real-time AI Detection',
-        'Visual Verification Badges',
-        'Privacy-First Architecture',
-      ],
-    },
-    {
+      quarter: 'Q1 2026',
+      title: 'Chrome Extension Launch',
+      description: 'Public release of browser extension with core detection features',
       status: 'current',
-      quarter: 'Q1 2025',
-      title: 'Expansion',
-      items: [
-        'Firefox & Safari Support',
-        'Advanced Analytics Dashboard',
-        'Content Creator Verification',
-        'API for Developers',
-      ],
     },
     {
+      quarter: 'Q2 2026',
+      title: 'Platform APIs & Badges',
+      description: 'Developer API access and embeddable verification badges',
       status: 'upcoming',
-      quarter: 'Q2 2025',
-      title: 'Intelligence',
-      items: [
-        'Multi-Language Support',
-        'Image & Video Detection',
-        'Platform Integrations',
-        'Enterprise Solutions',
-      ],
     },
     {
-      status: 'future',
-      quarter: 'Q3 2025',
-      title: 'Ecosystem',
-      items: [
-        'Blockchain Verification',
-        'Community Moderation',
-        'Creator Marketplace',
-        'Educational Resources',
-      ],
+      quarter: 'Q3 2026',
+      title: 'Enterprise Solutions',
+      description: 'Team dashboards, bulk verification, and custom integrations',
+      status: 'upcoming',
+    },
+    {
+      quarter: 'Q4 2026',
+      title: 'Regulatory Certification',
+      description: 'Third-party audits and compliance certifications',
+      status: 'upcoming',
     },
   ];
 
-  const getStatusConfig = (status: string) => {
+  const getStatusIcon = (status: string) => {
     switch (status) {
       case 'completed':
-        return {
-          icon: CheckCircle,
-          color: 'text-cyan',
-          bgColor: 'bg-cyan/20',
-          borderColor: 'border-cyan/50',
-        };
+        return CheckCircle;
       case 'current':
-        return {
-          icon: Sparkles,
-          color: 'text-purple',
-          bgColor: 'bg-purple/20',
-          borderColor: 'border-purple/50',
-        };
+        return Sparkles;
       default:
-        return {
-          icon: Clock,
-          color: 'text-foreground/40',
-          bgColor: 'bg-foreground/10',
-          borderColor: 'border-foreground/20',
-        };
+        return Clock;
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'completed':
+        return 'text-success-500';
+      case 'current':
+        return 'text-accent-500';
+      default:
+        return 'text-white/40';
     }
   };
 
   return (
-    <section id="roadmap" className="py-24 relative overflow-hidden bg-navy-light/30">
-      {/* Background Grid */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#1a1f3a_1px,transparent_1px),linear-gradient(to_bottom,#1a1f3a_1px,transparent_1px)] bg-[size:4rem_4rem] opacity-20" />
+    <section id="roadmap" ref={ref} className="py-32 relative overflow-hidden bg-primary-800/30">
+      {/* Background */}
+      <div className="absolute inset-0 grid-pattern opacity-10" />
+      <div className="absolute top-0 left-1/3 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl" />
 
       <div className="container mx-auto px-6 relative z-10">
         {/* Section Header */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
+          initial={{ opacity: 0, y: 40 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.8 }}
           className="text-center max-w-3xl mx-auto mb-20"
         >
-          <span className="text-purple text-sm font-semibold uppercase tracking-wider">
-            Roadmap
-          </span>
-          <h2 className="text-4xl md:text-5xl font-bold mt-4 mb-6">
-            Building the Future of
-            <br />
-            <span className="gradient-text">Content Verification</span>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={isInView ? { opacity: 1, scale: 1 } : {}}
+            transition={{ duration: 0.6 }}
+            className="inline-block px-6 py-2 glass rounded-full mb-6"
+          >
+            <span className="text-purple-400 font-semibold text-sm uppercase tracking-wider">Roadmap</span>
+          </motion.div>
+
+          <h2 className="text-5xl md:text-6xl lg:text-7xl font-bold font-heading mb-6">
+            The Future of{' '}
+            <span className="gradient-text">Digital Trust</span>
           </h2>
-          <p className="text-xl text-foreground/70">
-            Our journey to make the internet more trustworthy
-          </p>
         </motion.div>
 
         {/* Timeline */}
-        <div className="max-w-6xl mx-auto">
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {phases.map((phase, index) => {
-              const config = getStatusConfig(phase.status);
-              const Icon = config.icon;
+        <div className="max-w-5xl mx-auto relative">
+          {/* Vertical Line */}
+          <div className="absolute left-8 md:left-1/2 top-0 bottom-0 w-0.5 bg-gradient-to-b from-accent-500/50 via-purple-500/50 to-transparent" />
+
+          {/* Milestones */}
+          <div className="space-y-16">
+            {milestones.map((milestone, index) => {
+              const StatusIcon = getStatusIcon(milestone.status);
+              const isLeft = index % 2 === 0;
 
               return (
                 <motion.div
                   key={index}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.6, delay: index * 0.1 }}
-                  className="relative"
+                  initial={{ opacity: 0, x: isLeft ? -60 : 60 }}
+                  animate={isInView ? { opacity: 1, x: 0 } : {}}
+                  transition={{ duration: 0.8, delay: 0.2 + index * 0.2 }}
+                  className={`relative flex items-center ${isLeft ? 'md:flex-row' : 'md:flex-row-reverse'}`}
                 >
-                  {/* Connector Line */}
-                  {index < phases.length - 1 && (
-                    <div className="hidden lg:block absolute top-8 left-full w-8 h-0.5 bg-gradient-to-r from-cyan/50 to-purple/50" />
-                  )}
-
-                  {/* Card */}
-                  <div
-                    className={`glass p-6 rounded-2xl border-2 ${config.borderColor} hover:border-cyan/50 transition-all group`}
-                  >
-                    {/* Header */}
-                    <div className="flex items-center justify-between mb-4">
-                      <span className="text-sm font-semibold text-foreground/60">
-                        {phase.quarter}
-                      </span>
-                      <div className={`p-2 rounded-lg ${config.bgColor}`}>
-                        <Icon className={`w-5 h-5 ${config.color}`} />
+                  {/* Content */}
+                  <div className={`flex-1 ${isLeft ? 'md:pr-16 md:text-right' : 'md:pl-16 md:text-left'} ml-20 md:ml-0`}>
+                    <div className="glass-strong p-8 rounded-3xl hover:scale-105 transition-all duration-500 group cursor-pointer">
+                      <div className="flex items-center gap-3 mb-4 md:justify-end">
+                        <span className="text-sm font-semibold text-accent-500">{milestone.quarter}</span>
+                        <StatusIcon className={`w-5 h-5 ${getStatusColor(milestone.status)}`} />
                       </div>
+
+                      <h3 className="text-2xl font-bold font-heading mb-3 text-white">
+                        {milestone.title}
+                      </h3>
+
+                      <p className="text-white/70 leading-relaxed">
+                        {milestone.description}
+                      </p>
+
+                      {milestone.status === 'current' && (
+                        <div className="mt-4 inline-flex items-center gap-2 text-sm text-accent-500">
+                          <div className="w-2 h-2 rounded-full bg-accent-500 animate-pulse" />
+                          <span className="font-semibold">In Progress</span>
+                        </div>
+                      )}
                     </div>
+                  </div>
 
-                    {/* Title */}
-                    <h3 className="text-2xl font-bold mb-4 group-hover:gradient-text transition-all">
-                      {phase.title}
-                    </h3>
-
-                    {/* Items */}
-                    <ul className="space-y-3">
-                      {phase.items.map((item, itemIndex) => (
-                        <motion.li
-                          key={itemIndex}
-                          initial={{ opacity: 0, x: -10 }}
-                          whileInView={{ opacity: 1, x: 0 }}
-                          viewport={{ once: true }}
-                          transition={{
-                            duration: 0.4,
-                            delay: index * 0.1 + itemIndex * 0.05,
-                          }}
-                          className="flex items-start gap-2 text-foreground/70"
-                        >
-                          <div
-                            className={`w-1.5 h-1.5 rounded-full mt-2 flex-shrink-0 ${
-                              phase.status === 'completed'
-                                ? 'bg-cyan'
-                                : phase.status === 'current'
-                                ? 'bg-purple'
-                                : 'bg-foreground/30'
-                            }`}
-                          />
-                          <span className="text-sm leading-relaxed">{item}</span>
-                        </motion.li>
-                      ))}
-                    </ul>
+                  {/* Timeline Node */}
+                  <div className="absolute left-8 md:left-1/2 -translate-x-1/2 w-8 h-8 rounded-full bg-primary-900 border-4 border-accent-500 z-10 flex items-center justify-center">
+                    <div className={`w-3 h-3 rounded-full ${milestone.status === 'current' ? 'bg-accent-500 animate-pulse' : 'bg-white/40'}`} />
                   </div>
                 </motion.div>
               );
             })}
           </div>
-
-          {/* Bottom Note */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            className="text-center mt-16 space-y-4"
-          >
-            <p className="text-foreground/60">
-              Want to influence our roadmap? Join our community and share your feedback.
-            </p>
-            <a
-              href="#cta"
-              className="inline-block px-8 py-4 bg-cyan text-navy rounded-full font-semibold hover:bg-cyan-dark transition-all"
-            >
-              Get Early Access
-            </a>
-          </motion.div>
         </div>
+
+        {/* Vision Statement */}
+        <motion.div
+          initial={{ opacity: 0, y: 60 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 1, delay: 1 }}
+          className="max-w-4xl mx-auto mt-32 text-center"
+        >
+          <h3 className="text-4xl md:text-5xl font-bold font-heading leading-tight mb-8">
+            We're not just building a tool.{' '}
+            <span className="block mt-4 gradient-text">
+              We're building the trust infrastructure for the AI era.
+            </span>
+          </h3>
+          <p className="text-xl text-white/60 leading-relaxed">
+            The verification layer that platforms, creators, and regulators will rely on.
+          </p>
+        </motion.div>
       </div>
     </section>
   );

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowRight, Shield, Sparkles } from 'lucide-react';
+import { ArrowRight, Shield, Zap, Lock } from 'lucide-react';
 
 export default function Hero() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -14,61 +14,113 @@ export default function Hero() {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    // Set canvas size
+    const setCanvasSize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
+    setCanvasSize();
 
+    // Particle system
     const particles: Array<{
       x: number;
       y: number;
+      z: number;
+      vx: number;
+      vy: number;
       size: number;
-      speedX: number;
-      speedY: number;
       opacity: number;
     }> = [];
 
     // Create particles
-    for (let i = 0; i < 100; i++) {
+    for (let i = 0; i < 150; i++) {
       particles.push({
         x: Math.random() * canvas.width,
         y: Math.random() * canvas.height,
+        z: Math.random() * 1000,
+        vx: (Math.random() - 0.5) * 0.3,
+        vy: (Math.random() - 0.5) * 0.3,
         size: Math.random() * 2 + 0.5,
-        speedX: (Math.random() - 0.5) * 0.5,
-        speedY: (Math.random() - 0.5) * 0.5,
         opacity: Math.random() * 0.5 + 0.2,
       });
     }
 
+    let mouseX = canvas.width / 2;
+    let mouseY = canvas.height / 2;
+
+    // Mouse parallax
+    const handleMouseMove = (e: MouseEvent) => {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+    };
+    window.addEventListener('mousemove', handleMouseMove);
+
     function animate() {
       if (!ctx || !canvas) return;
 
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      // Clear with gradient
+      const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+      gradient.addColorStop(0, '#0a1628');
+      gradient.addColorStop(0.5, '#1a365d');
+      gradient.addColorStop(1, '#0f2137');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      particles.forEach((particle) => {
-        ctx.fillStyle = `rgba(0, 217, 255, ${particle.opacity})`;
-        ctx.beginPath();
-        ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
-        ctx.fill();
+      // Update and draw particles
+      particles.forEach((particle, i) => {
+        // Mouse influence
+        const dx = mouseX - particle.x;
+        const dy = mouseY - particle.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        const maxDistance = 200;
+
+        if (distance < maxDistance) {
+          const force = (1 - distance / maxDistance) * 0.5;
+          particle.vx += (dx / distance) * force * 0.1;
+          particle.vy += (dy / distance) * force * 0.1;
+        }
 
         // Update position
-        particle.x += particle.speedX;
-        particle.y += particle.speedY;
+        particle.x += particle.vx;
+        particle.y += particle.vy;
+        particle.z -= 0.5;
+
+        // Damping
+        particle.vx *= 0.98;
+        particle.vy *= 0.98;
+
+        // Reset z
+        if (particle.z < 1) {
+          particle.z = 1000;
+        }
 
         // Wrap around
         if (particle.x < 0) particle.x = canvas.width;
         if (particle.x > canvas.width) particle.x = 0;
         if (particle.y < 0) particle.y = canvas.height;
         if (particle.y > canvas.height) particle.y = 0;
+
+        // Calculate size based on z (perspective)
+        const scale = 1000 / (1000 - particle.z + 1);
+        const size = particle.size * scale;
+
+        // Draw particle
+        ctx.fillStyle = `rgba(0, 212, 255, ${particle.opacity * scale * 0.6})`;
+        ctx.beginPath();
+        ctx.arc(particle.x, particle.y, size, 0, Math.PI * 2);
+        ctx.fill();
       });
 
       // Draw connections
       particles.forEach((p1, i) => {
-        particles.slice(i + 1).forEach((p2) => {
+        particles.slice(i + 1, i + 5).forEach((p2) => {
           const dx = p1.x - p2.x;
           const dy = p1.y - p2.y;
           const distance = Math.sqrt(dx * dx + dy * dy);
 
           if (distance < 150) {
-            ctx.strokeStyle = `rgba(0, 217, 255, ${0.1 * (1 - distance / 150)})`;
+            const opacity = (1 - distance / 150) * 0.15;
+            ctx.strokeStyle = `rgba(0, 212, 255, ${opacity})`;
             ctx.lineWidth = 0.5;
             ctx.beginPath();
             ctx.moveTo(p1.x, p1.y);
@@ -84,104 +136,121 @@ export default function Hero() {
     animate();
 
     const handleResize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
+      setCanvasSize();
     };
-
     window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('resize', handleResize);
+    };
   }, []);
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      {/* Animated Background */}
+      {/* Animated Background Canvas */}
       <canvas
         ref={canvasRef}
         className="absolute inset-0 z-0"
       />
 
       {/* Gradient Overlays */}
-      <div className="absolute inset-0 bg-gradient-to-b from-navy via-navy/95 to-navy z-0" />
-      <div className="absolute top-0 left-1/4 w-96 h-96 bg-cyan/20 rounded-full blur-3xl animate-pulse" />
-      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple/20 rounded-full blur-3xl animate-pulse delay-1000" />
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary-900/50 to-primary-900 z-0" />
+
+      {/* Glowing orbs */}
+      <div className="absolute top-20 left-1/4 w-96 h-96 bg-accent-500/10 rounded-full blur-3xl animate-float" />
+      <div className="absolute bottom-20 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-float" style={{ animationDelay: '2s' }} />
 
       {/* Content */}
-      <div className="container mx-auto px-6 z-10 relative">
-        <div className="max-w-4xl mx-auto text-center space-y-8">
+      <div className="container mx-auto px-6 z-10 relative pt-32">
+        <div className="max-w-5xl mx-auto text-center space-y-8">
           {/* Badge */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="inline-flex items-center gap-2 glass px-4 py-2 rounded-full text-sm"
+            transition={{ duration: 0.8, delay: 0.3 }}
+            className="inline-flex items-center gap-2 glass px-6 py-3 rounded-full text-sm"
           >
-            <Sparkles className="w-4 h-4 text-cyan" />
-            <span>Powered by Advanced AI Detection</span>
+            <Zap className="w-4 h-4 text-accent-500 animate-glow-pulse" />
+            <span className="text-white/90">Powered by Advanced AI Detection</span>
           </motion.div>
 
-          {/* Headline */}
-          <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-            className="text-5xl md:text-7xl font-bold leading-tight"
-          >
-            Verify{' '}
-            <span className="gradient-text">AI Content</span>
-            <br />
-            in Real-Time
-          </motion.h1>
+          {/* Headline - Word by word reveal */}
+          <div className="space-y-4">
+            <motion.h1
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.8, delay: 0.5 }}
+              className="text-5xl md:text-7xl lg:text-8xl font-bold font-heading leading-tight"
+            >
+              <motion.span
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.7 }}
+                className="block"
+              >
+                Know what's AI.
+              </motion.span>
+              <motion.span
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 1 }}
+                className="block gradient-text"
+              >
+                Prove what's human.
+              </motion.span>
+            </motion.h1>
+          </div>
 
           {/* Subheadline */}
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-xl md:text-2xl text-foreground/70 max-w-2xl mx-auto"
+            transition={{ duration: 0.8, delay: 1.3 }}
+            className="text-xl md:text-2xl text-white/70 max-w-3xl mx-auto leading-relaxed"
           >
-            Detect AI-generated text instantly as you browse. Get verified authenticity scores with our powerful Chrome extension.
+            The browser extension that detects AI-generated content and lets you verify your authentic human work.
+            <span className="text-accent-500"> Join the trust layer for the AI era.</span>
           </motion.p>
 
-          {/* CTA Buttons */}
+          {/* CTAs */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-            className="flex flex-col sm:flex-row gap-4 justify-center items-center"
+            transition={{ duration: 0.8, delay: 1.6 }}
+            className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4"
           >
             <a
               href="#cta"
-              className="group px-8 py-4 bg-cyan text-navy rounded-full font-semibold text-lg hover:bg-cyan-dark transition-all flex items-center gap-2 hover:gap-3"
+              className="btn btn-primary text-lg px-8 py-4 glow-hover-cyan group"
             >
-              Install Free Extension
+              Add to Chrome - It's Free
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </a>
             <a
-              href="#demo"
-              className="px-8 py-4 glass rounded-full font-semibold text-lg hover:bg-white/5 transition-all flex items-center gap-2"
+              href="#how-it-works"
+              className="btn btn-ghost text-lg px-8 py-4 group"
             >
-              <Shield className="w-5 h-5 text-cyan" />
-              See It in Action
+              See How It Works
+              <Shield className="w-5 h-5 text-accent-500" />
             </a>
           </motion.div>
 
-          {/* Floating Stats */}
+          {/* Trust badges */}
           <motion.div
-            initial={{ opacity: 0, y: 40 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            className="grid grid-cols-3 gap-8 max-w-2xl mx-auto pt-12"
+            transition={{ duration: 0.8, delay: 1.9 }}
+            className="flex flex-wrap items-center justify-center gap-8 pt-8 text-sm text-white/60"
           >
             {[
-              { value: '99.7%', label: 'Accuracy' },
-              { value: '<100ms', label: 'Detection Speed' },
-              { value: '50K+', label: 'Users' },
-            ].map((stat, index) => (
-              <div key={index} className="text-center">
-                <div className="text-3xl md:text-4xl font-bold gradient-text">
-                  {stat.value}
-                </div>
-                <div className="text-sm text-foreground/60 mt-2">{stat.label}</div>
+              { icon: Lock, text: 'Privacy-first' },
+              { icon: Zap, text: 'Works instantly' },
+              { icon: Shield, text: '95%+ accuracy' },
+            ].map((badge, index) => (
+              <div key={index} className="flex items-center gap-2">
+                <badge.icon className="w-4 h-4 text-accent-500" />
+                <span>{badge.text}</span>
               </div>
             ))}
           </motion.div>
@@ -192,16 +261,16 @@ export default function Hero() {
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ duration: 0.6, delay: 0.8 }}
-        className="absolute bottom-8 left-1/2 -translate-x-1/2"
+        transition={{ duration: 0.8, delay: 2.2 }}
+        className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10"
       >
-        <div className="w-6 h-10 border-2 border-cyan/50 rounded-full p-1">
-          <motion.div
-            animate={{ y: [0, 12, 0] }}
-            transition={{ duration: 1.5, repeat: Infinity }}
-            className="w-2 h-2 bg-cyan rounded-full mx-auto"
-          />
-        </div>
+        <motion.div
+          animate={{ y: [0, 12, 0] }}
+          transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+          className="w-6 h-10 border-2 border-accent-500/50 rounded-full p-1 flex justify-center"
+        >
+          <div className="w-1.5 h-3 bg-accent-500 rounded-full" />
+        </motion.div>
       </motion.div>
     </section>
   );

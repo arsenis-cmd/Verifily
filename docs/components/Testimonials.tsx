@@ -1,169 +1,105 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import { motion, useInView } from 'framer-motion';
+import { useRef } from 'react';
 import { Quote, Star } from 'lucide-react';
 
 export default function Testimonials() {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, margin: '-100px' });
+
   const testimonials = [
     {
-      name: 'Alex Rivera',
-      role: 'Tech Journalist',
-      company: 'TechDaily',
-      avatar: 'AR',
-      quote: "Verifily has become essential for my research. I can instantly verify sources and detect AI-written content. It's saved me from publishing misleading information multiple times.",
-      rating: 5,
+      quote: 'Finally, a way to prove my writing is mine. This is what the internet needs.',
+      author: 'Sarah K.',
+      role: 'Freelance Journalist',
+      avatar: 'SK',
     },
     {
-      name: 'Maya Patel',
+      quote: "I've been looking for something like this since ChatGPT launched. Game changer.",
+      author: 'Marcus T.',
       role: 'Content Creator',
-      company: '@MayaWrites',
-      avatar: 'MP',
-      quote: "As a writer, proving my work is human-written sets me apart. Verifily gave my audience confidence and my engagement went up 40%.",
-      rating: 5,
+      avatar: 'MT',
     },
     {
-      name: 'David Kim',
+      quote: 'The accuracy is impressive. Essential tool for the AI era.',
+      author: 'David Chen',
       role: 'Academic Researcher',
-      company: 'Stanford University',
-      avatar: 'DK',
-      quote: "The accuracy is impressive. We use Verifily to screen student submissions and research papers. It's faster and more reliable than any tool we've tried.",
-      rating: 5,
-    },
-    {
-      name: 'Sophie Chen',
-      role: 'Marketing Director',
-      company: 'BrandFlow',
-      avatar: 'SC',
-      quote: "Our team reviews hundreds of content pieces weekly. Verifily helps us maintain authenticity in our campaigns and catch AI-generated spam.",
-      rating: 5,
-    },
-    {
-      name: 'James Wilson',
-      role: 'Developer',
-      company: 'OpenSource',
-      avatar: 'JW',
-      quote: "Clean UI, fast detection, privacy-focused. Exactly what I needed. The API integration was seamless for our project.",
-      rating: 5,
-    },
-    {
-      name: 'Priya Sharma',
-      role: 'Social Media Manager',
-      company: 'Digital Hub',
-      avatar: 'PS',
-      quote: "Managing multiple client accounts means dealing with tons of content. Verifily helps me spot fake reviews and AI-generated comments instantly.",
-      rating: 5,
+      avatar: 'DC',
     },
   ];
 
   return (
-    <section className="py-24 relative overflow-hidden">
-      {/* Background Effects */}
-      <div className="absolute top-0 left-1/3 w-96 h-96 bg-cyan/10 rounded-full blur-3xl" />
-      <div className="absolute bottom-0 right-1/3 w-96 h-96 bg-purple/10 rounded-full blur-3xl" />
+    <section ref={ref} className="py-32 relative overflow-hidden">
+      {/* Background */}
+      <div className="absolute inset-0 dot-pattern opacity-10" />
+      <div className="absolute top-1/3 left-1/4 w-96 h-96 bg-accent-500/5 rounded-full blur-3xl" />
+      <div className="absolute bottom-1/3 right-1/4 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl" />
 
       <div className="container mx-auto px-6 relative z-10">
         {/* Section Header */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
+          initial={{ opacity: 0, y: 40 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.8 }}
           className="text-center max-w-3xl mx-auto mb-20"
         >
-          <span className="text-cyan text-sm font-semibold uppercase tracking-wider">
-            Testimonials
-          </span>
-          <h2 className="text-4xl md:text-5xl font-bold mt-4 mb-6">
-            Trusted by Thousands
-            <br />
-            <span className="gradient-text">Across the Globe</span>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={isInView ? { opacity: 1, scale: 1 } : {}}
+            transition={{ duration: 0.6 }}
+            className="inline-block px-6 py-2 glass rounded-full mb-6"
+          >
+            <span className="text-accent-500 font-semibold text-sm uppercase tracking-wider">Testimonials</span>
+          </motion.div>
+
+          <h2 className="text-5xl md:text-6xl lg:text-7xl font-bold font-heading mb-6">
+            What Creators{' '}
+            <span className="gradient-text">Are Saying</span>
           </h2>
-          <p className="text-xl text-foreground/70">
-            See what our users have to say about Verifily
-          </p>
         </motion.div>
 
         {/* Testimonials Grid */}
-        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
           {testimonials.map((testimonial, index) => (
             <motion.div
               key={index}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: index * 0.1 }}
-              whileHover={{ y: -8, scale: 1.02 }}
-              className="glass p-8 rounded-2xl hover:border-cyan/50 transition-all cursor-pointer relative"
+              initial={{ opacity: 0, y: 40 }}
+              animate={isInView ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.6, delay: 0.2 + index * 0.1 }}
+              className="glass-strong p-8 rounded-3xl hover:scale-105 transition-all duration-500 group cursor-pointer relative"
             >
-              {/* Quote Icon */}
-              <div className="absolute top-6 right-6 text-cyan/20">
-                <Quote size={40} />
-              </div>
+              {/* Quote icon */}
+              <Quote className="w-12 h-12 text-accent-500/20 absolute top-6 right-6" />
 
               {/* Rating */}
-              <div className="flex gap-1 mb-4">
-                {Array.from({ length: testimonial.rating }).map((_, i) => (
+              <div className="flex gap-1 mb-6">
+                {[...Array(5)].map((_, i) => (
                   <Star
                     key={i}
-                    size={16}
-                    className="fill-cyan text-cyan"
+                    className="w-4 h-4 fill-accent-500 text-accent-500"
                   />
                 ))}
               </div>
 
               {/* Quote */}
-              <p className="text-foreground/80 leading-relaxed mb-6 relative z-10">
+              <p className="text-white/80 leading-relaxed mb-6 text-lg relative z-10">
                 "{testimonial.quote}"
               </p>
 
               {/* Author */}
               <div className="flex items-center gap-4">
-                {/* Avatar */}
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-cyan to-purple flex items-center justify-center font-bold text-navy">
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-accent-500 to-purple-500 flex items-center justify-center font-bold text-sm">
                   {testimonial.avatar}
                 </div>
-
-                {/* Info */}
                 <div>
-                  <div className="font-bold">{testimonial.name}</div>
-                  <div className="text-sm text-foreground/60">
-                    {testimonial.role} • {testimonial.company}
-                  </div>
+                  <div className="font-bold text-white">{testimonial.author}</div>
+                  <div className="text-sm text-white/60">{testimonial.role}</div>
                 </div>
               </div>
             </motion.div>
           ))}
         </div>
-
-        {/* Social Proof Stats */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.6 }}
-          className="max-w-4xl mx-auto mt-20 glass p-12 rounded-3xl"
-        >
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-            {[
-              { value: '50,000+', label: 'Active Users' },
-              { value: '4.9/5', label: 'Average Rating' },
-              { value: '2M+', label: 'Texts Verified' },
-            ].map((stat, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, scale: 0.8 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: 0.7 + index * 0.1 }}
-              >
-                <div className="text-4xl md:text-5xl font-bold gradient-text mb-2">
-                  {stat.value}
-                </div>
-                <div className="text-foreground/60">{stat.label}</div>
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
       </div>
     </section>
   );

@@ -1,33 +1,32 @@
 import Navigation from '@/components/Navigation';
 import Hero from '@/components/Hero';
-import Problem from '@/components/Problem';
+import ProblemSection from '@/components/ProblemSection';
 import HowItWorks from '@/components/HowItWorks';
 import LiveDemo from '@/components/LiveDemo';
-import Features from '@/components/Features';
+import FeaturesGrid from '@/components/FeaturesGrid';
 import ForCreators from '@/components/ForCreators';
 import Roadmap from '@/components/Roadmap';
 import Testimonials from '@/components/Testimonials';
-import CTA from '@/components/CTA';
+import CTASection from '@/components/CTASection';
 import Footer from '@/components/Footer';
-import SmoothScroll from '@/components/SmoothScroll';
+import SmoothScrollWrapper from '@/components/SmoothScrollWrapper';
 
 export default function Home() {
   return (
-    <>
-      <SmoothScroll />
+    <SmoothScrollWrapper>
       <Navigation />
       <main>
         <Hero />
-        <Problem />
+        <ProblemSection />
         <HowItWorks />
         <LiveDemo />
-        <Features />
+        <FeaturesGrid />
         <ForCreators />
         <Roadmap />
         <Testimonials />
-        <CTA />
+        <CTASection />
       </main>
       <Footer />
-    </>
+    </SmoothScrollWrapper>
   );
 }

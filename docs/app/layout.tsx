@@ -1,26 +1,44 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Space_Grotesk, Inter } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const spaceGrotesk = Space_Grotesk({
+  variable: "--font-space-grotesk",
   subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
-  title: "Verifily - Detect AI Content Instantly",
-  description: "Chrome extension that detects AI-generated text in real-time. 99.7% accuracy, lightning-fast detection, and privacy-first design. Verify the truth on any website.",
-  keywords: "AI detection, AI content detector, verify AI text, Chrome extension, content verification",
+  title: "Verifily - Know what's AI. Prove what's human.",
+  description: "The browser extension that detects AI-generated content and lets you verify your authentic human work. Join the trust layer for the AI era.",
+  keywords: "AI detection, content verification, human verification, AI checker, content authenticity",
   authors: [{ name: "Verifily" }],
   openGraph: {
-    title: "Verifily - Detect AI Content Instantly",
-    description: "Chrome extension that detects AI-generated text in real-time with 99.7% accuracy.",
+    title: "Verifily - Know what's AI. Prove what's human.",
+    description: "The browser extension that detects AI-generated content and lets you verify your authentic human work.",
+    url: "https://verifily.io",
+    siteName: "Verifily",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+      },
+    ],
+    locale: "en_US",
     type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Verifily - Know what's AI. Prove what's human.",
+    description: "The browser extension that detects AI-generated content and lets you verify your authentic human work.",
+    images: ["/og-image.png"],
   },
 };
 
@@ -30,10 +48,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+    <html lang="en" className={`${spaceGrotesk.variable} ${inter.variable}`}>
+      <body className="antialiased">
         {children}
       </body>
     </html>
