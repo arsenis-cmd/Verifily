@@ -6,7 +6,8 @@ const nextConfig: NextConfig = {
   images: {
     unoptimized: true,
   },
-  basePath: process.env.NODE_ENV === 'production' ? '/poc-ai-detector' : '',
+  // No basePath needed for custom domain (verifily.io)
+  // basePath: '',
 };
 
 export default nextConfig;
