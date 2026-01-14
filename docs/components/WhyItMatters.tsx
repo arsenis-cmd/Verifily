@@ -9,7 +9,7 @@ export default function WhyItMatters() {
       <div className="bg-glow" />
 
       <div className="container relative z-10">
-        <div className="max-w-[900px] mx-auto">
+        <div className="w-full mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}

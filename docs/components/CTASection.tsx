@@ -16,7 +16,7 @@ export default function CTASection() {
       />
 
       <div className="container relative z-10">
-        <div className="max-w-[700px] mx-auto text-center">
+        <div className="w-full max-w-[900px] mx-auto text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}

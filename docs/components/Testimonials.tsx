@@ -27,7 +27,7 @@ export default function Testimonials() {
   return (
     <section className="bg-[#0a0a0a]">
       <div className="container">
-        <div className="max-w-[1000px] mx-auto">
+        <div className="w-full mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}

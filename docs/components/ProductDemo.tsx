@@ -82,7 +82,7 @@ export default function ProductDemo() {
       className="relative min-h-screen flex items-center justify-center bg-[#0a0a0a]"
     >
       <div className="container">
-        <div className="max-w-[900px] mx-auto">
+        <div className="w-full mx-auto">
           <h2 className="headline-lg text-center mb-20">
             See it in <span className="text-[#3b82f6]">action</span>
           </h2>

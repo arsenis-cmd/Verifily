@@ -60,7 +60,7 @@ export default function Stats() {
   return (
     <section ref={statsRef} className="bg-[#000000]">
       <div className="container">
-        <div className="max-w-[1000px] mx-auto">
+        <div className="w-full mx-auto">
           <div className="grid md:grid-cols-3 gap-12">
             {stats.map((stat, index) => (
               <motion.div
