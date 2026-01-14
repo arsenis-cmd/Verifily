@@ -2,10 +2,14 @@
 
 import { motion } from 'framer-motion';
 import { Button } from './ui/Button';
+import NeuralNetwork from './NeuralNetwork';
 
 export default function Hero() {
   return (
     <section className="relative min-h-screen flex items-center justify-center bg-[#000000] overflow-hidden">
+      {/* Neural Network Animation */}
+      <NeuralNetwork />
+
       {/* Subtle background glow */}
       <div className="bg-glow" />
 
@@ -53,18 +57,18 @@ export default function Hero() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.4, delay: 0.8 }}
-            className="flex flex-wrap justify-center gap-6 mb-20 text-sm text-[#666666]"
+            className="flex flex-wrap justify-center gap-8 mb-20 text-sm text-[#666666]"
           >
             <div className="flex items-center gap-2">
-              <span>🔒</span>
+              <div className="w-1 h-1 bg-[#666666] rounded-full" />
               <span>Privacy-first</span>
             </div>
             <div className="flex items-center gap-2">
-              <span>⚡</span>
+              <div className="w-1 h-1 bg-[#666666] rounded-full" />
               <span>Instant results</span>
             </div>
             <div className="flex items-center gap-2">
-              <span>🎯</span>
+              <div className="w-1 h-1 bg-[#666666] rounded-full" />
               <span>95%+ accuracy</span>
             </div>
           </motion.div>

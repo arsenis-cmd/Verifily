@@ -8,19 +8,16 @@ export default function Features() {
       title: 'Instant AI detection',
       description:
         'Analyze any text on the web with one click. Our multi-model detection system identifies AI-generated content with 95%+ accuracy using perplexity analysis, burstiness patterns, and stylometric signals.',
-      icon: '🔍',
     },
     {
       title: 'Verify your human work',
       description:
         'Created something yourself? Verify it as authentically human with a single click. Get a unique verification badge you can share anywhere — your proof of human authorship.',
-      icon: '✓',
     },
     {
       title: 'Build your verified portfolio',
       description:
         'Every verification is stored in your personal dashboard. Track your verified content, share badges on your website or social profiles, and build a reputation for authentic human work.',
-      icon: '📊',
     },
   ];
 
@@ -51,12 +48,15 @@ export default function Features() {
                     index % 2 === 1 ? 'md:flex-row-reverse' : ''
                   }`}
                 >
-                  {/* Icon/Mockup */}
+                  {/* Visual indicator */}
                   <div
                     className={`${index % 2 === 1 ? 'md:order-2' : ''} flex items-center justify-center`}
                   >
-                    <div className="w-48 h-48 flex items-center justify-center bg-[#111111] border border-[#222222] rounded-2xl">
-                      <span className="text-6xl">{feature.icon}</span>
+                    <div className="w-48 h-48 flex items-center justify-center bg-[#111111] border border-[#222222] rounded-2xl relative overflow-hidden">
+                      <div className="absolute inset-0 bg-gradient-to-br from-[#3b82f6]/10 to-transparent" />
+                      <div className="relative text-6xl font-bold text-[#3b82f6]/20">
+                        {String(index + 1).padStart(2, '0')}
+                      </div>
                     </div>
                   </div>
 

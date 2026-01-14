@@ -21,30 +21,20 @@ export default function Footer() {
   };
 
   const social = [
-    { icon: '𝕏', href: '#', label: 'Twitter' },
-    { icon: 'in', href: '#', label: 'LinkedIn' },
-    { icon: '⚡', href: '#', label: 'GitHub' },
+    { name: 'Twitter', href: '#', label: 'Twitter' },
+    { name: 'LinkedIn', href: '#', label: 'LinkedIn' },
+    { name: 'GitHub', href: '#', label: 'GitHub' },
   ];
 
   return (
     <footer className="bg-[#000000] border-t border-[#222222]">
       <div className="container">
-        <div className="max-w-[1000px] mx-auto">
+        <div className="max-w-[1200px] mx-auto">
           {/* Main footer content */}
-          <div className="grid md:grid-cols-4 gap-12 mb-12">
-            {/* Brand */}
-            <div>
-              <Link
-                href="/"
-                className="text-xl font-semibold text-white mb-4 block"
-              >
-                Verifily
-              </Link>
-            </div>
-
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12 py-16">
             {/* Product Links */}
             <div>
-              <h4 className="text-white font-semibold text-sm mb-4 uppercase tracking-wider">
+              <h4 className="text-white font-semibold text-xs mb-4 uppercase tracking-widest">
                 Product
               </h4>
               <ul className="space-y-3">
@@ -52,7 +42,7 @@ export default function Footer() {
                   <li key={index}>
                     <Link
                       href={link.href}
-                      className="text-sm text-[#a1a1a1] hover:text-white transition-colors"
+                      className="text-sm text-[#666666] hover:text-white transition-colors"
                     >
                       {link.label}
                     </Link>
@@ -63,7 +53,7 @@ export default function Footer() {
 
             {/* Resources Links */}
             <div>
-              <h4 className="text-white font-semibold text-sm mb-4 uppercase tracking-wider">
+              <h4 className="text-white font-semibold text-xs mb-4 uppercase tracking-widest">
                 Resources
               </h4>
               <ul className="space-y-3">
@@ -71,7 +61,7 @@ export default function Footer() {
                   <li key={index}>
                     <Link
                       href={link.href}
-                      className="text-sm text-[#a1a1a1] hover:text-white transition-colors"
+                      className="text-sm text-[#666666] hover:text-white transition-colors"
                     >
                       {link.label}
                     </Link>
@@ -82,7 +72,7 @@ export default function Footer() {
 
             {/* Legal Links */}
             <div>
-              <h4 className="text-white font-semibold text-sm mb-4 uppercase tracking-wider">
+              <h4 className="text-white font-semibold text-xs mb-4 uppercase tracking-widest">
                 Legal
               </h4>
               <ul className="space-y-3">
@@ -90,7 +80,7 @@ export default function Footer() {
                   <li key={index}>
                     <Link
                       href={link.href}
-                      className="text-sm text-[#a1a1a1] hover:text-white transition-colors"
+                      className="text-sm text-[#666666] hover:text-white transition-colors"
                     >
                       {link.label}
                     </Link>
@@ -98,26 +88,42 @@ export default function Footer() {
                 ))}
               </ul>
             </div>
+
+            {/* Brand */}
+            <div>
+              <Link
+                href="/"
+                className="text-lg font-bold text-white mb-3 block hover:opacity-80 transition-opacity"
+              >
+                Verifily
+              </Link>
+              <p className="text-sm text-[#666666] leading-relaxed">
+                Proof of humanity in the AI era.
+              </p>
+            </div>
           </div>
 
           {/* Bottom bar */}
-          <div className="border-t border-[#222222] pt-8 pb-8">
-            <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+          <div className="border-t border-[#222222] py-6">
+            <div className="flex flex-col md:flex-row justify-center items-center gap-6 text-center">
               {/* Copyright */}
-              <p className="text-sm text-[#666666]">
-                © 2026 Verifily. Proof of humanity.
+              <p className="text-xs text-[#666666]">
+                © 2026 Verifily. All rights reserved.
               </p>
 
+              {/* Divider */}
+              <div className="hidden md:block w-px h-4 bg-[#333333]" />
+
               {/* Social Links */}
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-6">
                 {social.map((item, index) => (
                   <Link
                     key={index}
                     href={item.href}
                     aria-label={item.label}
-                    className="w-8 h-8 flex items-center justify-center text-[#666666] hover:text-white transition-colors"
+                    className="text-xs text-[#666666] hover:text-white transition-colors"
                   >
-                    {item.icon}
+                    {item.name}
                   </Link>
                 ))}
               </div>

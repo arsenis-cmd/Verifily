@@ -99,6 +99,9 @@ section {
   padding-bottom: 120px;
   position: relative;
   overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .container {
