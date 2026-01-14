@@ -32,33 +32,60 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="relative overflow-hidden bg-primary-900 border-t border-white/5">
-      {/* Background */}
-      <div className="absolute inset-0 dot-pattern opacity-5" />
-      <div className="absolute top-0 left-1/4 w-64 h-64 bg-accent-500/5 rounded-full blur-3xl" />
-
-      <div className="container mx-auto px-6 py-20 relative z-10">
-        {/* Main Footer Content */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12 mb-16">
+    <footer style={{
+      position: 'relative',
+      overflow: 'hidden',
+      background: '#0a1628',
+      borderTop: '1px solid rgba(255, 255, 255, 0.05)',
+      fontSize: '0.75rem' // Significantly smaller base font
+    }}>
+      {/* Main Footer Content */}
+      <div className="container" style={{ paddingTop: '60px', paddingBottom: '40px' }}>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(5, 1fr)',
+          gap: '40px',
+          marginBottom: '40px'
+        }}>
           {/* Brand Column */}
-          <div className="lg:col-span-2 space-y-6">
-            <h3 className="text-3xl font-bold font-heading gradient-text">Verifily</h3>
-            <p className="text-white/60 leading-relaxed max-w-sm">
+          <div style={{ gridColumn: 'span 2' }}>
+            <h3 style={{
+              fontSize: '1.25rem',
+              fontWeight: 'bold',
+              marginBottom: '15px'
+            }} className="gradient-text">
+              Verifily
+            </h3>
+            <p style={{
+              color: 'rgba(255, 255, 255, 0.5)',
+              lineHeight: '1.6',
+              fontSize: '0.75rem',
+              maxWidth: '280px',
+              marginBottom: '20px'
+            }}>
               Empowering users to distinguish between human and AI-generated content
               with cutting-edge detection technology.
             </p>
 
             {/* Social Links */}
-            <div className="flex gap-4">
+            <div style={{ display: 'flex', gap: '12px' }}>
               {social.map((item, index) => (
                 <motion.a
                   key={index}
                   href={item.href}
                   aria-label={item.label}
-                  whileHover={{ scale: 1.1, y: -2 }}
-                  className="w-10 h-10 rounded-full glass flex items-center justify-center hover:border-accent-500/50 transition-all group"
+                  whileHover={{ scale: 1.1 }}
+                  className="glass"
+                  style={{
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
                 >
-                  <item.icon className="w-5 h-5 text-white/60 group-hover:text-accent-500 transition-colors" />
+                  <item.icon size={14} color="rgba(255, 255, 255, 0.6)" />
                 </motion.a>
               ))}
             </div>
@@ -66,13 +93,25 @@ export default function Footer() {
 
           {/* Product Links */}
           <div>
-            <h4 className="font-bold font-heading mb-6 text-white">Product</h4>
-            <ul className="space-y-3">
+            <h4 style={{
+              fontWeight: 'bold',
+              marginBottom: '15px',
+              fontSize: '0.8rem',
+              color: '#fff'
+            }}>
+              Product
+            </h4>
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
               {links.product.map((link, index) => (
-                <li key={index}>
+                <li key={index} style={{ marginBottom: '8px' }}>
                   <a
                     href={link.href}
-                    className="text-white/60 hover:text-accent-500 transition-colors"
+                    style={{
+                      color: 'rgba(255, 255, 255, 0.5)',
+                      textDecoration: 'none',
+                      fontSize: '0.75rem',
+                      transition: 'color 0.2s'
+                    }}
                   >
                     {link.label}
                   </a>
@@ -83,13 +122,25 @@ export default function Footer() {
 
           {/* Company Links */}
           <div>
-            <h4 className="font-bold font-heading mb-6 text-white">Company</h4>
-            <ul className="space-y-3">
+            <h4 style={{
+              fontWeight: 'bold',
+              marginBottom: '15px',
+              fontSize: '0.8rem',
+              color: '#fff'
+            }}>
+              Company
+            </h4>
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
               {links.company.map((link, index) => (
-                <li key={index}>
+                <li key={index} style={{ marginBottom: '8px' }}>
                   <a
                     href={link.href}
-                    className="text-white/60 hover:text-accent-500 transition-colors"
+                    style={{
+                      color: 'rgba(255, 255, 255, 0.5)',
+                      textDecoration: 'none',
+                      fontSize: '0.75rem',
+                      transition: 'color 0.2s'
+                    }}
                   >
                     {link.label}
                   </a>
@@ -100,13 +151,25 @@ export default function Footer() {
 
           {/* Legal Links */}
           <div>
-            <h4 className="font-bold font-heading mb-6 text-white">Legal</h4>
-            <ul className="space-y-3">
+            <h4 style={{
+              fontWeight: 'bold',
+              marginBottom: '15px',
+              fontSize: '0.8rem',
+              color: '#fff'
+            }}>
+              Legal
+            </h4>
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
               {links.legal.map((link, index) => (
-                <li key={index}>
+                <li key={index} style={{ marginBottom: '8px' }}>
                   <a
                     href={link.href}
-                    className="text-white/60 hover:text-accent-500 transition-colors"
+                    style={{
+                      color: 'rgba(255, 255, 255, 0.5)',
+                      textDecoration: 'none',
+                      fontSize: '0.75rem',
+                      transition: 'color 0.2s'
+                    }}
                   >
                     {link.label}
                   </a>
@@ -117,13 +180,17 @@ export default function Footer() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="pt-8 border-t border-white/5">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-white/40 text-sm">
-            <p>© 2026 Verifily. All rights reserved.</p>
-            <p className="flex items-center gap-2">
-              Building trust in the AI era
-            </p>
-          </div>
+        <div style={{
+          paddingTop: '20px',
+          borderTop: '1px solid rgba(255, 255, 255, 0.05)',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          fontSize: '0.7rem',
+          color: 'rgba(255, 255, 255, 0.4)'
+        }}>
+          <p>© 2026 Verifily. All rights reserved.</p>
+          <p>Building trust in the AI era</p>
         </div>
       </div>
     </footer>
