@@ -49,8 +49,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${spaceGrotesk.variable} ${inter.variable}`}>
-      <body className="antialiased">
-        {children}
+      <body className="antialiased flex flex-col items-center w-full">
+        <div className="w-full max-w-[1600px] mx-auto">
+          {children}
+        </div>
       </body>
     </html>
   );

@@ -33,19 +33,9 @@ body {
    Everything centered on 1920px screens
    ========================================== */
 
-body {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-
 main {
   width: 100%;
   min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
 }
 
 /* Every section is perfectly centered */
@@ -55,20 +45,19 @@ section {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 240px 60px;
+  padding: 240px 80px;
   position: relative;
 }
 
 /* Sections that don't need full height */
 section.auto-height {
   min-height: auto;
-  padding: 180px 60px;
+  padding: 180px 80px;
 }
 
-/* Container - centered content area with more width for desktop */
+/* Container - centered content area */
 .container {
   width: 100%;
-  max-width: 1600px;
   margin: 0 auto;
   text-align: center;
 }
