@@ -27,8 +27,8 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="bg-[#000000] border-t border-[#111111]">
-      <div className="max-w-[1400px] mx-auto px-12 py-32">
+    <footer className="bg-[#000000] border-t border-[#111111] w-full flex justify-center">
+      <div className="max-w-[1600px] mx-auto px-12 py-32 w-full">
         {/* Main Footer - Centered Grid */}
         <div className="grid grid-cols-4 gap-20 mb-20 text-center">
           {/* Product Links */}

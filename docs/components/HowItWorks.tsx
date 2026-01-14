@@ -42,7 +42,7 @@ export default function HowItWorks() {
         </motion.div>
 
         {/* Steps - Centered Grid */}
-        <div className="grid grid-cols-3 gap-16 max-w-6xl mx-auto">
+        <div className="grid grid-cols-3 gap-20 w-full mx-auto">
           {steps.map((step, index) => (
             <motion.div
               key={index}

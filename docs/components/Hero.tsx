@@ -10,7 +10,7 @@ export default function Hero() {
       <NeuralNetwork />
 
       <div className="container relative z-10">
-        <div className="max-w-5xl mx-auto space-y-16">
+        <div className="w-full mx-auto space-y-20">
           {/* Headline */}
           <motion.div
             initial={{ opacity: 0, y: 40 }}
@@ -25,7 +25,7 @@ export default function Hero() {
               </span>
             </h1>
 
-            <p className="text-2xl text-[#888888] max-w-3xl mx-auto mb-12">
+            <p className="text-3xl text-[#888888] max-w-4xl mx-auto mb-16 leading-relaxed">
               The browser extension that instantly identifies AI-generated content
               and lets you prove your work is authentically human.
             </p>

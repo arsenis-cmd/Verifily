@@ -44,7 +44,7 @@ export default function Features() {
         </motion.div>
 
         {/* Features Grid - Centered */}
-        <div className="grid grid-cols-3 gap-12 max-w-6xl mx-auto">
+        <div className="grid grid-cols-3 gap-16 w-full mx-auto">
           {features.map((feature, index) => (
             <motion.div
               key={index}

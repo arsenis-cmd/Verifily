@@ -73,9 +73,8 @@ export default function NeuralNetwork() {
         dot.y -= scrollProgress * 0.5;
       });
 
-      // Draw connections
-      ctx.strokeStyle = 'rgba(59, 130, 246, 0.15)';
-      ctx.lineWidth = 1;
+      // Draw connections with better visibility
+      ctx.lineWidth = 1.5;
 
       for (let i = 0; i < dots.length; i++) {
         for (let j = i + 1; j < dots.length; j++) {
@@ -83,8 +82,8 @@ export default function NeuralNetwork() {
           const dy = dots[i].y - dots[j].y;
           const distance = Math.sqrt(dx * dx + dy * dy);
 
-          if (distance < 150) {
-            const opacity = (1 - distance / 150) * 0.2;
+          if (distance < 180) {
+            const opacity = (1 - distance / 180) * 0.35;
             ctx.strokeStyle = `rgba(59, 130, 246, ${opacity})`;
             ctx.beginPath();
             ctx.moveTo(dots[i].x, dots[i].y);
@@ -94,9 +93,16 @@ export default function NeuralNetwork() {
         }
       }
 
-      // Draw dots
+      // Draw dots with glow effect
       dots.forEach((dot) => {
-        ctx.fillStyle = 'rgba(59, 130, 246, 0.6)';
+        // Outer glow
+        ctx.fillStyle = 'rgba(59, 130, 246, 0.3)';
+        ctx.beginPath();
+        ctx.arc(dot.x, dot.y, dot.radius * 2, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Inner dot
+        ctx.fillStyle = 'rgba(59, 130, 246, 0.9)';
         ctx.beginPath();
         ctx.arc(dot.x, dot.y, dot.radius, 0, Math.PI * 2);
         ctx.fill();
@@ -115,10 +121,10 @@ export default function NeuralNetwork() {
   return (
     <div
       ref={containerRef}
-      className="absolute inset-0 pointer-events-none"
-      style={{ opacity: 0.4 }}
+      className="absolute inset-0 pointer-events-none z-0"
+      style={{ opacity: 0.8 }}
     >
-      <canvas ref={canvasRef} />
+      <canvas ref={canvasRef} className="w-full h-full" />
     </div>
   );
 }
