@@ -323,26 +323,32 @@
 .poc-verified-badge {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding: 10px 14px;
+  gap: 8px;
+  padding: 12px 16px;
   margin-top: 8px;
   border-radius: 12px;
   font-size: 13px;
   font-weight: 500;
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(10px);
   border: 1.5px solid;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
   animation: poc-badge-appear 0.4s ease-out;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.poc-verified-badge:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
 }
 
 .poc-verified-badge.human {
-  background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+  background: linear-gradient(135deg, rgba(236, 253, 245, 0.95) 0%, rgba(209, 250, 229, 0.95) 100%);
   border-color: #10b981;
   color: #065f46;
 }
 
 .poc-verified-badge.ai {
-  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+  background: linear-gradient(135deg, rgba(254, 242, 242, 0.95) 0%, rgba(254, 226, 226, 0.95) 100%);
   border-color: #ef4444;
   color: #991b1b;
 }
@@ -373,18 +379,37 @@
 }
 
 .poc-badge-verified-count {
-  font-size: 11px;
-  opacity: 0.75;
-  font-weight: 400;
-  margin-top: 2px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  opacity: 1;
+  font-weight: 600;
+  margin-top: 4px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(5px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  letter-spacing: 0.02em;
+}
+
+.poc-badge-verified-count::before {
+  content: '👥';
+  font-size: 14px;
 }
 
 .poc-verified-badge.human .poc-badge-verified-count {
   color: #047857;
+  background: linear-gradient(135deg, rgba(209, 250, 229, 0.8), rgba(167, 243, 208, 0.8));
+  border-color: rgba(16, 185, 129, 0.3);
 }
 
 .poc-verified-badge.ai .poc-badge-verified-count {
   color: #b91c1c;
+  background: linear-gradient(135deg, rgba(254, 226, 226, 0.8), rgba(252, 165, 165, 0.8));
+  border-color: rgba(239, 68, 68, 0.3);
 }
 
 .poc-spinner {
