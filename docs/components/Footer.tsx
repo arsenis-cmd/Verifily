@@ -1,196 +1,128 @@
 'use client';
 
-import { motion } from 'framer-motion';
-import { Twitter, Github, Linkedin, Mail } from 'lucide-react';
+import Link from 'next/link';
 
 export default function Footer() {
   const links = {
     product: [
       { label: 'Chrome Extension', href: '#' },
       { label: 'How it Works', href: '#how-it-works' },
-      { label: 'Features', href: '#features' },
-      { label: 'API (Coming Soon)', href: '#' },
+      { label: 'Pricing', href: '#pricing' },
     ],
-    company: [
-      { label: 'About', href: '#' },
+    resources: [
+      { label: 'Documentation', href: '#' },
       { label: 'Blog', href: '#' },
-      { label: 'Careers', href: '#' },
-      { label: 'Contact', href: '#' },
+      { label: 'Support', href: '#' },
     ],
     legal: [
       { label: 'Privacy Policy', href: '#' },
       { label: 'Terms of Service', href: '#' },
-      { label: 'Cookie Policy', href: '#' },
     ],
   };
 
   const social = [
-    { icon: Twitter, href: '#', label: 'Twitter' },
-    { icon: Github, href: '#', label: 'GitHub' },
-    { icon: Linkedin, href: '#', label: 'LinkedIn' },
-    { icon: Mail, href: '#', label: 'Email' },
+    { icon: '𝕏', href: '#', label: 'Twitter' },
+    { icon: 'in', href: '#', label: 'LinkedIn' },
+    { icon: '⚡', href: '#', label: 'GitHub' },
   ];
 
   return (
-    <footer style={{
-      position: 'relative',
-      overflow: 'hidden',
-      background: '#0a1628',
-      borderTop: '1px solid rgba(255, 255, 255, 0.05)',
-      fontSize: '0.75rem' // Significantly smaller base font
-    }}>
-      {/* Main Footer Content */}
-      <div className="container" style={{ paddingTop: '60px', paddingBottom: '40px' }}>
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(5, 1fr)',
-          gap: '40px',
-          marginBottom: '40px'
-        }}>
-          {/* Brand Column */}
-          <div style={{ gridColumn: 'span 2' }}>
-            <h3 style={{
-              fontSize: '1.25rem',
-              fontWeight: 'bold',
-              marginBottom: '15px'
-            }} className="gradient-text">
-              Verifily
-            </h3>
-            <p style={{
-              color: 'rgba(255, 255, 255, 0.5)',
-              lineHeight: '1.6',
-              fontSize: '0.75rem',
-              maxWidth: '280px',
-              marginBottom: '20px'
-            }}>
-              Empowering users to distinguish between human and AI-generated content
-              with cutting-edge detection technology.
-            </p>
+    <footer className="bg-[#000000] border-t border-[#222222]">
+      <div className="container">
+        <div className="max-w-[1000px] mx-auto">
+          {/* Main footer content */}
+          <div className="grid md:grid-cols-4 gap-12 mb-12">
+            {/* Brand */}
+            <div>
+              <Link
+                href="/"
+                className="text-xl font-semibold text-white mb-4 block"
+              >
+                Verifily
+              </Link>
+            </div>
 
-            {/* Social Links */}
-            <div style={{ display: 'flex', gap: '12px' }}>
-              {social.map((item, index) => (
-                <motion.a
-                  key={index}
-                  href={item.href}
-                  aria-label={item.label}
-                  whileHover={{ scale: 1.1 }}
-                  className="glass"
-                  style={{
-                    width: '32px',
-                    height: '32px',
-                    borderRadius: '50%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                  }}
-                >
-                  <item.icon size={14} color="rgba(255, 255, 255, 0.6)" />
-                </motion.a>
-              ))}
+            {/* Product Links */}
+            <div>
+              <h4 className="text-white font-semibold text-sm mb-4 uppercase tracking-wider">
+                Product
+              </h4>
+              <ul className="space-y-3">
+                {links.product.map((link, index) => (
+                  <li key={index}>
+                    <Link
+                      href={link.href}
+                      className="text-sm text-[#a1a1a1] hover:text-white transition-colors"
+                    >
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Resources Links */}
+            <div>
+              <h4 className="text-white font-semibold text-sm mb-4 uppercase tracking-wider">
+                Resources
+              </h4>
+              <ul className="space-y-3">
+                {links.resources.map((link, index) => (
+                  <li key={index}>
+                    <Link
+                      href={link.href}
+                      className="text-sm text-[#a1a1a1] hover:text-white transition-colors"
+                    >
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Legal Links */}
+            <div>
+              <h4 className="text-white font-semibold text-sm mb-4 uppercase tracking-wider">
+                Legal
+              </h4>
+              <ul className="space-y-3">
+                {links.legal.map((link, index) => (
+                  <li key={index}>
+                    <Link
+                      href={link.href}
+                      className="text-sm text-[#a1a1a1] hover:text-white transition-colors"
+                    >
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
             </div>
           </div>
 
-          {/* Product Links */}
-          <div>
-            <h4 style={{
-              fontWeight: 'bold',
-              marginBottom: '15px',
-              fontSize: '0.8rem',
-              color: '#fff'
-            }}>
-              Product
-            </h4>
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-              {links.product.map((link, index) => (
-                <li key={index} style={{ marginBottom: '8px' }}>
-                  <a
-                    href={link.href}
-                    style={{
-                      color: 'rgba(255, 255, 255, 0.5)',
-                      textDecoration: 'none',
-                      fontSize: '0.75rem',
-                      transition: 'color 0.2s'
-                    }}
-                  >
-                    {link.label}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
+          {/* Bottom bar */}
+          <div className="border-t border-[#222222] pt-8 pb-8">
+            <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+              {/* Copyright */}
+              <p className="text-sm text-[#666666]">
+                © 2026 Verifily. Proof of humanity.
+              </p>
 
-          {/* Company Links */}
-          <div>
-            <h4 style={{
-              fontWeight: 'bold',
-              marginBottom: '15px',
-              fontSize: '0.8rem',
-              color: '#fff'
-            }}>
-              Company
-            </h4>
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-              {links.company.map((link, index) => (
-                <li key={index} style={{ marginBottom: '8px' }}>
-                  <a
-                    href={link.href}
-                    style={{
-                      color: 'rgba(255, 255, 255, 0.5)',
-                      textDecoration: 'none',
-                      fontSize: '0.75rem',
-                      transition: 'color 0.2s'
-                    }}
+              {/* Social Links */}
+              <div className="flex items-center gap-4">
+                {social.map((item, index) => (
+                  <Link
+                    key={index}
+                    href={item.href}
+                    aria-label={item.label}
+                    className="w-8 h-8 flex items-center justify-center text-[#666666] hover:text-white transition-colors"
                   >
-                    {link.label}
-                  </a>
-                </li>
-              ))}
-            </ul>
+                    {item.icon}
+                  </Link>
+                ))}
+              </div>
+            </div>
           </div>
-
-          {/* Legal Links */}
-          <div>
-            <h4 style={{
-              fontWeight: 'bold',
-              marginBottom: '15px',
-              fontSize: '0.8rem',
-              color: '#fff'
-            }}>
-              Legal
-            </h4>
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-              {links.legal.map((link, index) => (
-                <li key={index} style={{ marginBottom: '8px' }}>
-                  <a
-                    href={link.href}
-                    style={{
-                      color: 'rgba(255, 255, 255, 0.5)',
-                      textDecoration: 'none',
-                      fontSize: '0.75rem',
-                      transition: 'color 0.2s'
-                    }}
-                  >
-                    {link.label}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-
-        {/* Bottom Bar */}
-        <div style={{
-          paddingTop: '20px',
-          borderTop: '1px solid rgba(255, 255, 255, 0.05)',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          fontSize: '0.7rem',
-          color: 'rgba(255, 255, 255, 0.4)'
-        }}>
-          <p>© 2026 Verifily. All rights reserved.</p>
-          <p>Building trust in the AI era</p>
         </div>
       </div>
     </footer>

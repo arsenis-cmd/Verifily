@@ -5,43 +5,40 @@ import { motion } from 'framer-motion';
 export default function Testimonials() {
   const testimonials = [
     {
-      quote: 'Finally, a way to prove my writing is mine. This is what the internet needs.',
-      author: 'Sarah K.',
+      quote:
+        'Finally, a way to prove my articles are actually written by me. Essential for any serious writer.',
+      author: 'Sarah Chen',
       role: 'Freelance Journalist',
     },
     {
-      quote: "I've been looking for something like this since ChatGPT launched. Game changer.",
-      author: 'Marcus T.',
-      role: 'Content Creator',
+      quote:
+        "I use Verifily to check every piece of content before publishing. It's become part of my workflow.",
+      author: 'Marcus Webb',
+      role: 'Content Director',
     },
     {
-      quote: 'The accuracy is impressive. Essential tool for the AI era.',
-      author: 'David Chen',
-      role: 'Academic Researcher',
+      quote:
+        'The verification badge gives my portfolio instant credibility. Clients love it.',
+      author: 'Priya Sharma',
+      role: 'UX Writer',
     },
   ];
 
   return (
-    <section style={{ background: '#0f2137' }}>
+    <section className="bg-[#0a0a0a]">
       <div className="container">
-        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-
+        <div className="max-w-[1000px] mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            <h2 style={{ marginBottom: '80px' }}>
-              What <span className="gradient-text">People Say</span>
+            <h2 className="headline-lg text-center mb-20">
+              What creators are saying
             </h2>
 
-            {/* Testimonials Grid */}
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(3, 1fr)',
-              gap: '30px'
-            }}>
+            <div className="grid md:grid-cols-3 gap-8">
               {testimonials.map((testimonial, index) => (
                 <motion.div
                   key={index}
@@ -49,45 +46,31 @@ export default function Testimonials() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.6, delay: index * 0.1 }}
-                  className="glass"
-                  style={{
-                    padding: '35px 30px',
-                    borderRadius: '20px',
-                    textAlign: 'left'
-                  }}
+                  className="card relative"
                 >
-                  <div style={{
-                    fontSize: '2rem',
-                    color: '#00d4ff',
-                    marginBottom: '20px'
-                  }}>
+                  {/* Large quote mark background */}
+                  <div className="absolute top-4 left-4 text-6xl text-[#222222] leading-none">
                     "
                   </div>
-                  <p style={{
-                    fontSize: '1rem',
-                    lineHeight: '1.6',
-                    marginBottom: '25px',
-                    color: 'rgba(255, 255, 255, 0.8)'
-                  }}>
-                    {testimonial.quote}
-                  </p>
-                  <div>
-                    <div style={{ fontWeight: 'bold', marginBottom: '5px' }}>
-                      {testimonial.author}
-                    </div>
-                    <div style={{
-                      fontSize: '0.875rem',
-                      color: 'rgba(255, 255, 255, 0.5)'
-                    }}>
-                      {testimonial.role}
+
+                  <div className="relative z-10">
+                    <p className="body-md mb-6 leading-relaxed">
+                      {testimonial.quote}
+                    </p>
+
+                    <div className="border-t border-[#222222] pt-4">
+                      <div className="font-semibold text-white mb-1">
+                        {testimonial.author}
+                      </div>
+                      <div className="text-sm text-[#666666]">
+                        {testimonial.role}
+                      </div>
                     </div>
                   </div>
                 </motion.div>
               ))}
             </div>
-
           </motion.div>
-
         </div>
       </div>
     </section>

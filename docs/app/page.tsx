@@ -1,11 +1,10 @@
 import Navigation from '@/components/Navigation';
 import Hero from '@/components/Hero';
-import ProblemSection from '@/components/ProblemSection';
+import ProductDemo from '@/components/ProductDemo';
+import Features from '@/components/Features';
 import HowItWorks from '@/components/HowItWorks';
-import LiveDemo from '@/components/LiveDemo';
-import FeaturesGrid from '@/components/FeaturesGrid';
-import ForCreators from '@/components/ForCreators';
-import Roadmap from '@/components/Roadmap';
+import Stats from '@/components/Stats';
+import WhyItMatters from '@/components/WhyItMatters';
 import Testimonials from '@/components/Testimonials';
 import CTASection from '@/components/CTASection';
 import Footer from '@/components/Footer';
@@ -17,15 +16,14 @@ export default function Home() {
       {/* Fixed Navigation */}
       <Navigation />
 
-      {/* Main Content - Simple, Clean Structure */}
+      {/* Main Content - Minimal Black Design */}
       <main>
         <Hero />
-        <ProblemSection />
+        <ProductDemo />
+        <Features />
         <HowItWorks />
-        <LiveDemo />
-        <FeaturesGrid />
-        <ForCreators />
-        <Roadmap />
+        <Stats />
+        <WhyItMatters />
         <Testimonials />
         <CTASection />
       </main>

@@ -1,123 +1,106 @@
 'use client';
 
+import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Shield, Lock } from 'lucide-react';
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+gsap.registerPlugin(ScrollTrigger);
 
 export default function HowItWorks() {
+  const lineRef = useRef<HTMLDivElement>(null);
+  const sectionRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    if (!lineRef.current || !sectionRef.current) return;
+
+    const ctx = gsap.context(() => {
+      gsap.from(lineRef.current, {
+        scaleX: 0,
+        transformOrigin: 'left center',
+        scrollTrigger: {
+          trigger: sectionRef.current,
+          start: 'top 70%',
+          end: 'bottom 70%',
+          scrub: 1,
+        },
+      });
+    }, sectionRef);
+
+    return () => ctx.revert();
+  }, []);
+
   const steps = [
     {
-      number: '01',
-      title: 'Detect',
-      icon: Search,
-      description: 'Instantly analyze any text on the web. Our AI detection identifies machine-generated content with 95%+ accuracy.',
+      number: '1',
+      title: 'Install the extension',
+      description:
+        'Add Verifily to Chrome in one click. No account required to start detecting AI content.',
     },
     {
-      number: '02',
-      title: 'Verify',
-      icon: Shield,
-      description: 'Wrote something yourself? Verify it as human-created with one click. Your content gets a unique cryptographic proof.',
+      number: '2',
+      title: 'Detect or verify',
+      description:
+        'Highlight any text and click "Check for AI" — or verify your own work as human-created.',
     },
     {
-      number: '03',
-      title: 'Protect',
-      icon: Lock,
-      description: 'Your verified content joins a growing repository of authenticated human work—protected, attributed, and ready for the future of AI.',
+      number: '3',
+      title: 'Get instant results',
+      description:
+        'See detailed analysis in seconds. Share your verification badge anywhere.',
     },
   ];
 
   return (
-    <section id="how-it-works">
+    <section ref={sectionRef} id="how-it-works" className="bg-[#0a0a0a]">
       <div className="container">
-        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-
-          {/* Section Title */}
+        <div className="max-w-[900px] mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            style={{ marginBottom: '80px' }}
           >
-            <div style={{
-              display: 'inline-block',
-              padding: '8px 20px',
-              background: 'rgba(255, 255, 255, 0.05)',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
-              borderRadius: '50px',
-              fontSize: '14px',
-              marginBottom: '20px'
-            }}>
-              How It Works
+            <h2 className="headline-lg text-center mb-4">How it works</h2>
+            <p className="body-lg text-center mb-20 text-[#666666]">
+              From detection to verification in seconds
+            </p>
+
+            {/* Steps */}
+            <div className="relative">
+              {/* Connecting line */}
+              <div className="absolute top-16 left-0 right-0 h-0.5 bg-[#222222] hidden md:block">
+                <div
+                  ref={lineRef}
+                  className="h-full bg-[#3b82f6]"
+                  style={{ transformOrigin: 'left center' }}
+                />
+              </div>
+
+              <div className="grid md:grid-cols-3 gap-12 relative">
+                {steps.map((step, index) => (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, y: 30 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.6, delay: index * 0.2 }}
+                    className="text-center"
+                  >
+                    {/* Number circle */}
+                    <div className="relative mb-8 flex justify-center">
+                      <div className="w-16 h-16 rounded-full border-2 border-[#3b82f6] bg-[#000000] flex items-center justify-center text-2xl font-semibold text-white relative z-10">
+                        {step.number}
+                      </div>
+                    </div>
+
+                    <h3 className="headline-sm mb-3">{step.title}</h3>
+                    <p className="body-md">{step.description}</p>
+                  </motion.div>
+                ))}
+              </div>
             </div>
-            <h2>Three Simple Steps</h2>
           </motion.div>
-
-          {/* Steps Grid */}
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(3, 1fr)',
-            gap: '40px'
-          }}>
-            {steps.map((step, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: index * 0.2 }}
-                className="glass"
-                style={{
-                  padding: '40px 30px',
-                  borderRadius: '20px',
-                  textAlign: 'center'
-                }}
-              >
-                {/* Icon */}
-                <div style={{
-                  width: '80px',
-                  height: '80px',
-                  margin: '0 auto 30px',
-                  background: 'linear-gradient(135deg, #00d4ff, #8b5cf6)',
-                  borderRadius: '20px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}>
-                  <step.icon size={40} color="#0a1628" strokeWidth={2} />
-                </div>
-
-                {/* Number */}
-                <div style={{
-                  fontSize: '1rem',
-                  color: '#00d4ff',
-                  fontWeight: 'bold',
-                  marginBottom: '15px'
-                }}>
-                  {step.number}
-                </div>
-
-                {/* Title */}
-                <h3 style={{
-                  fontSize: '1.75rem',
-                  marginBottom: '15px',
-                  fontWeight: 'bold'
-                }}>
-                  {step.title}
-                </h3>
-
-                {/* Description */}
-                <p style={{
-                  fontSize: '1rem',
-                  lineHeight: '1.6',
-                  color: 'rgba(255, 255, 255, 0.7)',
-                  margin: 0
-                }}>
-                  {step.description}
-                </p>
-              </motion.div>
-            ))}
-          </div>
-
         </div>
       </div>
     </section>

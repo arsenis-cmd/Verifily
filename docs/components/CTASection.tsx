@@ -1,67 +1,67 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Chrome, ArrowRight } from 'lucide-react';
+import { Button } from './ui/Button';
 
 export default function CTASection() {
   return (
-    <section id="cta" style={{ background: 'linear-gradient(135deg, #1a365d 0%, #0a1628 100%)' }}>
-      <div className="container">
-        <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+    <section id="cta" className="bg-[#000000] relative overflow-hidden">
+      {/* Glowing background effect */}
+      <div
+        className="absolute inset-0 opacity-30"
+        style={{
+          background:
+            'radial-gradient(circle at center, rgba(59, 130, 246, 0.2) 0%, transparent 70%)',
+        }}
+      />
 
+      <div className="container relative z-10">
+        <div className="max-w-[700px] mx-auto text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            {/* Title */}
-            <h2 style={{ marginBottom: '30px' }}>
-              Ready to <span className="gradient-text">Join the Movement</span>?
-            </h2>
+            <h2 className="headline-lg mb-6">Ready to verify your work?</h2>
 
-            {/* Description */}
-            <p style={{
-              fontSize: '1.25rem',
-              marginBottom: '50px',
-              color: 'rgba(255, 255, 255, 0.7)',
-              maxWidth: '600px',
-              margin: '0 auto 50px'
-            }}>
-              Install Verifily today and start verifying authenticity across the web.
-              Free forever. No credit card required.
+            <p className="body-lg mb-12">
+              Join thousands of creators building trust in the AI era.
+              <br />
+              Free forever for individuals.
             </p>
 
-            {/* CTA Buttons */}
-            <div style={{
-              display: 'flex',
-              gap: '20px',
-              justifyContent: 'center',
-              flexWrap: 'wrap'
-            }}>
-              <a
-                href="https://chrome.google.com/webstore"
-                className="btn btn-primary"
-                style={{ fontSize: '1.125rem', padding: '1.125rem 2.5rem' }}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
+              <Button
+                variant="primary"
+                size="lg"
+                className="animate-pulse-glow"
               >
-                <Chrome size={24} />
-                Add to Chrome - It's Free
-                <ArrowRight size={20} />
-              </a>
+                Add to Chrome — It's Free
+              </Button>
             </div>
 
-            {/* Trust Info */}
-            <div style={{
-              marginTop: '40px',
-              fontSize: '14px',
-              color: 'rgba(255, 255, 255, 0.5)'
-            }}>
-              ✓ No signup required  •  ✓ Works instantly  •  ✓ Privacy-first
-            </div>
+            <p className="text-sm text-[#666666]">
+              Chrome extension available now. Firefox and Safari coming soon.
+            </p>
           </motion.div>
-
         </div>
       </div>
+
+      <style jsx>{`
+        @keyframes pulse-glow {
+          0%,
+          100% {
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+          }
+          50% {
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.4);
+          }
+        }
+        .animate-pulse-glow {
+          animation: pulse-glow 2s ease-in-out infinite;
+        }
+      `}</style>
     </section>
   );
 }
