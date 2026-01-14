@@ -14,8 +14,8 @@ export default function Hero() {
       <div className="bg-glow" />
 
       {/* Content */}
-      <div className="container relative z-10">
-        <div className="max-w-[900px] mx-auto text-center">
+      <div className="w-full max-w-[1200px] mx-auto px-6 relative z-10">
+        <div className="max-w-[900px] mx-auto text-center flex flex-col items-center">
           {/* Headline */}
           <motion.h1
             initial={{ opacity: 0, y: 30 }}
