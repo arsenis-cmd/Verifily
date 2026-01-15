@@ -38,9 +38,11 @@ export default function Features() {
               take control
             </span>
           </h2>
-          <p className="text-2xl text-[#888888] max-w-3xl mx-auto text-center">
-            Everything you need to verify authenticity in the AI era
-          </p>
+          <div className="flex justify-center">
+            <p className="text-2xl text-[#888888] max-w-3xl text-center">
+              Everything you need to verify authenticity in the AI era
+            </p>
+          </div>
         </motion.div>
 
         {/* Features Grid - Centered */}

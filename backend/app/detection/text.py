@@ -150,6 +150,7 @@ class TextDetector:
 
                 if response.status_code == 200:
                     data = response.json()
+                    print(f"[DEBUG] ZeroGPT response: {data}")
                     # ZeroGPT returns: {"success": true, "data": {"fakePercentage": 85.5, "isHuman": 100}}
                     if data.get('success') and 'data' in data:
                         result_data = data['data']
@@ -157,13 +158,15 @@ class TextDetector:
                         fake_percentage = float(result_data.get('fakePercentage', 50.0))
                         ai_prob = fake_percentage / 100.0  # Convert to 0-1
 
+                        print(f"[DEBUG] ZeroGPT AI probability: {ai_prob * 100:.1f}%")
+
                         return {
                             'ai_probability': float(ai_prob),
                             'available': True,
                             'source': 'zerogpt'
                         }
                     else:
-                        print(f"ZeroGPT unexpected response: {data}")
+                        print(f"ZeroGPT unexpected response format: {data}")
                         return await self._gptzero_detect(text)
                 else:
                     print(f"ZeroGPT API error: {response.status_code} - {response.text}")

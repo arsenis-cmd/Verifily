@@ -36,9 +36,11 @@ export default function HowItWorks() {
           className="mb-24"
         >
           <h2 className="text-white mb-6">How it works</h2>
-          <p className="text-2xl text-[#888888] max-w-3xl mx-auto text-center">
-            From detection to verification in seconds
-          </p>
+          <div className="flex justify-center">
+            <p className="text-2xl text-[#888888] max-w-3xl text-center">
+              From detection to verification in seconds
+            </p>
+          </div>
         </motion.div>
 
         {/* Steps - Centered Grid */}

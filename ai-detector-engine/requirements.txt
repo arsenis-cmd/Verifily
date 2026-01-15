@@ -1,0 +1,14 @@
+fastapi==0.109.0
+uvicorn==0.27.0
+transformers==4.36.2
+torch==2.1.2
+scikit-learn==1.4.0
+numpy==1.26.3
+pandas==2.2.0
+datasets==2.16.1
+tokenizers==0.15.0
+accelerate==0.26.1
+sentencepiece==0.1.99
+httpx==0.26.0
+pydantic==2.5.3
+pydantic-settings==2.1.0
