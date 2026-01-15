@@ -35,7 +35,7 @@ export default function Footer() {
           <div className="text-left">
             <Link
               href="/"
-              className="text-[11px] font-bold text-white mb-1 block hover:opacity-80 transition-opacity"
+              className="text-[9px] font-bold text-white mb-1 block hover:opacity-80 transition-opacity"
             >
               Verifily
             </Link>

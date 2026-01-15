@@ -25,10 +25,12 @@ export default function Hero() {
               </span>
             </h1>
 
-            <p className="text-3xl text-[#888888] max-w-4xl mx-auto mb-16 leading-relaxed text-center">
-              The browser extension that instantly identifies AI-generated content
-              and lets you prove your work is authentically human.
-            </p>
+            <div className="flex justify-center">
+              <p className="text-3xl text-[#888888] max-w-4xl leading-relaxed text-center">
+                The browser extension that instantly identifies AI-generated content
+                and lets you prove your work is authentically human.
+              </p>
+            </div>
           </motion.div>
 
           {/* CTA Buttons */}
@@ -51,7 +53,7 @@ export default function Hero() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.8, delay: 0.6 }}
-            className="flex gap-12 justify-center text-base text-[#555555]"
+            className="flex gap-12 justify-center text-base text-[#555555] mt-16"
           >
             <div className="flex items-center gap-3">
               <div className="w-2 h-2 bg-[#3b82f6] rounded-full" />
