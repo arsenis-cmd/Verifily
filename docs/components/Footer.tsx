@@ -28,7 +28,7 @@ export default function Footer() {
 
   return (
     <footer className="bg-[#000000] border-t border-[#111111] w-full">
-      <div className="w-full px-20 py-16">
+      <div className="w-full pl-32 pr-20 py-16">
         {/* Main Footer - Single Row */}
         <div className="flex items-center justify-between mb-8">
           {/* Brand */}

@@ -28,12 +28,12 @@ export default function Navigation() {
           : 'bg-transparent'
       }`}
     >
-      <div className="w-full px-20">
+      <div className="w-full pl-32 pr-20">
         <div className="flex items-center justify-between h-20 max-w-[1600px] mx-auto">
           {/* Logo */}
           <Link
             href="/"
-            className="text-2xl font-bold text-white hover:opacity-80 transition-opacity tracking-tight ml-32"
+            className="text-2xl font-bold text-white hover:opacity-80 transition-opacity tracking-tight"
           >
             Verifily
           </Link>
