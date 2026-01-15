@@ -6,14 +6,14 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        primary: 'bg-white text-black hover:bg-gray-100 hover:scale-[1.02] font-semibold',
+        primary: 'bg-gradient-to-r from-[#3b82f6] to-[#8b5cf6] text-white hover:opacity-90 hover:scale-[1.02] font-semibold',
         secondary: 'bg-transparent text-white border border-[#333] hover:border-[#555] hover:bg-[#111111]',
         ghost: 'bg-transparent text-[#a1a1a1] hover:text-white',
       },
       size: {
-        sm: 'px-5 py-2.5 text-[14px]',
-        md: 'px-6 py-3 text-[15px]',
-        lg: 'px-8 py-4 text-[16px]',
+        sm: 'px-4 py-2 text-[12px]',
+        md: 'px-5 py-2.5 text-[13px]',
+        lg: 'px-6 py-3 text-[14px]',
       },
     },
     defaultVariants: {
