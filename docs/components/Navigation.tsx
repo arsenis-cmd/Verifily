@@ -64,7 +64,7 @@ export default function Navigation() {
           </div>
 
           {/* CTA Button */}
-          <Button variant="primary" size="sm" className="px-8 py-3">
+          <Button variant="primary" size="sm">
             Add to Chrome
           </Button>
         </div>

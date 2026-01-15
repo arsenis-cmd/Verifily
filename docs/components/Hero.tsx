@@ -38,10 +38,10 @@ export default function Hero() {
             transition={{ duration: 0.8, delay: 0.4 }}
             className="flex gap-6 justify-center items-center"
           >
-            <Button variant="primary" size="lg" className="text-lg px-16 py-6">
+            <Button variant="primary" size="lg">
               Add to Chrome
             </Button>
-            <Button variant="secondary" size="lg" className="text-lg px-16 py-6">
+            <Button variant="secondary" size="lg">
               See Demo
             </Button>
           </motion.div>

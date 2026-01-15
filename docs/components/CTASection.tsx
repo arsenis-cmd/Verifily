@@ -35,7 +35,7 @@ export default function CTASection() {
               <Button
                 variant="primary"
                 size="lg"
-                className="animate-pulse-glow px-20 py-6 text-lg"
+                className="animate-pulse-glow px-24"
               >
                 Add to Chrome — It's Free
               </Button>
