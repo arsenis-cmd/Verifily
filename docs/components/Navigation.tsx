@@ -33,7 +33,7 @@ export default function Navigation() {
           {/* Logo */}
           <Link
             href="/"
-            className="text-2xl font-bold text-white hover:opacity-80 transition-opacity tracking-tight"
+            className="text-2xl font-bold text-white hover:opacity-80 transition-opacity tracking-tight ml-32"
           >
             Verifily
           </Link>
