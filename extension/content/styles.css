@@ -355,10 +355,10 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 18px;
-  height: 18px;
-  font-size: 14px;
-  margin-right: 6px;
+  width: 16px;
+  height: 16px;
+  font-size: 13px;
+  margin-right: 5px;
 }
 
 .poc-verified-badge.human .poc-badge-icon {
@@ -398,13 +398,13 @@
 }
 
 .poc-verified-badge.human .poc-badge-verified-count {
-  color: #047857;
-  border-color: rgba(16, 185, 129, 0.5);
+  color: #10b981;
+  border-color: rgba(16, 185, 129, 0.4);
 }
 
 .poc-verified-badge.ai .poc-badge-verified-count {
-  color: #b91c1c;
-  border-color: rgba(239, 68, 68, 0.5);
+  color: #ef4444;
+  border-color: rgba(239, 68, 68, 0.4);
 }
 
 .poc-spinner {
