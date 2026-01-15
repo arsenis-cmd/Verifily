@@ -53,7 +53,7 @@ export default function Features() {
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: index * 0.1 }}
             >
-              <div className="card h-full">
+              <div className="card h-full text-center">
                 {/* Number Badge */}
                 <div className="flex justify-center mb-8">
                   <div className="w-16 h-16 bg-gradient-to-br from-[#3b82f6]/20 to-[#8b5cf6]/20 rounded-2xl flex items-center justify-center border border-[#3b82f6]/20">
@@ -63,8 +63,8 @@ export default function Features() {
                   </div>
                 </div>
 
-                <h3 className="text-white mb-6">{feature.title}</h3>
-                <p className="text-[#888888] text-lg leading-relaxed">
+                <h3 className="text-white mb-6 text-center">{feature.title}</h3>
+                <p className="text-[#888888] text-lg leading-relaxed text-center">
                   {feature.description}
                 </p>
               </div>

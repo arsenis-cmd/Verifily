@@ -64,9 +64,11 @@ export default function Navigation() {
           </div>
 
           {/* CTA Button */}
-          <Button variant="primary" size="sm">
-            Add to Chrome
-          </Button>
+          <div className="mr-12">
+            <Button variant="primary" size="sm">
+              Add to Chrome
+            </Button>
+          </div>
         </div>
       </div>
     </motion.nav>
