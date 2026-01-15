@@ -38,7 +38,7 @@ export default function Features() {
               take control
             </span>
           </h2>
-          <p className="text-2xl text-[#888888] max-w-3xl mx-auto">
+          <p className="text-2xl text-[#888888] max-w-3xl mx-auto text-center">
             Everything you need to verify authenticity in the AI era
           </p>
         </motion.div>

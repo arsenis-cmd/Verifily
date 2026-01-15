@@ -152,19 +152,21 @@ export default function ProductDemo() {
           </div>
 
           {/* Video Section */}
-          <div className="w-full max-w-5xl mx-auto mt-32">
-            <div className="relative rounded-2xl overflow-hidden border border-[#222222] shadow-2xl">
-              <video
-                className="w-full h-auto"
-                controls
-                autoPlay
-                muted
-                loop
-                playsInline
-              >
-                <source src="/videos/Verifily.mp4" type="video/mp4" />
-                Your browser does not support the video tag.
-              </video>
+          <div className="w-full flex justify-center mt-32">
+            <div className="w-full max-w-5xl">
+              <div className="relative rounded-2xl overflow-hidden border border-[#222222] shadow-2xl">
+                <video
+                  className="w-full h-auto"
+                  controls
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                >
+                  <source src="/videos/Verifily.mp4" type="video/mp4" />
+                  Your browser does not support the video tag.
+                </video>
+              </div>
             </div>
           </div>
         </div>

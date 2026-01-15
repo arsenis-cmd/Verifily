@@ -25,7 +25,7 @@ export default function Hero() {
               </span>
             </h1>
 
-            <p className="text-3xl text-[#888888] max-w-4xl mx-auto mb-16 leading-relaxed">
+            <p className="text-3xl text-[#888888] max-w-4xl mx-auto mb-16 leading-relaxed text-center">
               The browser extension that instantly identifies AI-generated content
               and lets you prove your work is authentically human.
             </p>

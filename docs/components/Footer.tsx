@@ -28,35 +28,35 @@ export default function Footer() {
 
   return (
     <footer className="bg-[#000000] border-t border-[#111111] w-full">
-      <div className="w-full pl-32 pr-20 py-16">
+      <div className="w-full pl-32 pr-20 py-12">
         {/* Main Footer - Single Row */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center justify-between mb-6">
           {/* Brand */}
           <div className="text-left">
             <Link
               href="/"
-              className="text-xl font-bold text-white mb-2 block hover:opacity-80 transition-opacity"
+              className="text-base font-bold text-white mb-1 block hover:opacity-80 transition-opacity"
             >
               Verifily
             </Link>
-            <p className="text-xs text-[#666666]">
+            <p className="text-[10px] text-[#666666]">
               Proof of humanity in the AI era.
             </p>
           </div>
 
           {/* Links Row */}
-          <div className="flex gap-16 text-left">
+          <div className="flex gap-12 text-left">
             {/* Product Links */}
             <div>
-              <h4 className="text-white font-semibold text-xs mb-3 uppercase tracking-wider">
+              <h4 className="text-white font-semibold text-[10px] mb-2 uppercase tracking-wider">
                 Product
               </h4>
-              <ul className="space-y-2">
+              <ul className="space-y-1">
                 {links.product.map((link, index) => (
                   <li key={index}>
                     <Link
                       href={link.href}
-                      className="text-xs text-[#666666] hover:text-white transition-colors"
+                      className="text-[9px] text-[#666666] hover:text-white transition-colors"
                     >
                       {link.label}
                     </Link>
@@ -67,15 +67,15 @@ export default function Footer() {
 
             {/* Resources Links */}
             <div>
-              <h4 className="text-white font-semibold text-xs mb-3 uppercase tracking-wider">
+              <h4 className="text-white font-semibold text-[10px] mb-2 uppercase tracking-wider">
                 Resources
               </h4>
-              <ul className="space-y-2">
+              <ul className="space-y-1">
                 {links.resources.map((link, index) => (
                   <li key={index}>
                     <Link
                       href={link.href}
-                      className="text-xs text-[#666666] hover:text-white transition-colors"
+                      className="text-[9px] text-[#666666] hover:text-white transition-colors"
                     >
                       {link.label}
                     </Link>
@@ -86,15 +86,15 @@ export default function Footer() {
 
             {/* Legal Links */}
             <div>
-              <h4 className="text-white font-semibold text-xs mb-3 uppercase tracking-wider">
+              <h4 className="text-white font-semibold text-[10px] mb-2 uppercase tracking-wider">
                 Legal
               </h4>
-              <ul className="space-y-2">
+              <ul className="space-y-1">
                 {links.legal.map((link, index) => (
                   <li key={index}>
                     <Link
                       href={link.href}
-                      className="text-xs text-[#666666] hover:text-white transition-colors"
+                      className="text-[9px] text-[#666666] hover:text-white transition-colors"
                     >
                       {link.label}
                     </Link>
@@ -106,18 +106,18 @@ export default function Footer() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="border-t border-[#111111] pt-6 flex items-center justify-between">
-          <p className="text-[10px] text-[#555555]">
+        <div className="border-t border-[#111111] pt-4 flex items-center justify-between">
+          <p className="text-[8px] text-[#555555]">
             © 2026 Verifily. All rights reserved.
           </p>
 
           {/* Social Links */}
-          <div className="flex gap-6">
+          <div className="flex gap-4">
             {social.map((item, index) => (
               <Link
                 key={index}
                 href={item.href}
-                className="text-[10px] text-[#666666] hover:text-white transition-colors"
+                className="text-[8px] text-[#666666] hover:text-white transition-colors"
               >
                 {item.name}
               </Link>
