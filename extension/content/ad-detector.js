@@ -1,10 +1,31 @@
 // Ad Detection and Attention Tracking
 let API_BASE = 'http://localhost:8000';
+let API_AVAILABLE = false;
 
-// Load API URL from storage
-chrome.storage.local.get(['apiUrl'], (result) => {
+// Load API URL from storage and test connection
+chrome.storage.local.get(['apiUrl'], async (result) => {
   if (result.apiUrl) {
     API_BASE = result.apiUrl.replace('/api/v1', '');
+  }
+
+  // Test API connection
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3000);
+
+    const response = await fetch(`${API_BASE}/`, {
+      method: 'GET',
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
+
+    if (response.ok) {
+      API_AVAILABLE = true;
+      console.log('[AdDetector] ✓ API connected:', API_BASE);
+    }
+  } catch (error) {
+    API_AVAILABLE = false;
+    console.log('[AdDetector] ⚠ API not available (ad detection will still work locally)');
   }
 });
 
@@ -542,7 +563,7 @@ class AdDetector {
 
     if (this.verifiedImpressions.has(adId)) return;
 
-    console.log('[AdDetector] VERIFIED IMPRESSION:', adId, 'Time:', attentionTime.toFixed(2) + 's');
+    console.log('[AdDetector] ✓ VERIFIED IMPRESSION:', adId, 'Time:', attentionTime.toFixed(2) + 's');
     this.verifiedImpressions.add(adId);
 
     // Update UI to show verified
@@ -557,33 +578,46 @@ class AdDetector {
       `;
     }
 
-    // Send to backend
-    try {
-      const response = await fetch(`${API_BASE}/api/v1/impressions/verify`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ad_id: adId,
-          platform: adData.platform,
-          ad_type: adData.type,
-          attention_time: attentionTime,
-          url: adData.url,
-          timestamp: new Date().toISOString(),
-          verification_method: 'scroll_and_viewport'
-        })
-      });
+    // Send to backend (only if API is available)
+    if (API_AVAILABLE) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
 
-      if (response.ok) {
-        const result = await response.json();
-        console.log('[AdDetector] Impression recorded:', result);
+        const response = await fetch(`${API_BASE}/api/v1/impressions/verify`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            ad_id: adId,
+            platform: adData.platform,
+            ad_type: adData.type,
+            attention_time: attentionTime,
+            url: adData.url,
+            timestamp: new Date().toISOString(),
+            verification_method: 'scroll_and_viewport'
+          }),
+          signal: controller.signal
+        });
 
-        // Optional: Redirect or reward user
-        if (result.redirect_url) {
-          this.offerRedirect(adData, result.redirect_url);
+        clearTimeout(timeoutId);
+
+        if (response.ok) {
+          const result = await response.json();
+          console.log('[AdDetector] ✓ Impression recorded in backend:', result);
+
+          // Optional: Redirect or reward user
+          if (result.redirect_url) {
+            this.offerRedirect(adData, result.redirect_url);
+          }
+        } else {
+          console.log('[AdDetector] ⚠ Backend response error:', response.status);
         }
+      } catch (error) {
+        console.log('[AdDetector] ⚠ Could not record impression in backend (working offline)');
+        // Silent fail - ad detection still works locally
       }
-    } catch (error) {
-      console.error('[AdDetector] Failed to record impression:', error);
+    } else {
+      console.log('[AdDetector] ℹ Impression verified locally (backend offline)');
     }
 
     // Show notification
