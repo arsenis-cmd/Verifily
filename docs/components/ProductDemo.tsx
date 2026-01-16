@@ -55,7 +55,7 @@ export default function ProductDemo() {
       tl.to(
         '.demo-progress',
         {
-          width: '95%',
+          width: '100%',
           duration: 0.8,
         },
         '+=0.2'
@@ -118,7 +118,7 @@ export default function ProductDemo() {
                 <div className="text-sm text-[#a1a1a1] mb-2">
                   Analyzing content...
                 </div>
-                <div className="h-2 bg-[#222222] rounded-full overflow-hidden">
+                <div className="h-2 bg-[#222222] rounded-full overflow-hidden mx-2">
                   <div
                     className="demo-progress h-full bg-gradient-to-r from-[#ff4444] to-[#cc3333] rounded-full"
                     style={{ width: '0%' }}
