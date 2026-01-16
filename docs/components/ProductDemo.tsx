@@ -110,7 +110,7 @@ export default function ProductDemo() {
 
             {/* Extension popup */}
             <div className="demo-extension bg-[#111111] border border-[#222222] rounded-xl p-12 shadow-2xl w-full flex items-center justify-center min-h-[300px]">
-              <div className="max-w-xl w-full">
+              <div className="max-w-3xl w-full">
                 <div className="flex items-center justify-between mb-6">
                   <h3 className="text-white font-semibold text-sm">Verifily</h3>
                   <span className="text-[#666666] text-sm">✕</span>
