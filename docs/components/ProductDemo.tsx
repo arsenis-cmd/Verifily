@@ -55,7 +55,7 @@ export default function ProductDemo() {
       tl.to(
         '.demo-progress',
         {
-          width: '100%',
+          width: '95%',
           duration: 0.8,
         },
         '+=0.2'
