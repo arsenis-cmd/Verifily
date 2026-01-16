@@ -94,8 +94,8 @@ export default function ProductDemo() {
             <div className="flex flex-col gap-8 items-center max-w-4xl w-full"
             >
             {/* Fake webpage */}
-            <div className="demo-text bg-[#111111] border border-[#222222] rounded-xl p-16 w-full flex items-center justify-center min-h-[200px]">
-              <div className="max-w-5xl">
+            <div className="demo-text bg-[#111111] border border-[#222222] rounded-xl w-full flex items-center justify-center min-h-[200px]">
+              <div className="max-w-5xl px-24 py-12">
                 <p className="text-[#a1a1a1] text-[10px] leading-relaxed text-center">
                   "The implementation of machine learning algorithms in modern
                   healthcare systems has demonstrated significant potential for
@@ -109,8 +109,8 @@ export default function ProductDemo() {
             </div>
 
             {/* Extension popup */}
-            <div className="demo-extension bg-[#111111] border border-[#222222] rounded-xl p-16 shadow-2xl w-full flex items-center justify-center min-h-[200px]">
-              <div className="max-w-5xl w-full">
+            <div className="demo-extension bg-[#111111] border border-[#222222] rounded-xl shadow-2xl w-full flex items-center justify-center min-h-[200px]">
+              <div className="max-w-5xl w-full px-24 py-12">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-white font-semibold text-xs">Verifily</h3>
                   <span className="text-[#666666] text-xs">✕</span>
