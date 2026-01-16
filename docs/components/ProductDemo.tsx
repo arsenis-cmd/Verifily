@@ -94,9 +94,9 @@ export default function ProductDemo() {
             <div className="flex flex-col gap-8 items-center max-w-4xl w-full"
             >
             {/* Fake webpage */}
-            <div className="demo-text bg-[#111111] border border-[#222222] rounded-xl p-12 w-full">
-              <div className="max-w-3xl mx-auto">
-                <p className="text-[#a1a1a1] text-base leading-relaxed">
+            <div className="demo-text bg-[#111111] border border-[#222222] rounded-xl p-12 w-full flex items-center justify-center">
+              <div className="max-w-3xl">
+                <p className="text-[#a1a1a1] text-base leading-relaxed text-center">
                   "The implementation of machine learning algorithms in modern
                   healthcare systems has demonstrated significant potential for
                   improving diagnostic accuracy and patient outcomes. These
@@ -109,8 +109,8 @@ export default function ProductDemo() {
             </div>
 
             {/* Extension popup */}
-            <div className="demo-extension bg-[#111111] border border-[#222222] rounded-xl p-12 shadow-2xl w-full">
-              <div className="max-w-3xl mx-auto">
+            <div className="demo-extension bg-[#111111] border border-[#222222] rounded-xl p-12 shadow-2xl w-full flex items-center justify-center">
+              <div className="max-w-3xl w-full">
                 <div className="flex items-center justify-between mb-6">
                   <h3 className="text-white font-semibold">Verifily</h3>
                   <span className="text-[#666666]">✕</span>
