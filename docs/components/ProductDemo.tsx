@@ -89,7 +89,7 @@ export default function ProductDemo() {
 
           <div
             ref={demoRef}
-            className="grid md:grid-columns-2 gap-8 items-start"
+            className="grid md:grid-cols-2 gap-8 items-start max-w-4xl mx-auto"
           >
             {/* Fake webpage */}
             <div className="demo-text bg-[#111111] border border-[#222222] rounded-xl p-8">
@@ -147,25 +147,6 @@ export default function ProductDemo() {
                     </ul>
                   </div>
                 </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Video Section */}
-          <div className="w-full flex justify-center mt-32">
-            <div className="w-full max-w-5xl">
-              <div className="relative rounded-2xl overflow-hidden border border-[#222222] shadow-2xl">
-                <video
-                  className="w-full h-auto"
-                  controls
-                  autoPlay
-                  muted
-                  loop
-                  playsInline
-                >
-                  <source src="/verifily.mp4" type="video/mp4" />
-                  Your browser does not support the video tag.
-                </video>
               </div>
             </div>
           </div>
