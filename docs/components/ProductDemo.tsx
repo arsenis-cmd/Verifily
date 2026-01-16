@@ -89,8 +89,10 @@ export default function ProductDemo() {
 
           <div
             ref={demoRef}
-            className="grid md:grid-cols-2 gap-8 items-start max-w-4xl mx-auto"
+            className="flex justify-center"
           >
+            <div className="grid md:grid-cols-2 gap-8 items-start max-w-4xl"
+            >
             {/* Fake webpage */}
             <div className="demo-text bg-[#111111] border border-[#222222] rounded-xl p-8">
               <div className="h-4 w-32 bg-[#222222] rounded mb-6" />
@@ -148,6 +150,7 @@ export default function ProductDemo() {
                   </div>
                 </div>
               </div>
+            </div>
             </div>
           </div>
         </div>
