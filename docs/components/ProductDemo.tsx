@@ -45,7 +45,7 @@ export default function ProductDemo() {
         '.demo-extension',
         {
           opacity: 0,
-          x: 100,
+          y: 50,
           duration: 0.5,
         },
         '+=0.3'
@@ -91,7 +91,7 @@ export default function ProductDemo() {
             ref={demoRef}
             className="flex justify-center"
           >
-            <div className="grid md:grid-cols-2 gap-8 items-start max-w-4xl"
+            <div className="flex flex-col gap-8 items-center max-w-2xl w-full"
             >
             {/* Fake webpage */}
             <div className="demo-text bg-[#111111] border border-[#222222] rounded-xl p-8">
