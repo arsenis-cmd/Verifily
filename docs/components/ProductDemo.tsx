@@ -91,22 +91,18 @@ export default function ProductDemo() {
             ref={demoRef}
             className="flex justify-center"
           >
-            <div className="flex flex-col gap-8 items-center max-w-2xl w-full"
+            <div className="flex flex-col gap-8 items-center max-w-4xl w-full"
             >
             {/* Fake webpage */}
-            <div className="demo-text bg-[#111111] border border-[#222222] rounded-xl p-8">
-              <div className="h-4 w-32 bg-[#222222] rounded mb-6" />
-              <div className="space-y-3">
-                <div className="h-3 bg-[#222222] rounded w-full" />
-                <div className="h-3 bg-[#222222] rounded w-full" />
-                <div className="h-3 bg-[#222222] rounded w-5/6" />
-                <div className="h-3 bg-[#222222] rounded w-full" />
-                <div className="h-3 bg-[#222222] rounded w-4/5" />
-              </div>
-              <p className="text-[#a1a1a1] text-sm mt-6 leading-relaxed">
+            <div className="demo-text bg-[#111111] border border-[#222222] rounded-xl p-8 w-full">
+              <p className="text-[#a1a1a1] text-base leading-relaxed">
                 "The implementation of machine learning algorithms in modern
                 healthcare systems has demonstrated significant potential for
-                improving diagnostic accuracy and patient outcomes..."
+                improving diagnostic accuracy and patient outcomes. These
+                advanced computational techniques have revolutionized the way
+                medical professionals approach complex diagnostic challenges,
+                enabling more precise and timely interventions that can
+                significantly impact patient care and treatment efficacy..."
               </p>
             </div>
 
