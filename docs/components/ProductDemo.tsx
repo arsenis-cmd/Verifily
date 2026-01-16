@@ -114,15 +114,17 @@ export default function ProductDemo() {
               </div>
 
               {/* Scanning progress */}
-              <div className="mb-6 px-4">
+              <div className="mb-6">
                 <div className="text-sm text-[#a1a1a1] mb-2">
                   Analyzing content...
                 </div>
-                <div className="h-2 bg-[#222222] rounded-full overflow-hidden">
-                  <div
-                    className="demo-progress h-full bg-gradient-to-r from-[#ff4444] to-[#cc3333] rounded-full"
-                    style={{ width: '0%' }}
-                  />
+                <div className="w-[95%] mx-auto">
+                  <div className="h-2 bg-[#222222] rounded-full overflow-hidden">
+                    <div
+                      className="demo-progress h-full bg-gradient-to-r from-[#ff4444] to-[#cc3333] rounded-full"
+                      style={{ width: '0%' }}
+                    />
+                  </div>
                 </div>
               </div>
 
