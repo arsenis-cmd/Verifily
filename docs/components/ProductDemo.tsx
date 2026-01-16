@@ -96,7 +96,7 @@ export default function ProductDemo() {
             {/* Fake webpage */}
             <div className="demo-text bg-[#111111] border border-[#222222] rounded-xl p-8 w-full flex items-center justify-center min-h-[200px]">
               <div className="max-w-5xl">
-                <p className="text-[#a1a1a1] text-xs leading-relaxed text-center">
+                <p className="text-[#a1a1a1] text-[10px] leading-relaxed text-center">
                   "The implementation of machine learning algorithms in modern
                   healthcare systems has demonstrated significant potential for
                   improving diagnostic accuracy and patient outcomes. These
@@ -111,17 +111,17 @@ export default function ProductDemo() {
             {/* Extension popup */}
             <div className="demo-extension bg-[#111111] border border-[#222222] rounded-xl p-8 shadow-2xl w-full flex items-center justify-center min-h-[200px]">
               <div className="max-w-5xl w-full">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-white font-semibold text-xs">Verifily</h3>
+                <div className="flex items-center justify-end mb-4">
+                  <h3 className="text-white font-semibold text-xs mr-auto ml-0">Verifily</h3>
                   <span className="text-[#666666] text-xs">✕</span>
                 </div>
 
                 {/* Scanning progress */}
-                <div className="mb-4">
-                  <div className="text-[10px] text-[#a1a1a1] mb-2">
+                <div className="mb-4 flex flex-col items-center">
+                  <div className="text-[10px] text-[#a1a1a1] mb-2 text-center">
                     Analyzing content...
                   </div>
-                  <div className="h-1.5 bg-[#222222] rounded-full overflow-hidden">
+                  <div className="h-1.5 bg-[#222222] rounded-full overflow-hidden w-[60%]">
                     <div
                       className="demo-progress h-full bg-gradient-to-r from-[#ff4444] to-[#cc3333] rounded-full"
                       style={{ width: '0%' }}
