@@ -94,7 +94,7 @@ export default function ProductDemo() {
             <div className="flex flex-col gap-8 items-center max-w-4xl w-full"
             >
             {/* Fake webpage */}
-            <div className="demo-text bg-[#111111] border border-[#222222] rounded-xl p-8 w-full flex items-center justify-center min-h-[200px]">
+            <div className="demo-text bg-[#111111] border border-[#222222] rounded-xl p-16 w-full flex items-center justify-center min-h-[200px]">
               <div className="max-w-5xl">
                 <p className="text-[#a1a1a1] text-[10px] leading-relaxed text-center">
                   "The implementation of machine learning algorithms in modern
@@ -109,10 +109,10 @@ export default function ProductDemo() {
             </div>
 
             {/* Extension popup */}
-            <div className="demo-extension bg-[#111111] border border-[#222222] rounded-xl p-8 shadow-2xl w-full flex items-center justify-center min-h-[200px]">
+            <div className="demo-extension bg-[#111111] border border-[#222222] rounded-xl p-16 shadow-2xl w-full flex items-center justify-center min-h-[200px]">
               <div className="max-w-5xl w-full">
-                <div className="flex items-center justify-end mb-4">
-                  <h3 className="text-white font-semibold text-xs mr-auto ml-0">Verifily</h3>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-white font-semibold text-xs">Verifily</h3>
                   <span className="text-[#666666] text-xs">✕</span>
                 </div>
 
