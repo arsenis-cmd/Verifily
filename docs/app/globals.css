@@ -193,3 +193,29 @@ p {
   background: #3b82f6;
   color: #ffffff;
 }
+
+/* ==========================================
+   VIDEO & ANIMATIONS
+   ========================================== */
+
+/* Smooth video loading */
+video {
+  background-color: #000;
+}
+
+/* Shimmer animation */
+@keyframes shimmer {
+  0% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.5;
+  }
+}
+
+.shimmer {
+  animation: shimmer 3s ease-in-out infinite;
+}
