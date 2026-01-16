@@ -94,9 +94,9 @@ export default function ProductDemo() {
             <div className="flex flex-col gap-8 items-center max-w-4xl w-full"
             >
             {/* Fake webpage */}
-            <div className="demo-text bg-[#111111] border border-[#222222] rounded-xl p-12 w-full flex items-center justify-center">
+            <div className="demo-text bg-[#111111] border border-[#222222] rounded-xl p-12 w-full flex items-center justify-center min-h-[300px]">
               <div className="max-w-3xl">
-                <p className="text-[#a1a1a1] text-base leading-relaxed text-center">
+                <p className="text-[#a1a1a1] text-sm leading-relaxed text-center">
                   "The implementation of machine learning algorithms in modern
                   healthcare systems has demonstrated significant potential for
                   improving diagnostic accuracy and patient outcomes. These
@@ -109,16 +109,16 @@ export default function ProductDemo() {
             </div>
 
             {/* Extension popup */}
-            <div className="demo-extension bg-[#111111] border border-[#222222] rounded-xl p-12 shadow-2xl w-full flex items-center justify-center">
+            <div className="demo-extension bg-[#111111] border border-[#222222] rounded-xl p-12 shadow-2xl w-full flex items-center justify-center min-h-[300px]">
               <div className="max-w-3xl w-full">
                 <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-white font-semibold">Verifily</h3>
-                  <span className="text-[#666666]">✕</span>
+                  <h3 className="text-white font-semibold text-sm">Verifily</h3>
+                  <span className="text-[#666666] text-sm">✕</span>
                 </div>
 
                 {/* Scanning progress */}
                 <div className="mb-6">
-                  <div className="text-sm text-[#a1a1a1] mb-2">
+                  <div className="text-xs text-[#a1a1a1] mb-2">
                     Analyzing content...
                   </div>
                   <div className="h-2 bg-[#222222] rounded-full overflow-hidden">
@@ -132,12 +132,12 @@ export default function ProductDemo() {
                 {/* Result */}
                 <div className="demo-result opacity-0">
                   <div className="flex items-center gap-2 mb-4">
-                    <span className="text-[#ff4444] text-xl">✗</span>
-                    <span className="text-white font-semibold">
+                    <span className="text-[#ff4444] text-lg">✗</span>
+                    <span className="text-white font-semibold text-sm">
                       AI-Generated
                     </span>
                   </div>
-                  <div className="text-sm text-[#a1a1a1] space-y-2 mb-4">
+                  <div className="text-xs text-[#a1a1a1] space-y-2 mb-4">
                     <div>AI Confidence: 94%</div>
                     <div className="text-xs">
                       Indicators detected:
