@@ -94,9 +94,9 @@ export default function ProductDemo() {
             <div className="flex flex-col gap-8 items-center max-w-4xl w-full"
             >
             {/* Fake webpage */}
-            <div className="demo-text bg-[#111111] border border-[#222222] rounded-xl p-12 w-full flex items-center justify-center min-h-[200px]">
+            <div className="demo-text bg-[#111111] border border-[#222222] rounded-xl p-8 w-full flex items-center justify-center min-h-[200px]">
               <div className="max-w-5xl">
-                <p className="text-[#a1a1a1] text-sm leading-relaxed text-center">
+                <p className="text-[#a1a1a1] text-xs leading-relaxed text-center">
                   "The implementation of machine learning algorithms in modern
                   healthcare systems has demonstrated significant potential for
                   improving diagnostic accuracy and patient outcomes. These
@@ -109,19 +109,19 @@ export default function ProductDemo() {
             </div>
 
             {/* Extension popup */}
-            <div className="demo-extension bg-[#111111] border border-[#222222] rounded-xl p-12 shadow-2xl w-full flex items-center justify-center min-h-[200px]">
+            <div className="demo-extension bg-[#111111] border border-[#222222] rounded-xl p-8 shadow-2xl w-full flex items-center justify-center min-h-[200px]">
               <div className="max-w-5xl w-full">
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-white font-semibold text-sm">Verifily</h3>
-                  <span className="text-[#666666] text-sm">✕</span>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-white font-semibold text-xs">Verifily</h3>
+                  <span className="text-[#666666] text-xs">✕</span>
                 </div>
 
                 {/* Scanning progress */}
-                <div className="mb-6">
-                  <div className="text-xs text-[#a1a1a1] mb-2">
+                <div className="mb-4">
+                  <div className="text-[10px] text-[#a1a1a1] mb-2">
                     Analyzing content...
                   </div>
-                  <div className="h-2 bg-[#222222] rounded-full overflow-hidden">
+                  <div className="h-1.5 bg-[#222222] rounded-full overflow-hidden">
                     <div
                       className="demo-progress h-full bg-gradient-to-r from-[#ff4444] to-[#cc3333] rounded-full"
                       style={{ width: '0%' }}
@@ -131,17 +131,17 @@ export default function ProductDemo() {
 
                 {/* Result */}
                 <div className="demo-result opacity-0">
-                  <div className="flex items-center gap-2 mb-4">
-                    <span className="text-[#ff4444] text-lg">✗</span>
-                    <span className="text-white font-semibold text-sm">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="text-[#ff4444] text-sm">✗</span>
+                    <span className="text-white font-semibold text-xs">
                       AI-Generated
                     </span>
                   </div>
-                  <div className="text-xs text-[#a1a1a1] space-y-2 mb-4">
+                  <div className="text-[10px] text-[#a1a1a1] space-y-1.5 mb-3">
                     <div>AI Confidence: 94%</div>
-                    <div className="text-xs">
+                    <div className="text-[10px]">
                       Indicators detected:
-                      <ul className="mt-2 space-y-1 pl-4">
+                      <ul className="mt-1.5 space-y-0.5 pl-4">
                         <li>• Uniform sentence structure</li>
                         <li>• Low perplexity score</li>
                         <li>• Generic phrasing patterns</li>
