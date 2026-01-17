@@ -57,17 +57,17 @@ export default function Newsletter() {
           </p>
 
           {/* Email form */}
-          <form onSubmit={handleSubmit} className="w-full max-w-md">
-            <div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
+          <form onSubmit={handleSubmit} className="w-full max-w-2xl">
+            <div className="flex flex-col sm:flex-row gap-6 items-center justify-center">
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Enter your email"
                 required
-                className="w-full sm:flex-1 px-6 py-4 bg-[#111111] border border-[#222222] rounded-full text-white placeholder:text-[#666666] focus:outline-none focus:border-[#3b82f6] transition-colors"
+                className="w-full sm:flex-1 px-8 py-6 bg-[#111111] border border-[#222222] rounded-full text-white text-lg placeholder:text-[#666666] focus:outline-none focus:border-[#3b82f6] transition-colors"
               />
-              <Button variant="primary" size="md" type="submit" disabled={status === 'loading'}>
+              <Button variant="primary" size="lg" type="submit" disabled={status === 'loading'}>
                 {status === 'loading' ? 'Subscribing...' : 'Subscribe'}
               </Button>
             </div>
