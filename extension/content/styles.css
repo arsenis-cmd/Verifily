@@ -419,3 +419,310 @@
 @keyframes poc-spin {
   to { transform: rotate(360deg); }
 }
+
+/* ===== VERIFILY FEATURES ===== */
+
+/* Verify as Human button */
+.verifily-button-container {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  align-items: center;
+}
+
+.verifily-verify-btn,
+.verifily-share-btn {
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1px solid;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.01em;
+}
+
+.verifily-verify-btn {
+  color: #10b981;
+  border-color: rgba(16, 185, 129, 0.4);
+}
+
+.verifily-verify-btn:hover:not(:disabled) {
+  background: rgba(16, 185, 129, 0.1);
+  border-color: rgba(16, 185, 129, 0.6);
+  transform: translateY(-1px);
+}
+
+.verifily-verify-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.verifily-verify-btn.verifily-verified {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: rgba(16, 185, 129, 0.6);
+}
+
+.verifily-share-btn {
+  color: #6366f1;
+  border-color: rgba(99, 102, 241, 0.4);
+}
+
+.verifily-share-btn:hover {
+  background: rgba(99, 102, 241, 0.1);
+  border-color: rgba(99, 102, 241, 0.6);
+  transform: translateY(-1px);
+}
+
+/* Author-verified badge styling */
+.poc-verified-badge.author-verified {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(5, 150, 105, 0.15));
+  border-color: rgba(16, 185, 129, 0.6);
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
+}
+
+.poc-verified-badge.author-verified::before {
+  content: '✓ ';
+  color: #10b981;
+  font-weight: 700;
+}
+
+/* Modals */
+.verifily-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999999;
+  animation: verifily-fadeIn 0.2s ease;
+}
+
+@keyframes verifily-fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.verifily-modal {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  max-width: 480px;
+  width: 90%;
+  max-height: 90vh;
+  overflow: hidden;
+  animation: verifily-slideUp 0.3s ease;
+}
+
+@keyframes verifily-slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.verifily-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid #e5e7eb;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.05), rgba(139, 92, 246, 0.05));
+}
+
+.verifily-modal-header h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #111827;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.verifily-modal-close {
+  background: none;
+  border: none;
+  font-size: 28px;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.verifily-modal-close:hover {
+  background: rgba(0, 0, 0, 0.05);
+  color: #111827;
+}
+
+.verifily-modal-body {
+  padding: 24px;
+}
+
+.verifily-modal-body p {
+  margin: 0 0 16px 0;
+  color: #374151;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.verifily-email-input,
+.verifily-url-input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  font-size: 15px;
+  margin-bottom: 16px;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.verifily-email-input:focus,
+.verifily-url-input:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.verifily-submit-btn,
+.verifily-confirm-btn {
+  width: 100%;
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+}
+
+.verifily-submit-btn:hover:not(:disabled),
+.verifily-confirm-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+}
+
+.verifily-submit-btn:disabled,
+.verifily-confirm-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.verifily-modal-footer,
+.verifily-modal-note {
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 12px;
+  margin-bottom: 0;
+  text-align: center;
+}
+
+.verifily-content-preview {
+  background: #f9fafb;
+  padding: 16px;
+  border-radius: 10px;
+  border-left: 3px solid #6366f1;
+  margin: 16px 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #374151;
+  font-style: italic;
+}
+
+.verifily-modal-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.verifily-cancel-btn {
+  flex: 1;
+  padding: 12px 24px;
+  background: #f3f4f6;
+  color: #374151;
+  border: none;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.verifily-cancel-btn:hover {
+  background: #e5e7eb;
+}
+
+.verifily-confirm-btn {
+  flex: 1.5;
+}
+
+.verifily-share-url {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.verifily-url-input {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.verifily-copy-btn {
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.verifily-copy-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.verifily-share-stats {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  margin: 16px 0;
+  padding: 12px;
+  background: #f9fafb;
+  border-radius: 10px;
+}
+
+.verifily-share-stats span {
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+}

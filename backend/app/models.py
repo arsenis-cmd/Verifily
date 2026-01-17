@@ -107,6 +107,11 @@ class Verification(Base):
     post_url = Column(Text, nullable=True)
     content_preview = Column(Text, nullable=True)  # First 200 chars
 
+    # Human self-verification (NEW - Verifily feature)
+    verified_by_author = Column(Boolean, default=False, nullable=False)
+    author_username = Column(String(100), nullable=True)
+    verification_type = Column(String(20), nullable=True)  # 'auto' or 'manual'
+
     # Network effect tracking
     view_count = Column(Integer, default=1, nullable=False)
     first_seen = Column(DateTime, default=datetime.utcnow, nullable=False, index=True)
@@ -114,3 +119,12 @@ class Verification(Base):
 
     # Detailed scores (JSON string)
     scores = Column(Text, nullable=True)
+
+class Waitlist(Base):
+    """Email waitlist for Verifily"""
+    __tablename__ = "waitlist"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    email = Column(String(255), unique=True, index=True, nullable=False)
+    source = Column(String(50), nullable=True)  # 'extension', 'website', etc.
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False, index=True)

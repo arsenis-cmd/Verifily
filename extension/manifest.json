@@ -38,7 +38,8 @@
         "content/twitter.js",
         "content/ad-detector.js",
         "content/account-analyzer.js",
-        "content/expose-bot.js"
+        "content/expose-bot.js",
+        "content/verifily-modals.js"
       ],
       "css": ["content/styles.css"],
       "run_at": "document_idle"

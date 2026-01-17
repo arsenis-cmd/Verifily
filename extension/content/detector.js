@@ -9,13 +9,41 @@
   };
 
   let API_URL = CONFIG.DEFAULT_API_URL;
+  let API_AVAILABLE = false;
 
-  // Load API URL from storage
-  chrome.storage.local.get(['apiUrl'], (result) => {
+  // Test API connection and load settings
+  async function initializeAPI() {
+    const result = await chrome.storage.local.get(['apiUrl']);
     if (result.apiUrl) {
       API_URL = result.apiUrl;
     }
-  });
+
+    // Test connection
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 3000);
+
+      const response = await fetch(`${API_URL.replace('/api/v1', '')}/health`, {
+        method: 'GET',
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+
+      if (response.ok) {
+        API_AVAILABLE = true;
+        console.log('[PoC Detector] ✓ API connected:', API_URL);
+      } else {
+        console.warn('[PoC Detector] ⚠ API returned error:', response.status);
+      }
+    } catch (error) {
+      API_AVAILABLE = false;
+      console.warn('[PoC Detector] ⚠ API not available:', error.message);
+      console.warn('[PoC Detector] Make sure backend is running on http://localhost:8000');
+    }
+  }
+
+  // Initialize on load
+  initializeAPI();
 
   const state = {
     scannedElements: new WeakSet(),
@@ -74,7 +102,15 @@
   }
 
   async function detectBatch(items) {
+    if (!API_AVAILABLE) {
+      // Silently skip detection when API is not available
+      return null;
+    }
+
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+
       const res = await fetch(`${API_URL}/detect/batch`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -85,11 +121,27 @@
             source_url: window.location.href,
             source_platform: item.platform
           }))
-        })
+        }),
+        signal: controller.signal
       });
-      return res.ok ? await res.json() : null;
+
+      clearTimeout(timeoutId);
+
+      if (res.ok) {
+        return await res.json();
+      } else {
+        console.error('[PoC Detector] API error:', res.status, res.statusText);
+        return null;
+      }
     } catch (e) {
-      console.error('PoC API error:', e);
+      if (e.name === 'AbortError') {
+        console.error('[PoC Detector] Request timeout');
+      } else {
+        console.error('[PoC Detector] API error:', e.message);
+      }
+      // Try to reconnect
+      API_AVAILABLE = false;
+      setTimeout(initializeAPI, 5000);
       return null;
     }
   }
@@ -165,7 +217,7 @@
         }
       }
     } catch (e) {
-      console.error('PoC scan error:', e);
+      console.error('[PoC Detector] Scan error:', e);
     }
 
     state.isScanning = false;

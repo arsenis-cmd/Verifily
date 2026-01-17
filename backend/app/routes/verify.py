@@ -5,14 +5,14 @@ Shared verification across all users with network effect
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, update
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 from typing import Optional
 from datetime import datetime
 import hashlib
 import json
 
 from app.database import get_db
-from app.models import Verification, Classification, ContentScan, ContentType
+from app.models import Verification, Classification, ContentScan, ContentType, Waitlist
 from app.detection.text import text_detector
 
 router = APIRouter(prefix="/api/v1", tags=["verification"])
@@ -257,4 +257,201 @@ async def get_verification_stats(db: AsyncSession = Depends(get_db)):
             }
             for v in top_content
         ]
+    }
+
+# ===== NEW VERIFILY FEATURES =====
+
+class HumanVerifyRequest(BaseModel):
+    """Request to verify own content as human-created"""
+    content: str
+    platform: Optional[str] = None
+    post_id: Optional[str] = None
+    post_url: Optional[str] = None
+    username: str  # Author's username
+
+class WaitlistRequest(BaseModel):
+    """Email waitlist signup"""
+    email: EmailStr
+    source: Optional[str] = "extension"
+
+@router.post("/verify/human")
+async def verify_as_human(
+    request: HumanVerifyRequest,
+    db: AsyncSession = Depends(get_db)
+) -> VerifyResponse:
+    """
+    Author self-verification - allows content creator to verify their own content as human-written
+    This creates a verification record marked as author-verified
+    """
+    # Generate content hash
+    content_hash = hash_content(request.content)
+
+    # Check if already verified
+    result = await db.execute(
+        select(Verification).where(Verification.content_hash == content_hash)
+    )
+    existing = result.scalar_one_or_none()
+
+    if existing:
+        # Update existing verification to mark as author-verified
+        await db.execute(
+            update(Verification)
+            .where(Verification.content_hash == content_hash)
+            .values(
+                verified_by_author=True,
+                author_username=request.username,
+                verification_type='manual',
+                classification=Classification.HUMAN,  # Override to HUMAN
+                confidence=1.0,  # Max confidence for self-verification
+                ai_probability=0.0,
+                view_count=Verification.view_count + 1,
+                last_verified=datetime.utcnow()
+            )
+        )
+        await db.commit()
+
+        # Refresh to get updated values
+        result = await db.execute(
+            select(Verification).where(Verification.content_hash == content_hash)
+        )
+        updated = result.scalar_one()
+
+        return VerifyResponse(
+            content_hash=content_hash,
+            verified=True,
+            classification='human',
+            confidence=1.0,
+            ai_probability=0.0,
+            view_count=updated.view_count,
+            first_seen=updated.first_seen,
+            cached=True,
+            message=f"✓ Verified as human by @{request.username}"
+        )
+
+    # Create new author-verified record
+    verification = Verification(
+        content_hash=content_hash,
+        classification=Classification.HUMAN,
+        confidence=1.0,
+        ai_probability=0.0,
+        platform=request.platform,
+        post_id=request.post_id,
+        post_url=request.post_url,
+        content_preview=request.content[:200] if request.content else None,
+        verified_by_author=True,
+        author_username=request.username,
+        verification_type='manual',
+        view_count=1
+    )
+
+    db.add(verification)
+
+    # Also save to content_scans
+    content_scan = ContentScan(
+        content_hash=content_hash,
+        content_type=ContentType.TEXT,
+        content_preview=request.content[:200] if request.content else None,
+        classification=Classification.HUMAN,
+        ai_probability=0.0,
+        confidence=1.0,
+        source_url=request.post_url,
+        source_platform=request.platform,
+        twitter_tweet_id=request.post_id if request.platform == "twitter" else None,
+        twitter_username=request.username
+    )
+    db.add(content_scan)
+
+    await db.commit()
+
+    return VerifyResponse(
+        content_hash=content_hash,
+        verified=True,
+        classification='human',
+        confidence=1.0,
+        ai_probability=0.0,
+        view_count=1,
+        first_seen=verification.first_seen,
+        cached=False,
+        message=f"✓ Verified as human by @{request.username}"
+    )
+
+@router.get("/verify/{content_hash}")
+async def get_verification_public(
+    content_hash: str,
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Public verification page data - for shareable badges
+    Returns verification details for verifily.io/verify/{hash}
+    """
+    result = await db.execute(
+        select(Verification).where(Verification.content_hash == content_hash)
+    )
+    verification = result.scalar_one_or_none()
+
+    if not verification:
+        raise HTTPException(status_code=404, detail="Verification not found")
+
+    # Increment view count
+    await db.execute(
+        update(Verification)
+        .where(Verification.content_hash == content_hash)
+        .values(
+            view_count=Verification.view_count + 1,
+            last_verified=datetime.utcnow()
+        )
+    )
+    await db.commit()
+
+    return {
+        "content_hash": verification.content_hash,
+        "classification": verification.classification.value,
+        "confidence": verification.confidence,
+        "ai_probability": verification.ai_probability,
+        "verified_by_author": verification.verified_by_author,
+        "author_username": verification.author_username,
+        "verification_type": verification.verification_type,
+        "platform": verification.platform,
+        "post_id": verification.post_id,
+        "post_url": verification.post_url,
+        "content_preview": verification.content_preview,
+        "view_count": verification.view_count + 1,
+        "first_seen": verification.first_seen.isoformat(),
+        "last_verified": verification.last_verified.isoformat(),
+        "shareable_url": f"https://verifily.io/verify/{content_hash}"
+    }
+
+@router.post("/waitlist")
+async def join_waitlist(
+    request: WaitlistRequest,
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Add email to waitlist
+    """
+    # Check if already exists
+    result = await db.execute(
+        select(Waitlist).where(Waitlist.email == request.email)
+    )
+    existing = result.scalar_one_or_none()
+
+    if existing:
+        return {
+            "success": True,
+            "message": "You're already on the waitlist!",
+            "email": request.email
+        }
+
+    # Add to waitlist
+    waitlist_entry = Waitlist(
+        email=request.email,
+        source=request.source
+    )
+    db.add(waitlist_entry)
+    await db.commit()
+
+    return {
+        "success": True,
+        "message": "Successfully added to waitlist!",
+        "email": request.email
     }

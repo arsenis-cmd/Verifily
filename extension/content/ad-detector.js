@@ -567,15 +567,22 @@ class AdDetector {
     this.verifiedImpressions.add(adId);
 
     // Update UI to show verified
-    const indicator = adData.element.querySelector('.poc-ad-indicator');
-    if (indicator) {
-      indicator.classList.add('verified');
-      indicator.querySelector('.poc-ad-label').innerHTML = `
-        <span class="poc-ad-verified-badge">
-          <span>✓</span>
-          <span>Verified Impression!</span>
-        </span>
-      `;
+    try {
+      const indicator = adData.element?.querySelector('.poc-ad-indicator');
+      if (indicator) {
+        indicator.classList.add('verified');
+        const label = indicator.querySelector('.poc-ad-label');
+        if (label) {
+          label.innerHTML = `
+            <span class="poc-ad-verified-badge">
+              <span>✓</span>
+              <span>Verified Impression!</span>
+            </span>
+          `;
+        }
+      }
+    } catch (error) {
+      console.error('[AdDetector] Error updating indicator:', error);
     }
 
     // Send to backend (only if API is available)
@@ -609,15 +616,10 @@ class AdDetector {
           if (result.redirect_url) {
             this.offerRedirect(adData, result.redirect_url);
           }
-        } else {
-          console.log('[AdDetector] ⚠ Backend response error:', response.status);
         }
       } catch (error) {
-        console.log('[AdDetector] ⚠ Could not record impression in backend (working offline)');
         // Silent fail - ad detection still works locally
       }
-    } else {
-      console.log('[AdDetector] ℹ Impression verified locally (backend offline)');
     }
 
     // Show notification
