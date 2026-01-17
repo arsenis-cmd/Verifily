@@ -37,10 +37,20 @@ export default function Hero() {
               </p>
             </div>
 
-            {/* CTA Button */}
-            <div className="flex justify-center mb-8">
+            {/* CTA Buttons */}
+            <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mb-8">
               <Button variant="primary" size="lg">
                 Add to Chrome — It's Free
+              </Button>
+              <Button
+                variant="secondary"
+                size="lg"
+                onClick={() => {
+                  const newsletterSection = document.querySelector('#newsletter');
+                  newsletterSection?.scrollIntoView({ behavior: 'smooth' });
+                }}
+              >
+                Subscribe to Newsletter
               </Button>
             </div>
 

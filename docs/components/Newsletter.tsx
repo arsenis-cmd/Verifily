@@ -39,7 +39,7 @@ export default function Newsletter() {
   };
 
   return (
-    <section className="relative min-h-[60vh] flex items-center justify-center bg-[#000000] border-t border-[#111111]">
+    <section id="newsletter" className="relative min-h-[60vh] flex items-center justify-center bg-[#000000] border-t border-[#111111]">
       <div className="container max-w-4xl mx-auto px-6">
         <div className="flex flex-col items-center justify-center text-center">
           {/* Heading */}
@@ -65,7 +65,7 @@ export default function Newsletter() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Enter your email"
                 required
-                className="w-full sm:flex-1 px-8 py-6 bg-[#111111] border border-[#222222] rounded-full text-white text-lg placeholder:text-[#666666] focus:outline-none focus:border-[#3b82f6] transition-colors"
+                className="w-full sm:flex-1 px-8 py-6 bg-[#111111] border border-[#222222] rounded-full text-white text-lg text-center placeholder:text-[#666666] focus:outline-none focus:border-[#3b82f6] transition-colors"
               />
               <Button variant="primary" size="lg" type="submit" disabled={status === 'loading'}>
                 {status === 'loading' ? 'Subscribing...' : 'Subscribe'}
