@@ -5,17 +5,36 @@ import { Button } from './ui/Button';
 
 export default function Newsletter() {
   const [email, setEmail] = useState('');
-  const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Here you would typically send to your backend/newsletter service
-    // For now, just show success message
-    if (email) {
-      setStatus('success');
-      setEmail('');
-      setTimeout(() => setStatus('idle'), 3000);
+    if (!email) return;
+
+    setStatus('loading');
+
+    try {
+      const response = await fetch('/api/newsletter', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      if (response.ok) {
+        setStatus('success');
+        setEmail('');
+        setTimeout(() => setStatus('idle'), 5000);
+      } else {
+        setStatus('error');
+        setTimeout(() => setStatus('idle'), 5000);
+      }
+    } catch (error) {
+      console.error('Newsletter subscription error:', error);
+      setStatus('error');
+      setTimeout(() => setStatus('idle'), 5000);
     }
   };
 
@@ -48,8 +67,8 @@ export default function Newsletter() {
                 required
                 className="w-full sm:flex-1 px-6 py-4 bg-[#111111] border border-[#222222] rounded-full text-white placeholder:text-[#666666] focus:outline-none focus:border-[#3b82f6] transition-colors"
               />
-              <Button variant="primary" size="md" type="submit">
-                Subscribe
+              <Button variant="primary" size="md" type="submit" disabled={status === 'loading'}>
+                {status === 'loading' ? 'Subscribing...' : 'Subscribe'}
               </Button>
             </div>
 
