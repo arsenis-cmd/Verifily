@@ -95,8 +95,8 @@ export default function ProductDemo() {
             >
             {/* Fake webpage */}
             <div className="demo-text bg-[#111111] border border-[#222222] rounded-xl w-full flex items-center justify-center min-h-[200px]">
-              <div className="max-w-5xl px-24 py-12">
-                <p className="text-[#a1a1a1] text-[8px] leading-relaxed text-center">
+              <div className="max-w-3xl px-24 py-12">
+                <p className="text-[#a1a1a1] leading-relaxed text-center" style={{ fontSize: '9px' }}>
                   "The implementation of machine learning algorithms in modern
                   healthcare systems has demonstrated significant potential for
                   improving diagnostic accuracy and patient outcomes. These
