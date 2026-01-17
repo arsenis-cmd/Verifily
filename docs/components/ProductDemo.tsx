@@ -110,7 +110,7 @@ export default function ProductDemo() {
 
             {/* Extension popup */}
             <div className="demo-extension bg-[#111111] border border-[#222222] rounded-xl shadow-2xl w-full flex items-center justify-center min-h-[200px]">
-              <div className="max-w-5xl w-full px-24 py-12">
+              <div className="max-w-3xl w-full px-24 py-12">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-white font-semibold text-xs">Verifily</h3>
                   <span className="text-[#666666] text-xs">✕</span>
