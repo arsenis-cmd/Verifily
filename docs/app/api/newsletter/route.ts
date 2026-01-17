@@ -25,7 +25,7 @@ export async function POST(request: Request) {
 
     // Send notification to your email about new subscriber
     await resend.emails.send({
-      from: 'Verifily <onboarding@resend.dev>', // Replace with your verified domain
+      from: 'Verifily <noreply@verifily.io>',
       to: process.env.NOTIFICATION_EMAIL || 'your-email@example.com',
       subject: 'New Newsletter Subscriber',
       html: `<p>New subscriber: <strong>${email}</strong></p>`,
@@ -33,7 +33,7 @@ export async function POST(request: Request) {
 
     // Optionally, send welcome email to subscriber
     await resend.emails.send({
-      from: 'Verifily <onboarding@resend.dev>', // Replace with your verified domain
+      from: 'Verifily <noreply@verifily.io>',
       to: email,
       subject: 'Welcome to Verifily Newsletter',
       html: `
