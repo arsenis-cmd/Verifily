@@ -30,6 +30,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Set up button handlers
   setupButtons();
 
+  // Set up toggle
+  setupToggle();
+
   // Listen for updates from content script
   chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.type === 'STATS_UPDATED') {
@@ -160,6 +163,35 @@ function formatNumber(num) {
     return (num / 1000).toFixed(1) + 'K';
   }
   return num.toString();
+}
+
+async function setupToggle() {
+  const toggle = document.getElementById('detection-toggle');
+
+  // Load current state
+  const result = await chrome.storage.local.get(['detectionEnabled']);
+  const isEnabled = result.detectionEnabled !== false; // Default to true
+  toggle.checked = isEnabled;
+
+  // Handle toggle change
+  toggle.addEventListener('change', async (e) => {
+    const enabled = e.target.checked;
+    await chrome.storage.local.set({ detectionEnabled: enabled });
+
+    // Notify all tabs
+    const tabs = await chrome.tabs.query({});
+    tabs.forEach(tab => {
+      chrome.tabs.sendMessage(tab.id, {
+        type: 'TOGGLE_DETECTION',
+        enabled: enabled
+      }).catch(() => {}); // Ignore errors for tabs without content script
+    });
+
+    // Show feedback
+    const scanBtn = document.getElementById('scan-btn');
+    scanBtn.textContent = enabled ? 'Scan This Page' : 'Detection Disabled';
+    scanBtn.disabled = !enabled;
+  });
 }
 
 // Update stats periodically

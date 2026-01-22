@@ -1,9 +1,19 @@
-let API_URL = 'http://localhost:8000/api/v1';
+let API_URL = 'https://verifily-production.up.railway.app/api/v1';
 
 // Load API URL from storage
 chrome.storage.local.get(['apiUrl'], (result) => {
   if (result.apiUrl) {
     API_URL = result.apiUrl;
+  }
+});
+
+// Show email capture on install
+chrome.runtime.onInstalled.addListener((details) => {
+  if (details.reason === 'install') {
+    // Open welcome page with email capture
+    chrome.tabs.create({
+      url: chrome.runtime.getURL('welcome.html')
+    });
   }
 });
 

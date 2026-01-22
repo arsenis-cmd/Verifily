@@ -236,7 +236,21 @@
       return true;
     }
     if (message.type === 'SCAN_PAGE') {
-      scanPage();
+      chrome.storage.local.get(['detectionEnabled'], (result) => {
+        if (result.detectionEnabled !== false) {
+          scanPage();
+        }
+        sendResponse({ success: true });
+      });
+      return true;
+    }
+    if (message.type === 'TOGGLE_DETECTION') {
+      if (!message.enabled) {
+        console.log('[PoC Detector] Detection disabled');
+      } else {
+        console.log('[PoC Detector] Detection enabled');
+        scanPage();
+      }
       sendResponse({ success: true });
       return true;
     }
@@ -244,11 +258,17 @@
 
   window.pocDetector = { scan: scanPage, getStats: () => state.stats };
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => setTimeout(scanPage, CONFIG.SCAN_DELAY));
-  } else {
-    setTimeout(scanPage, CONFIG.SCAN_DELAY);
-  }
-
-  observeContent();
+  // Only auto-scan if detection is enabled
+  chrome.storage.local.get(['detectionEnabled'], (result) => {
+    if (result.detectionEnabled !== false) {
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => setTimeout(scanPage, CONFIG.SCAN_DELAY));
+      } else {
+        setTimeout(scanPage, CONFIG.SCAN_DELAY);
+      }
+      observeContent();
+    } else {
+      console.log('[PoC Detector] Detection is disabled, skipping auto-scan');
+    }
+  });
 })();
