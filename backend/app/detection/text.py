@@ -25,7 +25,12 @@ class TextDetector:
             'as_an_ai': (r'\b(as an ai|as an artificial intelligence)\b', 0.9),
             'i_cannot': (r"\bi (?:cannot|can't|am unable to) (?:provide|assist|help with)\b", 0.7),
             'i_dont_have': (r"\bi (?:don't|do not) have (?:access|the ability)\b", 0.6),
-            
+
+            # AI formatting trademarks
+            'em_dash': (r'—', 0.35),  # Em dashes are heavily used by AI
+            'excessive_emojis': (r'[\U0001F300-\U0001F9FF]{3,}', 0.4),  # 3+ emojis in a row
+            'emoji_spam': (r'([\U0001F300-\U0001F9FF].*?[\U0001F300-\U0001F9FF].*?[\U0001F300-\U0001F9FF])', 0.25),  # Multiple emojis scattered
+
             # Medium confidence indicators
             'delve': (r'\bdelve(?:s|d)?\b', 0.4),
             'utilize': (r'\butilize(?:s|d)?\b', 0.3),
@@ -38,12 +43,12 @@ class TextDetector:
             'additionally': (r'\badditionally\b', 0.15),
             'certainly': (r'\bcertainly\b', 0.15),
             'absolutely': (r'\babsolutely\b', 0.1),
-            
+
             # Structural patterns
             'in_conclusion': (r'\bin conclusion\b', 0.2),
             'it_is_important': (r"\bit(?:'s| is) (?:important|worth noting|crucial)\b", 0.25),
             'lets_explore': (r"\blet(?:'s| us) (?:explore|dive|delve)\b", 0.3),
-            
+
             # List starters (AI loves lists)
             'numbered_list': (r'^\s*\d+[\.\)]\s', 0.1),
             'bullet_list': (r'^\s*[\-\*•]\s', 0.1),
