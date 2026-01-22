@@ -217,6 +217,8 @@
    */
   function showShareModal(verification) {
     const shareUrl = verification.shareable_url || `https://verifily.io/verify/${verification.content_hash}`;
+    const tweetText = encodeURIComponent(`✓ I verified my content as human-written on Verifily!\n\n${shareUrl}`);
+    const twitterShareUrl = `https://twitter.com/intent/tweet?text=${tweetText}`;
 
     const overlay = document.createElement('div');
     overlay.className = 'verifily-modal-overlay';
@@ -236,6 +238,7 @@
             <span>✓ Verified as Human</span>
             <span>👁 Viewed by ${verification.view_count} people</span>
           </div>
+          <button class="verifily-tweet-btn">🐦 Tweet Your Verification</button>
           <p class="verifily-modal-footer">Anyone with this link can see your verification.</p>
         </div>
       </div>
@@ -245,6 +248,7 @@
 
     const closeBtn = overlay.querySelector('.verifily-modal-close');
     const copyBtn = overlay.querySelector('.verifily-copy-btn');
+    const tweetBtn = overlay.querySelector('.verifily-tweet-btn');
     const urlInput = overlay.querySelector('.verifily-url-input');
 
     const closeModal = () => {
@@ -263,6 +267,10 @@
       setTimeout(() => {
         copyBtn.textContent = 'Copy';
       }, 2000);
+    };
+
+    tweetBtn.onclick = () => {
+      window.open(twitterShareUrl, '_blank', 'width=550,height=420');
     };
   }
 

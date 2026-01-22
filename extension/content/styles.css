@@ -726,3 +726,24 @@
   font-weight: 600;
   color: #374151;
 }
+
+.verifily-tweet-btn {
+  width: 100%;
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #1DA1F2, #0D8ED9);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 15px rgba(29, 161, 242, 0.3);
+  margin-top: 12px;
+}
+
+.verifily-tweet-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(29, 161, 242, 0.4);
+  background: linear-gradient(135deg, #1A91DA, #0A7EC1);
+}
