@@ -454,8 +454,9 @@
     console.log(`[Verifily] Scanning ${tweets.length} tweets for @${currentUser}`);
 
     let ownTweetsFound = 0;
+    let tweetUsernames = [];
 
-    tweets.forEach(tweetEl => {
+    tweets.forEach((tweetEl, index) => {
       try {
         // Skip if already processed
         if (tweetEl.dataset.verifilyProcessed) return;
@@ -464,14 +465,22 @@
         // Extract tweet data
         const textEl = tweetEl.querySelector('[data-testid="tweetText"]');
         const text = textEl?.textContent || '';
-        if (text.length < 10) return;
+        if (text.length < 10) {
+          console.log(`[Verifily] Tweet ${index + 1}: Too short (${text.length} chars)`);
+          return;
+        }
 
         const userEl = tweetEl.querySelector('[data-testid="User-Name"]');
         const usernameLink = userEl?.querySelector('a[href^="/"]');
-        if (!usernameLink) return;
+        if (!usernameLink) {
+          console.log(`[Verifily] Tweet ${index + 1}: No username link found`);
+          return;
+        }
 
         const href = usernameLink.getAttribute('href');
         const username = href?.split('/')[1]?.split('?')[0] || '';
+
+        tweetUsernames.push(username);
 
         const tweetLink = tweetEl.querySelector('a[href*="/status/"]');
         const tweetId = tweetLink?.href?.match(/status\/(\d+)/)?.[1] || '';
@@ -485,7 +494,10 @@
         };
 
         // Add verify button if this is user's own tweet
-        if (username.toLowerCase() === currentUser.toLowerCase()) {
+        const isOwnTweet = username.toLowerCase() === currentUser.toLowerCase();
+        console.log(`[Verifily] Tweet ${index + 1}: @${username} === @${currentUser}? ${isOwnTweet}`);
+
+        if (isOwnTweet) {
           ownTweetsFound++;
           addVerifyButton(tweetEl, tweetData);
         }
@@ -495,27 +507,41 @@
       }
     });
 
+    console.log(`[Verifily] All usernames found:`, [...new Set(tweetUsernames)]);
+    console.log(`[Verifily] Looking for: @${currentUser}`);
+
     if (ownTweetsFound > 0) {
       console.log(`[Verifily] ✓ Found ${ownTweetsFound} of your own tweets`);
+    } else {
+      console.warn(`[Verifily] ⚠ No own tweets found. Check if @${currentUser} matches any of:`, [...new Set(tweetUsernames)]);
     }
   }
 
   // Only run on Twitter
   if (window.location.hostname.includes('twitter.com') || window.location.hostname.includes('x.com')) {
     console.log('[Verifily] Human verification module loaded ✓');
+    console.log('[Verifily] Current URL:', window.location.href);
 
     // Try to detect user immediately
-    detectCurrentUser();
+    const initialUser = detectCurrentUser();
+    console.log('[Verifily] Initial user detection:', initialUser || 'not detected yet');
 
     // Initial scan (delayed to let page load)
     setTimeout(() => {
-      console.log('[Verifily] Starting initial scan for own tweets...');
+      console.log('[Verifily] ========== Starting initial scan ==========');
+      const user = detectCurrentUser();
+      console.log('[Verifily] Current user before scan:', user);
       scanForOwnTweets();
     }, 3000);
 
     // Periodic scan every 5 seconds
     setInterval(() => {
-      scanForOwnTweets();
+      const user = detectCurrentUser();
+      if (user) {
+        scanForOwnTweets();
+      } else {
+        console.warn('[Verifily] Periodic scan skipped - no user detected');
+      }
     }, 5000);
 
     // Scroll detection - scan when user scrolls
@@ -527,7 +553,16 @@
       }, 1000);
     });
 
+    // Manual trigger via console command
+    window.verifilyForceVerifyButton = () => {
+      console.log('[Verifily] Manual scan triggered');
+      const user = detectCurrentUser();
+      console.log('[Verifily] User:', user);
+      scanForOwnTweets();
+    };
+
     console.log('[Verifily] Tweet scanner initialized - looking for your tweets...');
+    console.log('[Verifily] Type window.verifilyForceVerifyButton() to manually trigger scan');
   }
 
   // Expose globally for other scripts and debugging

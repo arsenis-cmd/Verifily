@@ -145,32 +145,41 @@
 
     getAccountAge() {
       try {
-        // Find "Joined" date in profile
-        const joinedElement = Array.from(document.querySelectorAll('span'))
-          .find(el => el.textContent.includes('Joined'));
+        // Method 1: Find the "Joined" span followed by date text
+        const allSpans = Array.from(document.querySelectorAll('span'));
+        const joinedIndex = allSpans.findIndex(el => el.textContent.trim() === 'Joined');
 
-        if (joinedElement && joinedElement.nextSibling) {
-          const joinedText = joinedElement.nextSibling.textContent;
-          const joinedDate = new Date(joinedText);
-          const now = new Date();
-          const ageDays = Math.floor((now - joinedDate) / (1000 * 60 * 60 * 24));
-          return ageDays > 0 ? ageDays : 1;
-        }
+        if (joinedIndex !== -1 && joinedIndex + 1 < allSpans.length) {
+          const dateText = allSpans[joinedIndex + 1].textContent.trim();
+          console.log('[BotExposer] Found joined date text:', dateText);
 
-        // Fallback: Try to find from profile header
-        const timeElements = document.querySelectorAll('time');
-        if (timeElements.length > 0) {
-          const joinedTime = Array.from(timeElements).find(t =>
-            t.getAttribute('datetime') && !t.closest('[data-testid="tweet"]')
-          );
-
-          if (joinedTime) {
-            const joinedDate = new Date(joinedTime.getAttribute('datetime'));
+          // Parse "January 2020" or "Jan 2020" format
+          const joinedDate = new Date(dateText);
+          if (!isNaN(joinedDate.getTime())) {
             const now = new Date();
             const ageDays = Math.floor((now - joinedDate) / (1000 * 60 * 60 * 24));
+            console.log('[BotExposer] Calculated age:', ageDays, 'days');
             return ageDays > 0 ? ageDays : 1;
           }
         }
+
+        // Method 2: Look for data-testid or aria-label with join date
+        const profileElements = document.querySelectorAll('[data-testid*="profile"], [aria-label*="Joined"]');
+        for (const el of profileElements) {
+          const text = el.textContent || el.getAttribute('aria-label') || '';
+          const match = text.match(/Joined\s+([A-Za-z]+\s+\d{4})/i);
+          if (match) {
+            const joinedDate = new Date(match[1]);
+            if (!isNaN(joinedDate.getTime())) {
+              const now = new Date();
+              const ageDays = Math.floor((now - joinedDate) / (1000 * 60 * 60 * 24));
+              console.log('[BotExposer] Found via aria-label, age:', ageDays, 'days');
+              return ageDays > 0 ? ageDays : 1;
+            }
+          }
+        }
+
+        console.warn('[BotExposer] Could not find account join date');
       } catch (e) {
         console.error('[BotExposer] Error getting account age:', e);
       }
@@ -180,23 +189,39 @@
 
     getTweetCount() {
       try {
-        // Find tweet count in profile stats
-        const statsElements = document.querySelectorAll('[href$="/status"]');
-
-        for (const el of statsElements) {
-          const parent = el.closest('a');
-          if (parent) {
-            const countText = parent.textContent.replace(/[^\d.KM]/g, '');
-            return this.parseCount(countText);
+        // Method 1: Find the posts count from profile header
+        // Look for pattern like "1,234 posts" or "1.2K Posts"
+        const profileHeader = document.querySelector('[data-testid="UserProfileHeader_Items"]');
+        if (profileHeader) {
+          const links = profileHeader.querySelectorAll('a');
+          for (const link of links) {
+            const href = link.getAttribute('href');
+            if (href && href.includes('/status')) {
+              // Found the posts link
+              const countSpan = link.querySelector('span');
+              if (countSpan) {
+                const countText = countSpan.textContent.replace(/[^\d.KM,]/g, '');
+                const count = this.parseCount(countText);
+                console.log('[BotExposer] Found tweet count:', count, 'from', countText);
+                return count;
+              }
+            }
           }
         }
 
-        // Fallback: look for any number near "posts" or "tweets"
-        const allText = document.body.textContent;
-        const match = allText.match(/(\d+[\d,]*)\s*(post|tweet)s?/i);
-        if (match) {
-          return parseInt(match[1].replace(/,/g, ''));
+        // Method 2: Look for aria-label with post count
+        const allElements = document.querySelectorAll('[aria-label]');
+        for (const el of allElements) {
+          const label = el.getAttribute('aria-label');
+          const match = label.match(/(\d+[\d,\.]*[KM]?)\s+(post|tweet)s?/i);
+          if (match) {
+            const count = this.parseCount(match[1].replace(/,/g, ''));
+            console.log('[BotExposer] Found tweet count via aria-label:', count);
+            return count;
+          }
         }
+
+        console.warn('[BotExposer] Could not find tweet count');
       } catch (e) {
         console.error('[BotExposer] Error getting tweet count:', e);
       }
@@ -218,31 +243,35 @@
     generateWarnings(stats) {
       const warnings = [];
 
-      if (stats.tweetsPerDay > 100) {
+      // Only show tweet rate if we have both pieces of data
+      if (stats.tweetsPerDay > 0 && stats.createdDays > 0 && stats.tweetsPerDay > 50) {
         warnings.push(`Posts ${stats.tweetsPerDay.toLocaleString()} times/day`);
       }
 
-      if (stats.botPercent > 80) {
+      // Always show bot percentage if high
+      if (stats.botPercent >= 70) {
         warnings.push(`${stats.botPercent}% AI-generated content`);
       }
 
-      if (stats.createdDays !== null && stats.createdDays < 90) {
-        if (stats.createdDays < 1) {
-          warnings.push(`Account created today`);
-        } else if (stats.createdDays === 1) {
-          warnings.push(`Account created yesterday`);
-        } else {
-          warnings.push(`Account created ${stats.createdDays} days ago`);
+      // Only show account age if we actually found it AND it's suspicious
+      if (stats.createdDays !== null && stats.createdDays !== undefined && stats.createdDays > 0) {
+        if (stats.createdDays < 30) {
+          warnings.push(`Account only ${stats.createdDays} days old`);
         }
       }
 
-      if (stats.totalTweets > 10000) {
+      // Show total posts if it's extremely high
+      if (stats.totalTweets && stats.totalTweets > 50000) {
         warnings.push(`${(stats.totalTweets / 1000).toFixed(1)}K total posts`);
       }
 
-      // If no warnings, add the bot percent as the main warning
-      if (warnings.length === 0 && stats.botPercent > 50) {
-        warnings.push(`High bot probability detected`);
+      // If no specific warnings, show the bot detection result
+      if (warnings.length === 0) {
+        if (stats.botPercent > 60) {
+          warnings.push(`${stats.botPercent}% bot probability detected`);
+        } else {
+          warnings.push(`Suspicious posting patterns detected`);
+        }
       }
 
       return warnings.map(w => `<div class="poc-warning-item">⚠ ${w}</div>`).join('');
