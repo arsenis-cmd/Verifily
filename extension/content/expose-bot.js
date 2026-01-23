@@ -59,6 +59,8 @@
       const username = this.extractUsername();
       const stats = this.extractStats(badge);
 
+      console.log('[BotExposer] Extracted stats for @' + username + ':', stats);
+
       // Create overlay
       const overlay = document.createElement('div');
       overlay.className = 'poc-expose-overlay';
@@ -127,30 +129,123 @@
       const botPercent = parseInt(percentText);
       const analyzed = badge.querySelectorAll('.poc-stat-value')[1]?.textContent || '0';
 
+      // Extract real Twitter stats
+      const accountAge = this.getAccountAge();
+      const tweetCount = this.getTweetCount();
+      const tweetsPerDay = accountAge > 0 ? Math.round(tweetCount / accountAge) : 0;
+
       return {
         botPercent,
         analyzed: parseInt(analyzed),
-        createdDays: Math.floor(Math.random() * 30) + 1, // Mock for now
-        tweetsPerDay: Math.floor(Math.random() * 1000) + 10
+        createdDays: accountAge,
+        tweetsPerDay: tweetsPerDay,
+        totalTweets: tweetCount
       };
+    }
+
+    getAccountAge() {
+      try {
+        // Find "Joined" date in profile
+        const joinedElement = Array.from(document.querySelectorAll('span'))
+          .find(el => el.textContent.includes('Joined'));
+
+        if (joinedElement && joinedElement.nextSibling) {
+          const joinedText = joinedElement.nextSibling.textContent;
+          const joinedDate = new Date(joinedText);
+          const now = new Date();
+          const ageDays = Math.floor((now - joinedDate) / (1000 * 60 * 60 * 24));
+          return ageDays > 0 ? ageDays : 1;
+        }
+
+        // Fallback: Try to find from profile header
+        const timeElements = document.querySelectorAll('time');
+        if (timeElements.length > 0) {
+          const joinedTime = Array.from(timeElements).find(t =>
+            t.getAttribute('datetime') && !t.closest('[data-testid="tweet"]')
+          );
+
+          if (joinedTime) {
+            const joinedDate = new Date(joinedTime.getAttribute('datetime'));
+            const now = new Date();
+            const ageDays = Math.floor((now - joinedDate) / (1000 * 60 * 60 * 24));
+            return ageDays > 0 ? ageDays : 1;
+          }
+        }
+      } catch (e) {
+        console.error('[BotExposer] Error getting account age:', e);
+      }
+
+      return null; // Return null if we can't determine
+    }
+
+    getTweetCount() {
+      try {
+        // Find tweet count in profile stats
+        const statsElements = document.querySelectorAll('[href$="/status"]');
+
+        for (const el of statsElements) {
+          const parent = el.closest('a');
+          if (parent) {
+            const countText = parent.textContent.replace(/[^\d.KM]/g, '');
+            return this.parseCount(countText);
+          }
+        }
+
+        // Fallback: look for any number near "posts" or "tweets"
+        const allText = document.body.textContent;
+        const match = allText.match(/(\d+[\d,]*)\s*(post|tweet)s?/i);
+        if (match) {
+          return parseInt(match[1].replace(/,/g, ''));
+        }
+      } catch (e) {
+        console.error('[BotExposer] Error getting tweet count:', e);
+      }
+
+      return 0;
+    }
+
+    parseCount(str) {
+      // Convert "1.2K" to 1200, "3.5M" to 3500000, etc.
+      if (str.includes('K')) {
+        return Math.round(parseFloat(str) * 1000);
+      }
+      if (str.includes('M')) {
+        return Math.round(parseFloat(str) * 1000000);
+      }
+      return parseInt(str) || 0;
     }
 
     generateWarnings(stats) {
       const warnings = [];
 
       if (stats.tweetsPerDay > 100) {
-        warnings.push(`Posts ${stats.tweetsPerDay} times/day`);
+        warnings.push(`Posts ${stats.tweetsPerDay.toLocaleString()} times/day`);
       }
 
       if (stats.botPercent > 80) {
         warnings.push(`${stats.botPercent}% AI-generated content`);
       }
 
-      if (stats.createdDays < 30) {
-        warnings.push(`Account created ${stats.createdDays} days ago`);
+      if (stats.createdDays !== null && stats.createdDays < 90) {
+        if (stats.createdDays < 1) {
+          warnings.push(`Account created today`);
+        } else if (stats.createdDays === 1) {
+          warnings.push(`Account created yesterday`);
+        } else {
+          warnings.push(`Account created ${stats.createdDays} days ago`);
+        }
       }
 
-      return warnings.map(w => `<div class="poc-warning-item">${w}</div>`).join('');
+      if (stats.totalTweets > 10000) {
+        warnings.push(`${(stats.totalTweets / 1000).toFixed(1)}K total posts`);
+      }
+
+      // If no warnings, add the bot percent as the main warning
+      if (warnings.length === 0 && stats.botPercent > 50) {
+        warnings.push(`High bot probability detected`);
+      }
+
+      return warnings.map(w => `<div class="poc-warning-item">⚠ ${w}</div>`).join('');
     }
 
     async trackExpose(username) {
