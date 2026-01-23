@@ -98,9 +98,6 @@
             <button class="poc-btn poc-btn-primary" id="poc-share-twitter">
               Share on Twitter
             </button>
-            <button class="poc-btn poc-btn-secondary" id="poc-copy-image">
-              Copy Image
-            </button>
           </div>
         </div>
       `;
@@ -115,11 +112,6 @@
 
       document.getElementById('poc-share-twitter').onclick = () => {
         this.shareToTwitter(username, stats.botPercent);
-      };
-
-      document.getElementById('poc-copy-image').onclick = async () => {
-        await this.copyCardImage();
-        this.trackExpose(username);
       };
 
       this.addExposeStyles();
@@ -159,60 +151,6 @@
       }
 
       return warnings.map(w => `<div class="poc-warning-item">${w}</div>`).join('');
-    }
-
-    async copyCardImage() {
-      const card = document.getElementById('poc-share-card');
-      const button = document.getElementById('poc-copy-image');
-
-      button.innerHTML = 'Generating...';
-      button.disabled = true;
-
-      try {
-        // Load html2canvas dynamically
-        if (!window.html2canvas) {
-          await this.loadHtml2Canvas();
-        }
-
-        const canvas = await html2canvas(card, {
-          backgroundColor: '#1a1a2e',
-          scale: 2,
-          width: 1200,
-          height: 675
-        });
-
-        // Copy to clipboard
-        canvas.toBlob(async (blob) => {
-          try {
-            await navigator.clipboard.write([
-              new ClipboardItem({ 'image/png': blob })
-            ]);
-            button.innerHTML = 'Copied!';
-            setTimeout(() => {
-              button.innerHTML = 'Copy Image';
-              button.disabled = false;
-            }, 2000);
-          } catch (err) {
-            console.error('Failed to copy:', err);
-            button.innerHTML = 'Failed';
-            button.disabled = false;
-          }
-        });
-      } catch (error) {
-        console.error('Error generating image:', error);
-        button.innerHTML = 'Error';
-        button.disabled = false;
-      }
-    }
-
-    async loadHtml2Canvas() {
-      return new Promise((resolve, reject) => {
-        const script = document.createElement('script');
-        script.src = 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js';
-        script.onload = resolve;
-        script.onerror = reject;
-        document.head.appendChild(script);
-      });
     }
 
     async trackExpose(username) {
@@ -435,21 +373,16 @@
 
         .poc-expose-actions {
           display: flex;
-          gap: 12px;
+          justify-content: center;
         }
 
         .poc-btn {
-          flex: 1;
-          padding: 12px 24px;
-          border-radius: 8px;
-          font-size: 14px;
+          padding: 14px 32px;
+          border-radius: 10px;
+          font-size: 15px;
           font-weight: 600;
           cursor: pointer;
           border: none;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 8px;
           transition: all 0.2s;
         }
 
@@ -459,25 +392,9 @@
           box-shadow: 0 4px 15px rgba(29, 155, 240, 0.4);
         }
 
-        .poc-btn-primary:hover:not(:disabled) {
+        .poc-btn-primary:hover {
           transform: translateY(-2px);
           box-shadow: 0 6px 20px rgba(29, 155, 240, 0.6);
-        }
-
-        .poc-btn-secondary {
-          background: rgba(255, 255, 255, 0.1);
-          color: white;
-          border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .poc-btn-secondary:hover:not(:disabled) {
-          background: rgba(255, 255, 255, 0.15);
-          border-color: rgba(139, 92, 246, 0.5);
-        }
-
-        .poc-btn:disabled {
-          opacity: 0.6;
-          cursor: not-allowed;
         }
       `;
 
