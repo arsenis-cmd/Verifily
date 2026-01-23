@@ -7,12 +7,12 @@ chrome.storage.local.get(['apiUrl'], (result) => {
   }
 });
 
-// Show email capture on install
+// Show website on install
 chrome.runtime.onInstalled.addListener((details) => {
   if (details.reason === 'install') {
-    // Open welcome page with email capture
+    // Open Verifily website
     chrome.tabs.create({
-      url: chrome.runtime.getURL('welcome.html')
+      url: 'https://verifily.io'
     });
   }
 });

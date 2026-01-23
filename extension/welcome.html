@@ -245,7 +245,7 @@
         autocomplete="email"
       />
       <button class="btn btn-primary" id="submit-btn">Join Waitlist</button>
-      <button class="btn btn-skip" id="skip-btn">Skip for Now</button>
+      <button class="btn btn-skip" id="skip-btn">Explore Website</button>
       <div class="success-message" id="success-message">
         ✓ Thank you! You're on the waitlist.
       </div>
@@ -284,10 +284,10 @@
           await chrome.storage.local.set({ verifily_email_captured: true });
           successMessage.style.display = 'block';
           emailInput.style.display = 'none';
-          submitBtn.textContent = '✓ Success!';
+          submitBtn.textContent = '✓ Success! Redirecting...';
 
           setTimeout(() => {
-            window.close();
+            window.location.href = 'https://verifily.io';
           }, 2000);
         } else {
           throw new Error('Failed to join waitlist');
@@ -301,7 +301,7 @@
     });
 
     skipBtn.addEventListener('click', () => {
-      window.close();
+      window.location.href = 'https://verifily.io';
     });
 
     // Submit on Enter key
