@@ -478,7 +478,7 @@
         const text = textEl?.textContent || '';
         console.log(`[Verifily] Tweet ${index + 1}: Text length = ${text.length}, text = "${text.substring(0, 50)}..."`);
 
-        if (text.length < 10) {
+        if (text.length < 3) {
           console.log(`[Verifily] Tweet ${index + 1}: Too short (${text.length} chars), SKIPPING`);
           return;
         }
