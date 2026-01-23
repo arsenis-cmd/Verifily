@@ -27,33 +27,56 @@
     if (currentUsername) return currentUsername;
 
     try {
-      // Try to find username from profile link in nav
-      const profileLinks = document.querySelectorAll('a[href^="/"][href$=""]');
-      for (const link of profileLinks) {
-        const href = link.getAttribute('href');
-        if (href && href.startsWith('/') && href.split('/').length === 2) {
-          const username = href.substring(1);
-          if (username && username.length > 0 && !username.includes('/')) {
+      // Method 1: Check account switcher button
+      const accountSwitcher = document.querySelector('[data-testid="SideNav_AccountSwitcher_Button"]');
+      if (accountSwitcher) {
+        const usernameText = accountSwitcher.textContent;
+        const match = usernameText.match(/@([\w]+)/);
+        if (match) {
+          currentUsername = match[1];
+          chrome.storage.local.set({ [CONFIG.CURRENT_USER_KEY]: currentUsername });
+          console.log('[Verifily] ✓ Detected user from account switcher:', currentUsername);
+          return currentUsername;
+        }
+      }
+
+      // Method 2: Check profile link in sidebar
+      const profileLink = document.querySelector('a[data-testid="AppTabBar_Profile_Link"]');
+      if (profileLink) {
+        const href = profileLink.getAttribute('href');
+        if (href && href.startsWith('/')) {
+          const username = href.substring(1).split('/')[0];
+          if (username && username.length > 0) {
             currentUsername = username;
-            chrome.storage.local.set({ [CONFIG.CURRENT_USER_KEY]: username });
-            console.log('[Verifily] Detected current user:', username);
-            return username;
+            chrome.storage.local.set({ [CONFIG.CURRENT_USER_KEY]: currentUsername });
+            console.log('[Verifily] ✓ Detected user from profile link:', currentUsername);
+            return currentUsername;
           }
         }
       }
 
-      // Alternative: check for data-testid="SideNav_AccountSwitcher_Button"
-      const accountSwitcher = document.querySelector('[data-testid="SideNav_AccountSwitcher_Button"]');
-      if (accountSwitcher) {
-        const usernameText = accountSwitcher.textContent;
-        const match = usernameText.match(/@(\w+)/);
-        if (match) {
-          currentUsername = match[1];
-          chrome.storage.local.set({ [CONFIG.CURRENT_USER_KEY]: currentUsername });
-          console.log('[Verifily] Detected current user:', currentUsername);
-          return currentUsername;
+      // Method 3: Try to find from any tweet by checking if "Delete" button exists
+      const tweets = document.querySelectorAll('[data-testid="tweet"]');
+      for (const tweet of tweets) {
+        const deleteBtn = tweet.querySelector('[data-testid="caret"]');
+        if (deleteBtn) {
+          // This tweet has edit/delete options, so it's our own
+          const userEl = tweet.querySelector('[data-testid="User-Name"]');
+          const usernameLink = userEl?.querySelector('a[href^="/"]');
+          if (usernameLink) {
+            const href = usernameLink.getAttribute('href');
+            const username = href.split('/')[1]?.split('?')[0];
+            if (username) {
+              currentUsername = username;
+              chrome.storage.local.set({ [CONFIG.CURRENT_USER_KEY]: currentUsername });
+              console.log('[Verifily] ✓ Detected user from own tweet:', currentUsername);
+              return currentUsername;
+            }
+          }
         }
       }
+
+      console.warn('[Verifily] ⚠ Could not detect current user');
     } catch (e) {
       console.error('[Verifily] Error detecting current user:', e);
     }
@@ -68,11 +91,22 @@
     try {
       const userEl = tweetEl.querySelector('[data-testid="User-Name"]');
       const usernameLink = userEl?.querySelector('a[href^="/"]');
-      const username = usernameLink?.href?.split('/').pop() || '';
+      if (!usernameLink) return false;
+
+      const href = usernameLink.getAttribute('href');
+      const username = href?.split('/')[1]?.split('?')[0] || '';
 
       const currentUser = detectCurrentUser();
-      return currentUser && username === currentUser;
+
+      const isOwn = currentUser && username.toLowerCase() === currentUser.toLowerCase();
+
+      if (isOwn) {
+        console.log('[Verifily] ✓ Found own tweet by @' + username);
+      }
+
+      return isOwn;
     } catch (e) {
+      console.error('[Verifily] Error checking tweet ownership:', e);
       return false;
     }
   }
@@ -279,16 +313,27 @@
    */
   function addVerifyButton(tweetEl, tweetData) {
     // Check if already has button
-    if (tweetEl.querySelector('.verifily-verify-btn')) return;
+    if (tweetEl.querySelector('.verifily-verify-btn')) {
+      return;
+    }
 
     // Check if this is user's own tweet
-    if (!isTweetByCurrentUser(tweetEl)) return;
+    if (!isTweetByCurrentUser(tweetEl)) {
+      return;
+    }
 
     const textEl = tweetEl.querySelector('[data-testid="tweetText"]');
-    if (!textEl) return;
+    if (!textEl) {
+      console.warn('[Verifily] No tweet text found for own tweet');
+      return;
+    }
+
+    console.log('[Verifily] Adding verify button to tweet:', tweetData.text.substring(0, 50));
 
     const buttonContainer = document.createElement('div');
     buttonContainer.className = 'verifily-button-container';
+    buttonContainer.style.marginTop = '12px';
+    buttonContainer.style.marginBottom = '8px';
 
     const verifyBtn = document.createElement('button');
     verifyBtn.className = 'verifily-verify-btn';
@@ -298,20 +343,28 @@
       e.stopPropagation();
       e.preventDefault();
 
+      console.log('[Verifily] Verify button clicked');
+
       // Show email capture modal first (if not already captured)
       if (!emailCaptured) {
+        console.log('[Verifily] Showing email capture first');
         showEmailCaptureModal(() => {
           // After email capture, show verification modal
           showVerificationModal(tweetData, () => verifyAsHuman(tweetEl, tweetData, verifyBtn));
         });
       } else {
         // Directly show verification modal
+        console.log('[Verifily] Showing verification modal');
         showVerificationModal(tweetData, () => verifyAsHuman(tweetEl, tweetData, verifyBtn));
       }
     };
 
     buttonContainer.appendChild(verifyBtn);
-    textEl.parentElement.appendChild(buttonContainer);
+
+    // Insert after tweet text
+    textEl.parentElement.insertBefore(buttonContainer, textEl.nextSibling);
+
+    console.log('[Verifily] ✓ Verify button added successfully');
   }
 
   /**
@@ -391,7 +444,16 @@
    * Scan page for user's own tweets and add verify buttons
    */
   function scanForOwnTweets() {
+    const currentUser = detectCurrentUser();
+    if (!currentUser) {
+      console.warn('[Verifily] Cannot scan for own tweets - user not detected yet');
+      return;
+    }
+
     const tweets = document.querySelectorAll('[data-testid="tweet"]');
+    console.log(`[Verifily] Scanning ${tweets.length} tweets for @${currentUser}`);
+
+    let ownTweetsFound = 0;
 
     tweets.forEach(tweetEl => {
       try {
@@ -406,7 +468,10 @@
 
         const userEl = tweetEl.querySelector('[data-testid="User-Name"]');
         const usernameLink = userEl?.querySelector('a[href^="/"]');
-        const username = usernameLink?.href?.split('/').pop() || '';
+        if (!usernameLink) return;
+
+        const href = usernameLink.getAttribute('href');
+        const username = href?.split('/')[1]?.split('?')[0] || '';
 
         const tweetLink = tweetEl.querySelector('a[href*="/status/"]');
         const tweetId = tweetLink?.href?.match(/status\/(\d+)/)?.[1] || '';
@@ -420,39 +485,70 @@
         };
 
         // Add verify button if this is user's own tweet
-        addVerifyButton(tweetEl, tweetData);
+        if (username.toLowerCase() === currentUser.toLowerCase()) {
+          ownTweetsFound++;
+          addVerifyButton(tweetEl, tweetData);
+        }
 
       } catch (e) {
         console.error('[Verifily] Error processing tweet:', e);
       }
     });
+
+    if (ownTweetsFound > 0) {
+      console.log(`[Verifily] ✓ Found ${ownTweetsFound} of your own tweets`);
+    }
   }
 
   // Only run on Twitter
   if (window.location.hostname.includes('twitter.com') || window.location.hostname.includes('x.com')) {
-    console.log('[Verifily] Human verification module loaded');
+    console.log('[Verifily] Human verification module loaded ✓');
 
-    // Initial scan
-    setTimeout(scanForOwnTweets, 3000);
+    // Try to detect user immediately
+    detectCurrentUser();
 
-    // Periodic scan
-    setInterval(scanForOwnTweets, 3000);
+    // Initial scan (delayed to let page load)
+    setTimeout(() => {
+      console.log('[Verifily] Starting initial scan for own tweets...');
+      scanForOwnTweets();
+    }, 3000);
 
-    // Scroll detection
+    // Periodic scan every 5 seconds
+    setInterval(() => {
+      scanForOwnTweets();
+    }, 5000);
+
+    // Scroll detection - scan when user scrolls
     let scrollTimeout;
     window.addEventListener('scroll', () => {
       clearTimeout(scrollTimeout);
-      scrollTimeout = setTimeout(scanForOwnTweets, 500);
+      scrollTimeout = setTimeout(() => {
+        scanForOwnTweets();
+      }, 1000);
     });
+
+    console.log('[Verifily] Tweet scanner initialized - looking for your tweets...');
   }
 
-  // Expose globally for other scripts
+  // Expose globally for other scripts and debugging
   window.verifily = {
     showEmailCaptureModal,
     showVerificationModal,
     showShareModal,
     detectCurrentUser,
-    isTweetByCurrentUser
+    isTweetByCurrentUser,
+    scanForOwnTweets,  // For manual debugging
+    // Debug helper
+    debug: () => {
+      const user = detectCurrentUser();
+      console.log('[Verifily Debug] Current user:', user);
+      console.log('[Verifily Debug] Email captured:', emailCaptured);
+      console.log('[Verifily Debug] API URL:', API_URL);
+      const tweets = document.querySelectorAll('[data-testid="tweet"]');
+      console.log('[Verifily Debug] Total tweets on page:', tweets.length);
+      scanForOwnTweets();
+      return { user, emailCaptured, API_URL, tweetsFound: tweets.length };
+    }
   };
 
 })();
