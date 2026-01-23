@@ -464,27 +464,40 @@
 
     tweets.forEach((tweetEl, index) => {
       try {
+        console.log(`[Verifily] ===== Processing tweet ${index + 1} =====`);
+
         // Skip if already processed
-        if (tweetEl.dataset.verifilyProcessed) return;
+        if (tweetEl.dataset.verifilyProcessed) {
+          console.log(`[Verifily] Tweet ${index + 1}: Already processed, skipping`);
+          return;
+        }
         tweetEl.dataset.verifilyProcessed = 'true';
 
         // Extract tweet data
         const textEl = tweetEl.querySelector('[data-testid="tweetText"]');
         const text = textEl?.textContent || '';
+        console.log(`[Verifily] Tweet ${index + 1}: Text length = ${text.length}, text = "${text.substring(0, 50)}..."`);
+
         if (text.length < 10) {
-          console.log(`[Verifily] Tweet ${index + 1}: Too short (${text.length} chars)`);
+          console.log(`[Verifily] Tweet ${index + 1}: Too short (${text.length} chars), SKIPPING`);
           return;
         }
 
         const userEl = tweetEl.querySelector('[data-testid="User-Name"]');
+        console.log(`[Verifily] Tweet ${index + 1}: User element found =`, !!userEl);
+
         const usernameLink = userEl?.querySelector('a[href^="/"]');
+        console.log(`[Verifily] Tweet ${index + 1}: Username link found =`, !!usernameLink);
+        console.log(`[Verifily] Tweet ${index + 1}: Username link href =`, usernameLink?.getAttribute('href'));
+
         if (!usernameLink) {
-          console.log(`[Verifily] Tweet ${index + 1}: No username link found`);
+          console.log(`[Verifily] Tweet ${index + 1}: No username link found, SKIPPING`);
           return;
         }
 
         const href = usernameLink.getAttribute('href');
         const username = href?.split('/')[1]?.split('?')[0] || '';
+        console.log(`[Verifily] Tweet ${index + 1}: Extracted username = "${username}"`);
 
         tweetUsernames.push(username);
 
