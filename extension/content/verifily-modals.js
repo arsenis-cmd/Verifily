@@ -177,7 +177,7 @@
           emailCaptured = true;
           chrome.storage.local.set({ [CONFIG.EMAIL_CAPTURE_KEY]: true });
 
-          submitBtn.textContent = '✓ Success!';
+          submitBtn.textContent = 'Success!';
           setTimeout(() => {
             closeModal();
             if (onSubmit) onSubmit();
@@ -257,7 +257,7 @@
    */
   function showShareModal(verification) {
     const shareUrl = verification.shareable_url || `https://verifily.io/verify/${verification.content_hash}`;
-    const tweetText = encodeURIComponent(`✓ I verified my content as human-written on Verifily!\n\n${shareUrl}`);
+    const tweetText = encodeURIComponent(`I verified my content as human-written on Verifily!\n\n${shareUrl}`);
     const twitterShareUrl = `https://twitter.com/intent/tweet?text=${tweetText}`;
 
     const overlay = document.createElement('div');
@@ -275,10 +275,10 @@
             <button class="verifily-copy-btn">Copy</button>
           </div>
           <div class="verifily-share-stats">
-            <span>✓ Verified as Human</span>
-            <span>👁 Viewed by ${verification.view_count} people</span>
+            <span>Verified as Human</span>
+            <span>Viewed by ${verification.view_count} people</span>
           </div>
-          <button class="verifily-tweet-btn">🐦 Tweet Your Verification</button>
+          <button class="verifily-tweet-btn">Tweet Your Verification</button>
           <p class="verifily-modal-footer">Anyone with this link can see your verification.</p>
         </div>
       </div>
@@ -303,7 +303,7 @@
     copyBtn.onclick = () => {
       urlInput.select();
       document.execCommand('copy');
-      copyBtn.textContent = '✓ Copied!';
+      copyBtn.textContent = 'Copied!';
       setTimeout(() => {
         copyBtn.textContent = 'Copy';
       }, 2000);
@@ -343,7 +343,7 @@
 
     const verifyBtn = document.createElement('button');
     verifyBtn.className = 'verifily-verify-btn';
-    verifyBtn.textContent = '✓ Verify as Human';
+    verifyBtn.textContent = 'Verify as Human';
 
     verifyBtn.onclick = async (e) => {
       e.stopPropagation();
@@ -406,13 +406,13 @@
       console.log('[Verifily] Verified as human:', verification);
 
       // Update button to show success + share
-      button.textContent = '✓ Verified';
+      button.textContent = 'Verified';
       button.className = 'verifily-verify-btn verifily-verified';
 
       // Add share button
       const shareBtn = document.createElement('button');
       shareBtn.className = 'verifily-share-btn';
-      shareBtn.textContent = '🔗 Share';
+      shareBtn.textContent = 'Share';
       shareBtn.onclick = (e) => {
         e.stopPropagation();
         e.preventDefault();
@@ -427,7 +427,7 @@
     } catch (error) {
       console.error('[Verifily] Verification failed:', error);
       button.disabled = false;
-      button.textContent = '✓ Verify as Human';
+      button.textContent = 'Verify as Human';
       throw error;
     }
   }
@@ -441,7 +441,7 @@
       existingBadge.className = 'poc-verified-badge human author-verified';
       const labelSpan = existingBadge.querySelector('.poc-badge-label');
       if (labelSpan) {
-        labelSpan.textContent = `✓ Verified by @${verification.message.split('@')[1] || 'author'}`;
+        labelSpan.textContent = `Verified by @${verification.message.split('@')[1] || 'author'}`;
       }
     }
   }

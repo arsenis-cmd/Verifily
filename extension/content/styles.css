@@ -393,7 +393,7 @@
 }
 
 .poc-badge-verified-count::before {
-  content: '👥';
+  content: '';
   font-size: 11px;
 }
 
@@ -488,15 +488,15 @@
   font-weight: 700;
 }
 
-/* Modals */
+/* Modals - Neon Green Theme */
 .verifily-modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(4px);
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -514,14 +514,18 @@
 }
 
 .verifily-modal {
-  background: #ffffff;
+  background: linear-gradient(135deg, rgba(10, 10, 10, 0.98) 0%, rgba(20, 20, 20, 0.98) 100%);
   border-radius: 16px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  border: 2px solid rgba(16, 185, 129, 0.6);
+  box-shadow:
+    0 0 40px rgba(16, 185, 129, 0.3),
+    0 20px 60px rgba(0, 0, 0, 0.5);
   max-width: 480px;
   width: 90%;
   max-height: 90vh;
   overflow: hidden;
   animation: verifily-slideUp 0.3s ease;
+  backdrop-filter: blur(10px);
 }
 
 @keyframes verifily-slideUp {
@@ -540,26 +544,24 @@
   justify-content: space-between;
   align-items: center;
   padding: 20px 24px;
-  border-bottom: 1px solid #e5e7eb;
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.05), rgba(139, 92, 246, 0.05));
+  border-bottom: 1px solid rgba(16, 185, 129, 0.2);
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.08), rgba(5, 150, 105, 0.05));
 }
 
 .verifily-modal-header h2 {
   margin: 0;
   font-size: 20px;
   font-weight: 700;
-  color: #111827;
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #10b981;
+  text-shadow: 0 0 20px rgba(16, 185, 129, 0.5);
+  letter-spacing: 0.02em;
 }
 
 .verifily-modal-close {
-  background: none;
-  border: none;
-  font-size: 28px;
-  color: #6b7280;
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  font-size: 24px;
+  color: #10b981;
   cursor: pointer;
   padding: 0;
   width: 32px;
@@ -572,8 +574,10 @@
 }
 
 .verifily-modal-close:hover {
-  background: rgba(0, 0, 0, 0.05);
-  color: #111827;
+  background: rgba(16, 185, 129, 0.2);
+  border-color: rgba(16, 185, 129, 0.6);
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
+  transform: rotate(90deg);
 }
 
 .verifily-modal-body {
@@ -582,7 +586,7 @@
 
 .verifily-modal-body p {
   margin: 0 0 16px 0;
-  color: #374151;
+  color: rgba(255, 255, 255, 0.85);
   font-size: 14px;
   line-height: 1.6;
 }
@@ -591,45 +595,57 @@
 .verifily-url-input {
   width: 100%;
   padding: 12px 16px;
-  border: 1px solid #d1d5db;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(16, 185, 129, 0.3);
   border-radius: 10px;
   font-size: 15px;
   margin-bottom: 16px;
   transition: all 0.2s;
   font-family: inherit;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.verifily-email-input::placeholder,
+.verifily-url-input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .verifily-email-input:focus,
 .verifily-url-input:focus {
   outline: none;
-  border-color: #6366f1;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  border-color: rgba(16, 185, 129, 0.6);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15), 0 0 20px rgba(16, 185, 129, 0.2);
+  background: rgba(0, 0, 0, 0.6);
 }
 
 .verifily-submit-btn,
 .verifily-confirm-btn {
   width: 100%;
   padding: 12px 24px;
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
-  color: white;
-  border: none;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(5, 150, 105, 0.15));
+  border: 2px solid rgba(16, 185, 129, 0.6);
+  color: #10b981;
   border-radius: 10px;
   font-size: 15px;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
   transition: all 0.2s;
-  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.2);
+  text-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+  letter-spacing: 0.05em;
 }
 
 .verifily-submit-btn:hover:not(:disabled),
 .verifily-confirm-btn:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.25), rgba(5, 150, 105, 0.25));
+  border-color: #10b981;
+  box-shadow: 0 0 30px rgba(16, 185, 129, 0.4), 0 6px 20px rgba(16, 185, 129, 0.3);
 }
 
 .verifily-submit-btn:disabled,
 .verifily-confirm-btn:disabled {
-  opacity: 0.6;
+  opacity: 0.4;
   cursor: not-allowed;
   transform: none;
 }
@@ -637,21 +653,22 @@
 .verifily-modal-footer,
 .verifily-modal-note {
   font-size: 12px;
-  color: #6b7280;
+  color: rgba(255, 255, 255, 0.5);
   margin-top: 12px;
   margin-bottom: 0;
   text-align: center;
 }
 
 .verifily-content-preview {
-  background: #f9fafb;
+  background: rgba(16, 185, 129, 0.05);
   padding: 16px;
   border-radius: 10px;
-  border-left: 3px solid #6366f1;
+  border-left: 3px solid rgba(16, 185, 129, 0.6);
+  border: 1px solid rgba(16, 185, 129, 0.2);
   margin: 16px 0;
   font-size: 14px;
   line-height: 1.5;
-  color: #374151;
+  color: rgba(255, 255, 255, 0.85);
   font-style: italic;
 }
 
@@ -664,9 +681,9 @@
 .verifily-cancel-btn {
   flex: 1;
   padding: 12px 24px;
-  background: #f3f4f6;
-  color: #374151;
-  border: none;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.7);
   border-radius: 10px;
   font-size: 15px;
   font-weight: 600;
@@ -675,7 +692,9 @@
 }
 
 .verifily-cancel-btn:hover {
-  background: #e5e7eb;
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .verifily-confirm-btn {
@@ -695,20 +714,22 @@
 
 .verifily-copy-btn {
   padding: 12px 20px;
-  background: linear-gradient(135deg, #10b981, #059669);
-  color: white;
-  border: none;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.2));
+  border: 2px solid rgba(16, 185, 129, 0.6);
+  color: #10b981;
   border-radius: 10px;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
   transition: all 0.2s;
   white-space: nowrap;
+  text-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
 }
 
 .verifily-copy-btn:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.3), rgba(5, 150, 105, 0.3));
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
 }
 
 .verifily-share-stats {
@@ -717,33 +738,37 @@
   justify-content: center;
   margin: 16px 0;
   padding: 12px;
-  background: #f9fafb;
+  background: rgba(16, 185, 129, 0.05);
+  border: 1px solid rgba(16, 185, 129, 0.2);
   border-radius: 10px;
 }
 
 .verifily-share-stats span {
   font-size: 13px;
   font-weight: 600;
-  color: #374151;
+  color: rgba(255, 255, 255, 0.85);
 }
 
 .verifily-tweet-btn {
   width: 100%;
   padding: 12px 24px;
-  background: linear-gradient(135deg, #1DA1F2, #0D8ED9);
-  color: white;
-  border: none;
+  background: linear-gradient(135deg, rgba(29, 161, 242, 0.15), rgba(13, 142, 217, 0.15));
+  border: 2px solid rgba(29, 161, 242, 0.6);
+  color: #1DA1F2;
   border-radius: 10px;
   font-size: 15px;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
   transition: all 0.2s;
-  box-shadow: 0 4px 15px rgba(29, 161, 242, 0.3);
+  box-shadow: 0 0 20px rgba(29, 161, 242, 0.2);
   margin-top: 12px;
+  text-shadow: 0 0 10px rgba(29, 161, 242, 0.5);
+  letter-spacing: 0.05em;
 }
 
 .verifily-tweet-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(29, 161, 242, 0.4);
-  background: linear-gradient(135deg, #1A91DA, #0A7EC1);
+  background: linear-gradient(135deg, rgba(29, 161, 242, 0.25), rgba(13, 142, 217, 0.25));
+  border-color: #1DA1F2;
+  box-shadow: 0 0 30px rgba(29, 161, 242, 0.4), 0 6px 20px rgba(29, 161, 242, 0.3);
 }
