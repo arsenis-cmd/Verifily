@@ -1,6 +1,12 @@
 (function() {
   'use strict';
 
+  console.log('[Verifily] ========== SCRIPT STARTED ==========');
+  console.log('[Verifily] File loaded successfully');
+  console.log('[Verifily] Location:', window.location.href);
+
+  try {
+
   const CONFIG = {
     DEFAULT_API_URL: 'https://verifily-production.up.railway.app/api/v1',
     EMAIL_CAPTURE_KEY: 'verifily_email_captured',
@@ -585,5 +591,13 @@
       return { user, emailCaptured, API_URL, tweetsFound: tweets.length };
     }
   };
+
+  console.log('[Verifily] ========== SCRIPT COMPLETED SUCCESSFULLY ==========');
+
+  } catch (error) {
+    console.error('[Verifily] ========== CRITICAL ERROR ==========');
+    console.error('[Verifily] Script failed to initialize:', error);
+    console.error('[Verifily] Error stack:', error.stack);
+  }
 
 })();

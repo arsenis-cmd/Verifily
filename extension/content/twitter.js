@@ -2,7 +2,7 @@
   'use strict';
 
   const CONFIG = {
-    DEFAULT_API_URL: 'http://localhost:8000/api/v1',
+    DEFAULT_API_URL: 'https://verifily-production.up.railway.app/api/v1',
     SCAN_INTERVAL: 2000
   };
 
