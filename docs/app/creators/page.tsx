@@ -284,12 +284,12 @@ export default function CreatorsPage() {
             </p>
 
             <a
-              href="https://chat.openai.com/g/g-YOUR-GPT-ID"
+              href="https://chatgpt.com/g/g-69746b59da488191822592759b0c7e59-verifily-for-creators"
               target="_blank"
               rel="noopener noreferrer"
             >
               <Button variant="primary" size="lg">
-                Open Verifily for Creators →
+                Open Verifily for Creators
               </Button>
             </a>
 
@@ -306,7 +306,7 @@ export default function CreatorsPage() {
           <p className="text-[#a1a1a1]">
             Looking for AI detection?{' '}
             <Link href="/" className="text-[#3b82f6] hover:underline font-medium">
-              Try our Chrome Extension →
+              Try our Chrome Extension
             </Link>
           </p>
         </div>
