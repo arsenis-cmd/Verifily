@@ -1,85 +1,29 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import Link from 'next/link';
+import { Button } from './ui/Button';
 
 export default function ForCreators() {
-  const benefits = [
-    'Prove your work is human-created',
-    'Build trust with your audience',
-    'Protect your creative reputation',
-    'Stand out in the AI era'
-  ];
-
   return (
-    <section id="for-creators" style={{ background: '#0f2137' }}>
-      <div className="container">
-        <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
+    <section className="relative min-h-[50vh] flex items-center justify-center bg-[#0a0a0a] border-t border-[#111111]">
+      <div className="container max-w-4xl mx-auto px-6">
+        <div className="flex flex-col items-center justify-center text-center">
+          <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
+            Are you a <span className="bg-gradient-to-r from-[#3b82f6] to-[#8b5cf6] bg-clip-text text-transparent">creator?</span>
+          </h2>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-          >
-            <h2 style={{ marginBottom: '30px' }}>
-              Built for <span className="gradient-text">Creators</span>
-            </h2>
+          <div className="w-16 h-[2px] bg-white/20 mx-auto mb-6" />
 
-            <p style={{
-              fontSize: '1.25rem',
-              marginBottom: '60px',
-              color: 'rgba(255, 255, 255, 0.7)',
-              maxWidth: '700px',
-              margin: '0 auto 60px'
-            }}>
-              Whether you're a writer, developer, or content creator,
-              Verifily helps you stand out in an AI-filled world.
-            </p>
+          <p className="text-lg text-[#a1a1a1] max-w-2xl mb-8">
+            Verifily for Creators helps you scan content for compliance with FTC, FDA,
+            and platform policies before you post. Available now on ChatGPT.
+          </p>
 
-            {/* Benefits Grid */}
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(2, 1fr)',
-              gap: '30px'
-            }}>
-              {benefits.map((benefit, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, x: -20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.6, delay: index * 0.1 }}
-                  className="glass"
-                  style={{
-                    padding: '30px',
-                    borderRadius: '15px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '15px'
-                  }}
-                >
-                  <div style={{
-                    width: '50px',
-                    height: '50px',
-                    background: 'linear-gradient(135deg, #00d4ff, #8b5cf6)',
-                    borderRadius: '12px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '1.5rem',
-                    flexShrink: 0
-                  }}>
-                    ✓
-                  </div>
-                  <span style={{ fontSize: '1.125rem', textAlign: 'left' }}>
-                    {benefit}
-                  </span>
-                </motion.div>
-              ))}
-            </div>
-
-          </motion.div>
-
+          <Link href="/creators">
+            <Button variant="primary" size="lg">
+              Explore Verifily for Creators
+            </Button>
+          </Link>
         </div>
       </div>
     </section>

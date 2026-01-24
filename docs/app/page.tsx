@@ -7,6 +7,7 @@ import Stats from '@/components/Stats';
 import WhyItMatters from '@/components/WhyItMatters';
 import Testimonials from '@/components/Testimonials';
 import Newsletter from '@/components/Newsletter';
+import ForCreators from '@/components/ForCreators';
 import CTASection from '@/components/CTASection';
 import Footer from '@/components/Footer';
 import SmoothScrollWrapper from '@/components/SmoothScrollWrapper';
@@ -27,6 +28,7 @@ export default function Home() {
         <WhyItMatters />
         <Testimonials />
         <Newsletter />
+        <ForCreators />
         <CTASection />
       </main>
 
