@@ -8,7 +8,7 @@
   try {
 
   const CONFIG = {
-    DEFAULT_API_URL: 'https://verifily-production.up.railway.app/api/v1',
+    DEFAULT_API_URL: 'https://verifily.io/api',
     EMAIL_CAPTURE_KEY: 'verifily_email_captured',
     CURRENT_USER_KEY: 'verifily_current_user'
   };
@@ -212,6 +212,16 @@
             "${tweetData.text.substring(0, 150)}${tweetData.text.length > 150 ? '...' : ''}"
           </div>
           <p class="verifily-modal-note">This will create a permanent verification record that can be shared with others.</p>
+
+          <div class="verifily-consent-container" style="margin: 16px 0; padding: 12px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px;">
+            <label style="display: flex; align-items: flex-start; cursor: pointer; gap: 10px;">
+              <input type="checkbox" id="verifily-consent-checkbox" style="margin-top: 4px; cursor: pointer; width: 16px; height: 16px;" />
+              <span style="flex: 1; font-size: 13px; line-height: 1.5; color: #10b981;">
+                I consent to Verifily storing this content for training AI detection models and building the human-verified dataset. This helps improve AI detection accuracy for everyone.
+              </span>
+            </label>
+          </div>
+
           <div class="verifily-modal-actions">
             <button class="verifily-cancel-btn">Cancel</button>
             <button class="verifily-confirm-btn">Verify as Human</button>
@@ -225,6 +235,7 @@
     const closeBtn = overlay.querySelector('.verifily-modal-close');
     const cancelBtn = overlay.querySelector('.verifily-cancel-btn');
     const confirmBtn = overlay.querySelector('.verifily-confirm-btn');
+    const consentCheckbox = overlay.querySelector('#verifily-consent-checkbox');
 
     const closeModal = () => {
       overlay.remove();
@@ -237,11 +248,17 @@
     };
 
     confirmBtn.onclick = async () => {
+      // Validate consent checkbox
+      if (!consentCheckbox.checked) {
+        alert('Please accept the consent agreement to continue with verification.');
+        return;
+      }
+
       confirmBtn.disabled = true;
       confirmBtn.textContent = 'Verifying...';
 
       try {
-        await onConfirm();
+        await onConfirm(consentCheckbox.checked);
         closeModal();
       } catch (error) {
         console.error('[Verifily] Verification error:', error);
@@ -356,12 +373,12 @@
         console.log('[Verifily] Showing email capture first');
         showEmailCaptureModal(() => {
           // After email capture, show verification modal
-          showVerificationModal(tweetData, () => verifyAsHuman(tweetEl, tweetData, verifyBtn));
+          showVerificationModal(tweetData, (consent) => verifyAsHuman(tweetEl, tweetData, verifyBtn, consent));
         });
       } else {
         // Directly show verification modal
         console.log('[Verifily] Showing verification modal');
-        showVerificationModal(tweetData, () => verifyAsHuman(tweetEl, tweetData, verifyBtn));
+        showVerificationModal(tweetData, (consent) => verifyAsHuman(tweetEl, tweetData, verifyBtn, consent));
       }
     };
 
@@ -376,7 +393,7 @@
   /**
    * Perform human verification
    */
-  async function verifyAsHuman(tweetEl, tweetData, button) {
+  async function verifyAsHuman(tweetEl, tweetData, button, consentGiven = false) {
     try {
       button.disabled = true;
       button.textContent = 'Verifying...';
@@ -394,7 +411,8 @@
           platform: 'twitter',
           post_id: tweetData.tweet_id,
           post_url: tweetData.post_url,
-          username: currentUser
+          username: currentUser,
+          consent_training_data: consentGiven
         })
       });
 
@@ -402,8 +420,13 @@
         throw new Error(`Verification failed: ${response.status}`);
       }
 
-      const verification = await response.json();
-      console.log('[Verifily] Verified as human:', verification);
+      const result = await response.json();
+      console.log('[Verifily] Verified as human:', result);
+
+      // Extract verification data from response
+      const verification = result.verification || result;
+      verification.shareable_url = result.shareable_url || verification.public_url;
+      verification.content_hash = result.content_hash || verification.content_hash;
 
       // Update button to show success + share
       button.textContent = 'Verified';

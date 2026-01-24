@@ -83,45 +83,129 @@ export default function CreatorsPage() {
 
             <div className="w-16 h-[2px] bg-white/20 mx-auto mb-16" />
 
-            <div className="grid md:grid-cols-3 gap-8 w-full">
+            <div className="grid md:grid-cols-3 gap-6 w-full">
               {/* Legal Card */}
-              <div className="bg-[#111111] border border-[#222222] rounded-xl p-12 text-center">
-                <h3 className="text-2xl font-bold text-white mb-6">Legal Regulations</h3>
-                <ul className="space-y-3 text-[#a1a1a1] text-left">
-                  <li>• FTC Endorsement Guidelines</li>
-                  <li>• FDA Health Claims</li>
-                  <li>• EU AI Act</li>
-                  <li>• GDPR & CCPA</li>
-                  <li>• COPPA (Children)</li>
-                  <li>• ASA (UK Advertising)</li>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0 }}
+                className="group bg-gradient-to-br from-[#111111] to-[#0a0a0a] border border-[#222222] rounded-2xl p-8 hover:border-[#3b82f6]/50 transition-all duration-300 hover:shadow-lg hover:shadow-[#3b82f6]/10"
+              >
+                <div className="mb-6 pb-4 border-b border-[#222222]">
+                  <h3 className="text-xl font-bold bg-gradient-to-r from-white to-[#a1a1a1] bg-clip-text text-transparent">
+                    Legal Regulations
+                  </h3>
+                </div>
+                <ul className="space-y-3 text-[#a1a1a1] text-sm">
+                  <li className="flex items-start gap-2">
+                    <span className="text-[#3b82f6] mt-1">▸</span>
+                    <span>FTC Endorsement Guidelines</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-[#3b82f6] mt-1">▸</span>
+                    <span>FDA Health Claims</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-[#3b82f6] mt-1">▸</span>
+                    <span>EU AI Act</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-[#3b82f6] mt-1">▸</span>
+                    <span>GDPR & CCPA</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-[#3b82f6] mt-1">▸</span>
+                    <span>COPPA (Children)</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-[#3b82f6] mt-1">▸</span>
+                    <span>ASA (UK Advertising)</span>
+                  </li>
                 </ul>
-              </div>
+              </motion.div>
 
               {/* Platform Card */}
-              <div className="bg-[#111111] border border-[#222222] rounded-xl p-12 text-center">
-                <h3 className="text-2xl font-bold text-white mb-6">Platform Policies</h3>
-                <ul className="space-y-3 text-[#a1a1a1] text-left">
-                  <li>• YouTube Guidelines</li>
-                  <li>• TikTok Policies</li>
-                  <li>• Instagram/Facebook</li>
-                  <li>• Twitter/X Rules</li>
-                  <li>• LinkedIn Policies</li>
-                  <li>• Google & Meta Ads</li>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.1 }}
+                className="group bg-gradient-to-br from-[#111111] to-[#0a0a0a] border border-[#222222] rounded-2xl p-8 hover:border-[#3b82f6]/50 transition-all duration-300 hover:shadow-lg hover:shadow-[#3b82f6]/10"
+              >
+                <div className="mb-6 pb-4 border-b border-[#222222]">
+                  <h3 className="text-xl font-bold bg-gradient-to-r from-white to-[#a1a1a1] bg-clip-text text-transparent">
+                    Platform Policies
+                  </h3>
+                </div>
+                <ul className="space-y-3 text-[#a1a1a1] text-sm">
+                  <li className="flex items-start gap-2">
+                    <span className="text-[#3b82f6] mt-1">▸</span>
+                    <span>YouTube Guidelines</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-[#3b82f6] mt-1">▸</span>
+                    <span>TikTok Policies</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-[#3b82f6] mt-1">▸</span>
+                    <span>Instagram/Facebook</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-[#3b82f6] mt-1">▸</span>
+                    <span>Twitter/X Rules</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-[#3b82f6] mt-1">▸</span>
+                    <span>LinkedIn Policies</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-[#3b82f6] mt-1">▸</span>
+                    <span>Google & Meta Ads</span>
+                  </li>
                 </ul>
-              </div>
+              </motion.div>
 
               {/* Industry Card */}
-              <div className="bg-[#111111] border border-[#222222] rounded-xl p-12 text-center">
-                <h3 className="text-2xl font-bold text-white mb-6">Industry Specific</h3>
-                <ul className="space-y-3 text-[#a1a1a1] text-left">
-                  <li>• Healthcare & Supplements</li>
-                  <li>• Finance & Investing</li>
-                  <li>• Crypto & Web3</li>
-                  <li>• Alcohol & Tobacco</li>
-                  <li>• Gambling</li>
-                  <li>• Real Estate</li>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+                className="group bg-gradient-to-br from-[#111111] to-[#0a0a0a] border border-[#222222] rounded-2xl p-8 hover:border-[#3b82f6]/50 transition-all duration-300 hover:shadow-lg hover:shadow-[#3b82f6]/10"
+              >
+                <div className="mb-6 pb-4 border-b border-[#222222]">
+                  <h3 className="text-xl font-bold bg-gradient-to-r from-white to-[#a1a1a1] bg-clip-text text-transparent">
+                    Industry Specific
+                  </h3>
+                </div>
+                <ul className="space-y-3 text-[#a1a1a1] text-sm">
+                  <li className="flex items-start gap-2">
+                    <span className="text-[#3b82f6] mt-1">▸</span>
+                    <span>Healthcare & Supplements</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-[#3b82f6] mt-1">▸</span>
+                    <span>Finance & Investing</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-[#3b82f6] mt-1">▸</span>
+                    <span>Crypto & Web3</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-[#3b82f6] mt-1">▸</span>
+                    <span>Alcohol & Tobacco</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-[#3b82f6] mt-1">▸</span>
+                    <span>Gambling</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-[#3b82f6] mt-1">▸</span>
+                    <span>Real Estate</span>
+                  </li>
                 </ul>
-              </div>
+              </motion.div>
             </div>
           </div>
         </div>
@@ -182,7 +266,7 @@ export default function CreatorsPage() {
 
             <div className="w-16 h-[2px] bg-white/20 mx-auto mb-12" />
 
-            <div className="flex flex-wrap justify-center gap-4 mt-8">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-6 mt-8 max-w-4xl mx-auto">
               {[
                 'Video Scripts',
                 'Blog Posts',
@@ -190,13 +274,21 @@ export default function CreatorsPage() {
                 'Social Posts',
                 'Image Captions',
                 'Ad Copy',
-              ].map((label) => (
-                <div
+              ].map((label, index) => (
+                <motion.div
                   key={label}
-                  className="px-8 py-4 bg-[#111111] border border-[#222222] rounded-full text-white hover:border-[#3b82f6] transition-colors"
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.4, delay: index * 0.1 }}
+                  whileHover={{ scale: 1.05 }}
+                  className="relative group"
                 >
-                  <span className="font-medium">{label}</span>
-                </div>
+                  <div className="absolute inset-0 bg-gradient-to-r from-[#3b82f6] to-[#8b5cf6] rounded-2xl opacity-0 group-hover:opacity-100 blur-xl transition-opacity duration-300" />
+                  <div className="relative px-6 py-5 bg-[#111111] border border-[#222222] rounded-2xl text-white group-hover:border-[#3b82f6] transition-all duration-300 text-center">
+                    <span className="font-semibold text-sm tracking-wide">{label}</span>
+                  </div>
+                </motion.div>
               ))}
             </div>
           </div>
@@ -213,55 +305,87 @@ export default function CreatorsPage() {
 
             <div className="w-16 h-[2px] bg-white/20 mx-auto mb-12" />
 
-            <div className="bg-[#111111] border border-[#222222] rounded-xl p-12 w-full mt-8 text-left">
-              <div className="flex items-center gap-3 mb-8">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+              className="bg-gradient-to-br from-[#111111] to-[#0a0a0a] border border-[#222222] rounded-2xl p-8 w-full mt-8 text-left"
+            >
+              <div className="flex items-center justify-between mb-8 pb-6 border-b border-[#222222]">
                 <div>
-                  <h3 className="text-xl font-bold text-white">Risk Level: HIGH</h3>
-                  <p className="text-red-500 text-sm">3 Critical Issues Found</p>
+                  <h3 className="text-2xl font-bold text-white mb-2">Risk Assessment</h3>
+                  <div className="flex items-center gap-3">
+                    <span className="inline-flex items-center px-3 py-1 bg-red-500/10 border border-red-500/20 rounded-full text-red-500 text-xs font-bold">
+                      HIGH RISK
+                    </span>
+                    <span className="text-[#666666] text-sm">3 Critical Issues Detected</span>
+                  </div>
                 </div>
               </div>
 
-              <div className="space-y-6">
-                <div className="border-l-4 border-red-500 pl-6 py-2">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-red-500 font-bold">CRITICAL</span>
-                    <span className="text-white">"This product cures anxiety"</span>
+              <div className="space-y-5">
+                <div className="bg-[#0a0a0a] border border-red-500/20 rounded-xl p-6 hover:border-red-500/40 transition-colors">
+                  <div className="flex items-start gap-3 mb-3">
+                    <span className="inline-flex items-center px-2.5 py-1 bg-red-500/10 border border-red-500/30 rounded-md text-red-500 text-xs font-bold">
+                      CRITICAL
+                    </span>
+                    <div className="flex-1">
+                      <p className="text-white font-medium mb-1">"This product cures anxiety"</p>
+                      <p className="text-[#a1a1a1] text-sm">
+                        FDA Violation - Cannot claim to cure disease
+                      </p>
+                    </div>
                   </div>
-                  <p className="text-[#a1a1a1] text-sm mb-2">
-                    FDA Violation - Cannot claim to cure disease
-                  </p>
-                  <p className="text-green-500 text-sm">
-                    Fix: "May help support a calm mood"
-                  </p>
+                  <div className="pl-3 border-l-2 border-green-500/30 ml-3 mt-3">
+                    <p className="text-[#666666] text-xs mb-1">SUGGESTED FIX</p>
+                    <p className="text-green-500 text-sm font-medium">
+                      "May help support a calm mood"
+                    </p>
+                  </div>
                 </div>
 
-                <div className="border-l-4 border-red-500 pl-6 py-2">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-red-500 font-bold">CRITICAL</span>
-                    <span className="text-white">No #ad disclosure</span>
+                <div className="bg-[#0a0a0a] border border-red-500/20 rounded-xl p-6 hover:border-red-500/40 transition-colors">
+                  <div className="flex items-start gap-3 mb-3">
+                    <span className="inline-flex items-center px-2.5 py-1 bg-red-500/10 border border-red-500/30 rounded-md text-red-500 text-xs font-bold">
+                      CRITICAL
+                    </span>
+                    <div className="flex-1">
+                      <p className="text-white font-medium mb-1">No disclosure for sponsored content</p>
+                      <p className="text-[#a1a1a1] text-sm">
+                        FTC Violation - Sponsored content requires clear disclosure
+                      </p>
+                    </div>
                   </div>
-                  <p className="text-[#a1a1a1] text-sm mb-2">
-                    FTC Violation - Sponsored content requires disclosure
-                  </p>
-                  <p className="text-green-500 text-sm">
-                    Fix: Add "Ad" or "Sponsored" at start
-                  </p>
+                  <div className="pl-3 border-l-2 border-green-500/30 ml-3 mt-3">
+                    <p className="text-[#666666] text-xs mb-1">SUGGESTED FIX</p>
+                    <p className="text-green-500 text-sm font-medium">
+                      Add "Ad" or "Sponsored" label at start of content
+                    </p>
+                  </div>
                 </div>
 
-                <div className="border-l-4 border-yellow-500 pl-6 py-2">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-yellow-500 font-bold">WARNING</span>
-                    <span className="text-white">"Guaranteed results"</span>
+                <div className="bg-[#0a0a0a] border border-yellow-500/20 rounded-xl p-6 hover:border-yellow-500/40 transition-colors">
+                  <div className="flex items-start gap-3 mb-3">
+                    <span className="inline-flex items-center px-2.5 py-1 bg-yellow-500/10 border border-yellow-500/30 rounded-md text-yellow-500 text-xs font-bold">
+                      WARNING
+                    </span>
+                    <div className="flex-1">
+                      <p className="text-white font-medium mb-1">"Guaranteed results"</p>
+                      <p className="text-[#a1a1a1] text-sm">
+                        Must include terms and conditions of guarantee
+                      </p>
+                    </div>
                   </div>
-                  <p className="text-[#a1a1a1] text-sm mb-2">
-                    Must include terms of guarantee
-                  </p>
-                  <p className="text-green-500 text-sm">
-                    Fix: Link to refund policy
-                  </p>
+                  <div className="pl-3 border-l-2 border-green-500/30 ml-3 mt-3">
+                    <p className="text-[#666666] text-xs mb-1">SUGGESTED FIX</p>
+                    <p className="text-green-500 text-sm font-medium">
+                      Add link to refund policy or specify guarantee terms
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
+            </motion.div>
           </div>
         </div>
       </section>
