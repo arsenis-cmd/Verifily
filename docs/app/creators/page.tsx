@@ -22,7 +22,6 @@ export default function CreatorsPage() {
             >
               {/* Badge */}
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#111111] border border-[#222222] rounded-full text-[#3b82f6] text-sm mb-8">
-                <span>✨</span>
                 <span>Now available on ChatGPT</span>
               </div>
 
@@ -48,7 +47,7 @@ export default function CreatorsPage() {
               {/* CTA Buttons */}
               <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mb-8">
                 <a
-                  href="https://chat.openai.com/g/g-YOUR-GPT-ID"
+                  href="https://chatgpt.com/g/g-69746b59da488191822592759b0c7e59-verifily-for-creators"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
@@ -65,15 +64,9 @@ export default function CreatorsPage() {
 
               {/* Trust badges */}
               <div className="flex items-center justify-center gap-6 text-sm text-[#666666]">
-                <span className="flex items-center gap-2">
-                  <span className="text-green-500">✓</span> No Sign-up Required
-                </span>
-                <span className="flex items-center gap-2">
-                  <span className="text-green-500">✓</span> Instant Results
-                </span>
-                <span className="flex items-center gap-2">
-                  <span className="text-green-500">✓</span> Free to Use
-                </span>
+                <span>No Sign-up Required</span>
+                <span>Instant Results</span>
+                <span>Free to Use</span>
               </div>
             </motion.div>
           </div>
@@ -93,7 +86,6 @@ export default function CreatorsPage() {
             <div className="grid md:grid-cols-3 gap-8 w-full">
               {/* Legal Card */}
               <div className="bg-[#111111] border border-[#222222] rounded-xl p-12 text-center">
-                <div className="text-5xl mb-6">⚖️</div>
                 <h3 className="text-2xl font-bold text-white mb-6">Legal Regulations</h3>
                 <ul className="space-y-3 text-[#a1a1a1] text-left">
                   <li>• FTC Endorsement Guidelines</li>
@@ -107,7 +99,6 @@ export default function CreatorsPage() {
 
               {/* Platform Card */}
               <div className="bg-[#111111] border border-[#222222] rounded-xl p-12 text-center">
-                <div className="text-5xl mb-6">📱</div>
                 <h3 className="text-2xl font-bold text-white mb-6">Platform Policies</h3>
                 <ul className="space-y-3 text-[#a1a1a1] text-left">
                   <li>• YouTube Guidelines</li>
@@ -121,7 +112,6 @@ export default function CreatorsPage() {
 
               {/* Industry Card */}
               <div className="bg-[#111111] border border-[#222222] rounded-xl p-12 text-center">
-                <div className="text-5xl mb-6">🏭</div>
                 <h3 className="text-2xl font-bold text-white mb-6">Industry Specific</h3>
                 <ul className="space-y-3 text-[#a1a1a1] text-left">
                   <li>• Healthcare & Supplements</li>
@@ -149,30 +139,30 @@ export default function CreatorsPage() {
 
             <div className="grid md:grid-cols-3 gap-12 w-full">
               <div className="flex flex-col items-center">
-                <div className="w-20 h-20 bg-gradient-to-br from-[#3b82f6] to-[#8b5cf6] rounded-full flex items-center justify-center mb-6">
-                  <span className="text-3xl">📄</span>
+                <div className="w-20 h-20 bg-gradient-to-br from-[#3b82f6] to-[#8b5cf6] rounded-full flex items-center justify-center mb-6 text-white text-3xl font-bold">
+                  1
                 </div>
-                <h3 className="text-2xl font-bold text-white mb-4">1. Upload</h3>
+                <h3 className="text-2xl font-bold text-white mb-4">Upload</h3>
                 <p className="text-[#a1a1a1] leading-relaxed">
                   Paste your script, ad copy, or upload video transcript
                 </p>
               </div>
 
               <div className="flex flex-col items-center">
-                <div className="w-20 h-20 bg-gradient-to-br from-[#3b82f6] to-[#8b5cf6] rounded-full flex items-center justify-center mb-6">
-                  <span className="text-3xl">🔍</span>
+                <div className="w-20 h-20 bg-gradient-to-br from-[#3b82f6] to-[#8b5cf6] rounded-full flex items-center justify-center mb-6 text-white text-3xl font-bold">
+                  2
                 </div>
-                <h3 className="text-2xl font-bold text-white mb-4">2. Analyze</h3>
+                <h3 className="text-2xl font-bold text-white mb-4">Analyze</h3>
                 <p className="text-[#a1a1a1] leading-relaxed">
                   Get instant compliance report with specific violations
                 </p>
               </div>
 
               <div className="flex flex-col items-center">
-                <div className="w-20 h-20 bg-gradient-to-br from-[#3b82f6] to-[#8b5cf6] rounded-full flex items-center justify-center mb-6">
-                  <span className="text-3xl">✅</span>
+                <div className="w-20 h-20 bg-gradient-to-br from-[#3b82f6] to-[#8b5cf6] rounded-full flex items-center justify-center mb-6 text-white text-3xl font-bold">
+                  3
                 </div>
-                <h3 className="text-2xl font-bold text-white mb-4">3. Fix</h3>
+                <h3 className="text-2xl font-bold text-white mb-4">Fix</h3>
                 <p className="text-[#a1a1a1] leading-relaxed">
                   Get suggested rewrites and compliant alternatives
                 </p>
@@ -194,19 +184,18 @@ export default function CreatorsPage() {
 
             <div className="flex flex-wrap justify-center gap-4 mt-8">
               {[
-                { icon: '🎬', label: 'Video Scripts' },
-                { icon: '📝', label: 'Blog Posts' },
-                { icon: '📧', label: 'Email Campaigns' },
-                { icon: '📱', label: 'Social Posts' },
-                { icon: '🖼️', label: 'Image Captions' },
-                { icon: '📢', label: 'Ad Copy' },
-              ].map((item) => (
+                'Video Scripts',
+                'Blog Posts',
+                'Email Campaigns',
+                'Social Posts',
+                'Image Captions',
+                'Ad Copy',
+              ].map((label) => (
                 <div
-                  key={item.label}
+                  key={label}
                   className="px-8 py-4 bg-[#111111] border border-[#222222] rounded-full text-white hover:border-[#3b82f6] transition-colors"
                 >
-                  <span className="mr-2 text-xl">{item.icon}</span>
-                  <span className="font-medium">{item.label}</span>
+                  <span className="font-medium">{label}</span>
                 </div>
               ))}
             </div>
@@ -226,50 +215,49 @@ export default function CreatorsPage() {
 
             <div className="bg-[#111111] border border-[#222222] rounded-xl p-12 w-full mt-8 text-left">
               <div className="flex items-center gap-3 mb-8">
-                <span className="text-3xl">📊</span>
                 <div>
                   <h3 className="text-xl font-bold text-white">Risk Level: HIGH</h3>
-                  <p className="text-red-500 text-sm">🔴 3 Critical Issues Found</p>
+                  <p className="text-red-500 text-sm">3 Critical Issues Found</p>
                 </div>
               </div>
 
               <div className="space-y-6">
                 <div className="border-l-4 border-red-500 pl-6 py-2">
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="text-red-500 font-bold">🚨 CRITICAL</span>
+                    <span className="text-red-500 font-bold">CRITICAL</span>
                     <span className="text-white">"This product cures anxiety"</span>
                   </div>
                   <p className="text-[#a1a1a1] text-sm mb-2">
                     FDA Violation - Cannot claim to cure disease
                   </p>
                   <p className="text-green-500 text-sm">
-                    ✅ Fix: "May help support a calm mood"
+                    Fix: "May help support a calm mood"
                   </p>
                 </div>
 
                 <div className="border-l-4 border-red-500 pl-6 py-2">
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="text-red-500 font-bold">🚨 CRITICAL</span>
+                    <span className="text-red-500 font-bold">CRITICAL</span>
                     <span className="text-white">No #ad disclosure</span>
                   </div>
                   <p className="text-[#a1a1a1] text-sm mb-2">
                     FTC Violation - Sponsored content requires disclosure
                   </p>
                   <p className="text-green-500 text-sm">
-                    ✅ Fix: Add "Ad" or "Sponsored" at start
+                    Fix: Add "Ad" or "Sponsored" at start
                   </p>
                 </div>
 
                 <div className="border-l-4 border-yellow-500 pl-6 py-2">
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="text-yellow-500 font-bold">⚠️ WARNING</span>
+                    <span className="text-yellow-500 font-bold">WARNING</span>
                     <span className="text-white">"Guaranteed results"</span>
                   </div>
                   <p className="text-[#a1a1a1] text-sm mb-2">
                     Must include terms of guarantee
                   </p>
                   <p className="text-green-500 text-sm">
-                    ✅ Fix: Link to refund policy
+                    Fix: Link to refund policy
                   </p>
                 </div>
               </div>
