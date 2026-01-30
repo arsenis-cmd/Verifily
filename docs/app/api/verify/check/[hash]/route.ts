@@ -1,6 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 
+// CORS headers
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+};
+
+// Handle OPTIONS request for CORS preflight
+export async function OPTIONS() {
+  return NextResponse.json({}, { headers: corsHeaders });
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ hash: string }> }
@@ -11,7 +23,7 @@ export async function GET(
     if (!hash) {
       return NextResponse.json(
         { error: 'Missing hash parameter' },
-        { status: 400 }
+        { status: 400, headers: corsHeaders }
       );
     }
 
@@ -37,7 +49,7 @@ export async function GET(
     if (error || !verification) {
       return NextResponse.json(
         { error: 'Verification not found' },
-        { status: 404 }
+        { status: 404, headers: corsHeaders }
       );
     }
 
@@ -60,13 +72,13 @@ export async function GET(
       username: verification.user_handle,
       shareable_url: verification.public_url,
       badge_url: verification.badge_url
-    });
+    }, { headers: corsHeaders });
 
   } catch (error) {
     console.error('Check verification error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
-      { status: 500 }
+      { status: 500, headers: corsHeaders }
     );
   }
 }

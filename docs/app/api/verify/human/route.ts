@@ -4,6 +4,18 @@ import crypto from 'crypto';
 
 const AI_API_URL = 'https://verifily-production.up.railway.app/api/v1';
 
+// CORS headers
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+};
+
+// Handle OPTIONS request for CORS preflight
+export async function OPTIONS() {
+  return NextResponse.json({}, { headers: corsHeaders });
+}
+
 function generateVerificationId(): string {
   const date = new Date().toISOString().split('T')[0].replace(/-/g, '');
   const random = Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -67,7 +79,7 @@ export async function POST(request: NextRequest) {
     if (!content || !username) {
       return NextResponse.json(
         { error: 'Missing required fields: content and username' },
-        { status: 400 }
+        { status: 400, headers: corsHeaders }
       );
     }
 
@@ -75,7 +87,7 @@ export async function POST(request: NextRequest) {
     if (content.length < 3) {
       return NextResponse.json(
         { error: 'Content too short to verify' },
-        { status: 400 }
+        { status: 400, headers: corsHeaders }
       );
     }
 
@@ -101,7 +113,7 @@ export async function POST(request: NextRequest) {
         already_verified: true,
         verification: existing,
         message: `Content already verified as ${existing.classification}`
-      });
+      }, { headers: corsHeaders });
     }
 
     // ACTUALLY RUN AI DETECTION
@@ -154,7 +166,7 @@ export async function POST(request: NextRequest) {
       console.error('Supabase error:', error);
       return NextResponse.json(
         { error: 'Failed to store verification', details: error.message },
-        { status: 500 }
+        { status: 500, headers: corsHeaders }
       );
     }
 
@@ -178,13 +190,13 @@ export async function POST(request: NextRequest) {
       message: `Verified as ${aiResult.classification} with ${Math.round(aiResult.confidence * 100)}% confidence`,
       shareable_url: `https://verifily.io/verify/${contentHash}`,
       content_hash: contentHash
-    });
+    }, { headers: corsHeaders });
 
   } catch (error) {
     console.error('Verification API error:', error);
     return NextResponse.json(
       { error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown error' },
-      { status: 500 }
+      { status: 500, headers: corsHeaders }
     );
   }
 }
