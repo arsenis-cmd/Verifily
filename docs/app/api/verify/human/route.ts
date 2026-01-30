@@ -46,8 +46,15 @@ async function detectAI(content: string): Promise<{
     }
 
     const data = await response.json();
+
+    // Map classification to database-allowed values
+    let classification = data.classification || 'human';
+    if (classification === 'uncertain') {
+      classification = 'mixed';
+    }
+
     return {
-      classification: data.classification || 'human',
+      classification,
       ai_probability: data.ai_probability || 0,
       confidence: data.confidence || 1.0
     };
