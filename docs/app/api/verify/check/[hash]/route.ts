@@ -3,10 +3,10 @@ import { supabaseAdmin } from '@/lib/supabase';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { hash: string } }
+  { params }: { params: Promise<{ hash: string }> }
 ) {
   try {
-    const { hash } = params;
+    const { hash } = await params;
 
     if (!hash) {
       return NextResponse.json(

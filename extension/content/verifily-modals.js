@@ -403,7 +403,7 @@
         throw new Error('Could not detect current user');
       }
 
-      const response = await fetch(`${API_URL}/verify/human`, {
+      const response = await fetch(`${API_URL}/verify/human/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
