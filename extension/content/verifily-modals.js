@@ -82,9 +82,14 @@
         }
       }
 
-      console.warn('[Verifily] ⚠ Could not detect current user');
+      // Silently fail if user not detected (common on non-profile pages)
+      return null;
     } catch (e) {
-      console.error('[Verifily] Error detecting current user:', e);
+      // Only log error if it's an actual error, not just "user not found"
+      if (e.message && !e.message.includes('querySelector')) {
+        console.error('[Verifily] Error detecting current user:', e);
+      }
+      return null;
     }
 
     return null;
@@ -565,8 +570,14 @@
     console.log('[Verifily] Current URL:', window.location.href);
 
     // Try to detect user immediately
-    const initialUser = detectCurrentUser();
-    console.log('[Verifily] Initial user detection:', initialUser || 'not detected yet');
+    try {
+      const initialUser = detectCurrentUser();
+      if (initialUser) {
+        console.log('[Verifily] ✓ User detected:', initialUser);
+      }
+    } catch (e) {
+      // Silently ignore - user detection will retry
+    }
 
     // Initial scan (delayed to let page load)
     setTimeout(() => {
