@@ -2,7 +2,7 @@
   'use strict';
 
   const CONFIG = {
-    DEFAULT_API_URL: 'https://verifily-production.up.railway.app/api/v1',
+    DEFAULT_API_URL: 'https://verifily.io/api',
     SCAN_INTERVAL: 2000
   };
 
@@ -79,7 +79,7 @@
     }
 
     try {
-      const res = await fetch(`${API_URL}/check/${contentHash}`, {
+      const res = await fetch(`${API_URL}/verify/check/${contentHash}/`, {
         method: 'GET'
       });
 
