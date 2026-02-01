@@ -76,16 +76,44 @@ export default function DashboardPage() {
     if (!verification) return;
 
     try {
+      // Fetch SVG from API
       const response = await fetch(`/api/certificate/${verification.id}/`);
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `verifily-certificate-${verification.id}.png`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
+      const svgText = await response.text();
+
+      // Create an image from SVG
+      const img = new Image();
+      const svgBlob = new Blob([svgText], { type: 'image/svg+xml;charset=utf-8' });
+      const svgUrl = URL.createObjectURL(svgBlob);
+
+      img.onload = () => {
+        // Create canvas
+        const canvas = document.createElement('canvas');
+        canvas.width = 1200;
+        canvas.height = 800;
+        const ctx = canvas.getContext('2d');
+
+        if (ctx) {
+          // Draw image on canvas
+          ctx.drawImage(img, 0, 0);
+
+          // Convert to PNG and download
+          canvas.toBlob((blob) => {
+            if (blob) {
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = `verifily-certificate-${verification.id}.png`;
+              document.body.appendChild(a);
+              a.click();
+              URL.revokeObjectURL(url);
+              URL.revokeObjectURL(svgUrl);
+              document.body.removeChild(a);
+            }
+          }, 'image/png');
+        }
+      };
+
+      img.src = svgUrl;
     } catch (err) {
       setError('Failed to download certificate');
     }
@@ -280,16 +308,34 @@ export default function DashboardPage() {
                 fontSize: '48px',
                 fontWeight: 'bold',
                 color: isHuman ? '#10b981' : '#ef4444',
-                marginBottom: '16px'
+                marginBottom: '8px'
               }}>
-                {Math.round(aiResult.ai_probability * 100)}% AI
+                {Math.round(aiResult.ai_probability * 100)}% AI Probability
               </div>
-              <p style={{ fontSize: '18px', color: isHuman ? '#10b981' : '#ef4444', fontWeight: '600' }}>
-                {isHuman ? 'Likely Human-Written' : 'Likely AI-Generated'}
+              <p style={{ fontSize: '20px', color: isHuman ? '#10b981' : '#ef4444', fontWeight: '600', marginBottom: '12px' }}>
+                Classification: {aiResult.classification.toUpperCase()}
               </p>
-              <p style={{ color: '#888888', fontSize: '14px', marginTop: '8px' }}>
-                Confidence: {Math.round(aiResult.confidence * 100)}%
+              <p style={{ color: '#888888', fontSize: '14px', marginBottom: '16px' }}>
+                Model Confidence: {Math.round(aiResult.confidence * 100)}%
               </p>
+              <div style={{
+                backgroundColor: 'rgba(0, 0, 0, 0.3)',
+                borderRadius: '8px',
+                padding: '16px',
+                fontSize: '13px',
+                color: '#888888',
+                textAlign: 'left'
+              }}>
+                <div style={{ marginBottom: '8px' }}>
+                  <strong>Detection Breakdown:</strong>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                  <div>AI Probability: {(aiResult.ai_probability * 100).toFixed(1)}%</div>
+                  <div>Human Probability: {((1 - aiResult.ai_probability) * 100).toFixed(1)}%</div>
+                  <div>Confidence Level: {(aiResult.confidence * 100).toFixed(1)}%</div>
+                  <div>Classification: {aiResult.classification}</div>
+                </div>
+              </div>
             </div>
 
             <div style={{ marginBottom: '24px' }}>
@@ -421,7 +467,7 @@ export default function DashboardPage() {
               color: '#10b981',
               marginBottom: '16px'
             }}>
-              Verification Complete!
+              Verification Complete
             </h2>
             <p style={{ color: '#888888', marginBottom: '40px' }}>
               Your content has been verified as human-written
@@ -469,7 +515,7 @@ export default function DashboardPage() {
                   cursor: 'pointer'
                 }}
               >
-                📥 Download Certificate
+                Download Certificate
               </button>
               <button
                 onClick={() => router.push(verification.public_url)}
@@ -485,7 +531,7 @@ export default function DashboardPage() {
                   cursor: 'pointer'
                 }}
               >
-                🔗 View Public Page
+                View Public Page
               </button>
             </div>
 
