@@ -92,7 +92,26 @@ class AdvancedAIDetector:
         """Lazy load RoBERTa-based AI classifier"""
         if self._ai_classifier_model is None:
             print("[Advanced Detector] Loading AI classifier...")
-            # Use a fine-tuned model for AI detection
+
+            # Priority: Use custom pre-trained model if available
+            import os
+            custom_model_path = os.environ.get('VERIFILY_CUSTOM_MODEL')
+
+            if custom_model_path and os.path.exists(custom_model_path):
+                print(f"[Advanced Detector] Loading custom model from {custom_model_path}")
+                try:
+                    self._ai_classifier_model = AutoModelForSequenceClassification.from_pretrained(
+                        custom_model_path
+                    ).to(self.device)
+                    self._ai_classifier_tokenizer = AutoTokenizer.from_pretrained(custom_model_path)
+                    self._ai_classifier_model.eval()
+                    print("[Advanced Detector] Custom model loaded successfully!")
+                    return self._ai_classifier_model, self._ai_classifier_tokenizer
+                except Exception as e:
+                    print(f"[Advanced Detector] Failed to load custom model: {e}")
+                    print("[Advanced Detector] Falling back to default...")
+
+            # Default: Use pre-trained model for AI detection
             model_name = "roberta-base-openai-detector"
             try:
                 self._ai_classifier_model = AutoModelForSequenceClassification.from_pretrained(
