@@ -11,6 +11,14 @@ from app.routes.companion import router as companion_router
 from app.routes.impressions import router as impressions_router
 from app.routes.verify import router as verify_router
 
+# ML Training Router (optional - may not be available)
+try:
+    from app.routes.ml import router as ml_router
+    ML_ROUTER_AVAILABLE = True
+except ImportError:
+    ML_ROUTER_AVAILABLE = False
+    logger.warning("ML router not available - training features disabled")
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -46,6 +54,11 @@ app.include_router(verify_router)  # Already has /api/v1 prefix
 app.include_router(factcheck_router)
 app.include_router(companion_router)
 app.include_router(impressions_router)
+
+# ML Training Router (if available)
+if ML_ROUTER_AVAILABLE:
+    app.include_router(ml_router)
+    logger.info("ML training endpoints enabled at /api/v1/ml")
 
 @app.get("/")
 async def root():

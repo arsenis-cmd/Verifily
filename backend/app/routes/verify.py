@@ -15,6 +15,14 @@ from app.database import get_db
 from app.models import Verification, Classification, ContentScan, ContentType, Waitlist
 from app.detection.text import text_detector
 
+# ML Training Data Collection
+try:
+    from app.ml.training_data_collector import training_collector
+    ML_ENABLED = True
+except ImportError:
+    ML_ENABLED = False
+    print("[Warning] ML training data collection not available")
+
 router = APIRouter(prefix="/api/v1", tags=["verification"])
 
 class VerifyRequest(BaseModel):
@@ -362,6 +370,28 @@ async def verify_as_human(
     db.add(content_scan)
 
     await db.commit()
+
+    # 🎯 COLLECT TRAINING DATA - Network Effect!
+    if ML_ENABLED:
+        try:
+            await training_collector.add_example(
+                content=request.content,
+                label='human',  # User confirmed this is human-written
+                platform=request.platform,
+                user_handle=request.username,
+                confidence=1.0,
+                ai_probability=0.0,
+                user_confirmed=True,  # Explicitly verified by author
+                metadata={
+                    'verification_type': 'author_self_verification',
+                    'post_id': request.post_id,
+                    'post_url': request.post_url
+                }
+            )
+            print(f"[ML] Collected training example from @{request.username}")
+        except Exception as e:
+            print(f"[ML] Failed to collect training data: {e}")
+            # Don't fail the request if training collection fails
 
     return VerifyResponse(
         content_hash=content_hash,

@@ -21,3 +21,8 @@ scikit-learn==1.3.2
 nltk==3.8.1
 textstat==0.7.3
 sentencepiece==0.1.99
+
+# ML Training Libraries
+datasets==2.14.6
+accelerate==0.25.0
+evaluate==0.4.1
