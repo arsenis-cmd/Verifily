@@ -7,6 +7,15 @@ import httpx
 import numpy as np
 from app.config import settings
 
+# Try to import advanced detector
+try:
+    from app.detection.advanced_detector import advanced_detector, AdvancedDetectionResult
+    ADVANCED_AVAILABLE = True
+except ImportError as e:
+    print(f"[WARNING] Advanced detector not available: {e}")
+    print("[WARNING] Falling back to basic detection")
+    ADVANCED_AVAILABLE = False
+
 @dataclass
 class TextDetectionResult:
     classification: str
@@ -68,10 +77,39 @@ class TextDetector:
     
     async def detect(self, text: str, source_platform: str = None) -> TextDetectionResult:
         """Main detection method"""
-        
+
+        # PRIORITY 1: Use Advanced Detector (best accuracy)
+        if ADVANCED_AVAILABLE:
+            try:
+                print("[Detection] Using ADVANCED multi-model detector")
+                advanced_result = await advanced_detector.detect(text, source_platform)
+
+                # Convert to TextDetectionResult format
+                return TextDetectionResult(
+                    classification=advanced_result.classification.lower(),
+                    ai_probability=advanced_result.ai_probability,
+                    confidence=advanced_result.confidence,
+                    scores={
+                        'advanced_detector': True,
+                        'perplexity': advanced_result.perplexity_score,
+                        'burstiness': advanced_result.burstiness_score,
+                        'entropy': advanced_result.entropy_score,
+                        'transformer': advanced_result.transformer_score,
+                        'stylometric': advanced_result.stylometric_score,
+                        **advanced_result.detailed_scores
+                    },
+                    content_hash=advanced_result.content_hash
+                )
+            except Exception as e:
+                print(f"[Detection] Advanced detector failed: {e}")
+                print("[Detection] Falling back to basic detection")
+
+        # FALLBACK: Basic detection if advanced not available
+        print("[Detection] Using basic detection (fallback)")
+
         # Generate content hash
         content_hash = hashlib.sha256(text.encode()).hexdigest()
-        
+
         # Quick validation
         word_count = len(text.split())
         if word_count < 5:
@@ -82,7 +120,7 @@ class TextDetector:
                 scores={},
                 content_hash=content_hash
             )
-        
+
         # Run detection methods in parallel
         # Priority: ZeroGPT/GPTZero (paid, best) > External Model Server > Pattern matching
         api_task = self._zerogpt_detect(text)  # Try ZeroGPT first (best accuracy)
@@ -91,7 +129,7 @@ class TextDetector:
         api_result, pattern_result = await asyncio.gather(
             api_task, pattern_task
         )
-        
+
         # Combine scores
         final_result = self._combine_scores(
             api_result,
@@ -100,7 +138,7 @@ class TextDetector:
             source_platform
         )
         final_result.content_hash = content_hash
-        
+
         return final_result
 
     async def _external_model_detect(self, text: str) -> Dict:
