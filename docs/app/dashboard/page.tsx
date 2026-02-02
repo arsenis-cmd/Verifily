@@ -17,7 +17,7 @@ interface Verification {
   created_at: string;
 }
 
-type DetectionStep = 'input' | 'detecting' | 'complete';
+type DetectionStep = 'input' | 'detecting' | 'review' | 'verifying' | 'complete';
 
 export default function DashboardPage() {
   const { user, isLoaded } = useUser();
@@ -28,7 +28,9 @@ export default function DashboardPage() {
   const [step, setStep] = useState<DetectionStep>('input');
   const [newContent, setNewContent] = useState('');
   const [platform, setPlatform] = useState('twitter');
+  const [username, setUsername] = useState('');
   const [aiResult, setAiResult] = useState<any>(null);
+  const [verification, setVerification] = useState<any>(null);
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -78,26 +80,45 @@ export default function DashboardPage() {
 
       const result = await response.json();
       setAiResult(result);
-
-      // Save to user's account
-      await fetch('/api/verifications', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          content: newContent,
-          classification: result.classification,
-          ai_probability: result.ai_probability,
-          confidence: result.confidence,
-          platform,
-          metadata: result
-        })
-      });
-
-      setStep('complete');
+      setStep('review');
     } catch (error) {
       console.error('Error detecting content:', error);
       setError('Failed to detect content. Please try again.');
       setStep('input');
+    }
+  };
+
+  const handleVerify = async () => {
+    if (!username || username.length < 2) {
+      setError('Please enter your username');
+      return;
+    }
+
+    setError('');
+    setStep('verifying');
+
+    try {
+      // Save to user's account
+      const response = await fetch('/api/verifications', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content: newContent,
+          classification: aiResult.classification,
+          ai_probability: aiResult.ai_probability,
+          confidence: aiResult.confidence,
+          platform,
+          metadata: { ...aiResult, username }
+        })
+      });
+
+      const data = await response.json();
+      setVerification(data.verification);
+      setStep('complete');
+    } catch (error) {
+      console.error('Error saving verification:', error);
+      setError('Failed to save verification. Please try again.');
+      setStep('review');
     }
   };
 
@@ -106,7 +127,9 @@ export default function DashboardPage() {
     setStep('input');
     setNewContent('');
     setPlatform('twitter');
+    setUsername('');
     setAiResult(null);
+    setVerification(null);
     setError('');
     fetchVerifications();
   };
@@ -204,7 +227,6 @@ export default function DashboardPage() {
             padding: '60px 24px',
             textAlign: 'center'
           }}>
-            <div style={{ fontSize: '48px', marginBottom: '16px' }}>📊</div>
             <p style={{ color: '#666666', marginBottom: '24px' }}>No verifications yet</p>
             <button
               onClick={() => setShowNewModal(true)}
@@ -381,23 +403,27 @@ export default function DashboardPage() {
               gap: '20px',
               marginBottom: '40px'
             }}>
-              {['input', 'detecting', 'complete'].map((s, i) => (
-                <div key={s} style={{
-                  width: '40px',
-                  height: '40px',
-                  borderRadius: '50%',
-                  backgroundColor: step === s || (step === 'complete' && i < 2)
-                    ? '#10b981'
-                    : 'rgba(255, 255, 255, 0.1)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontWeight: 'bold',
-                  fontSize: '14px'
-                }}>
-                  {i + 1}
-                </div>
-              ))}
+              {['input', 'detecting', 'review', 'verifying', 'complete'].map((s, i) => {
+                const stepIndex = ['input', 'detecting', 'review', 'verifying', 'complete'].indexOf(step);
+                const currentIndex = ['input', 'detecting', 'review', 'verifying', 'complete'].indexOf(s);
+                return (
+                  <div key={s} style={{
+                    width: '40px',
+                    height: '40px',
+                    borderRadius: '50%',
+                    backgroundColor: currentIndex <= stepIndex
+                      ? '#10b981'
+                      : 'rgba(255, 255, 255, 0.1)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontWeight: 'bold',
+                    fontSize: '14px'
+                  }}>
+                    {i + 1}
+                  </div>
+                );
+              })}
             </div>
 
             {/* Error Message */}
@@ -513,18 +539,19 @@ export default function DashboardPage() {
               </div>
             )}
 
-            {/* Step 3: Complete */}
-            {step === 'complete' && aiResult && (
-              <div style={{ textAlign: 'center' }}>
+            {/* Step 3: Review AI Results */}
+            {step === 'review' && aiResult && (
+              <div>
                 <div style={{
                   backgroundColor: isHuman ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
                   border: `2px solid ${isHuman ? 'rgba(16, 185, 129, 0.5)' : 'rgba(239, 68, 68, 0.5)'}`,
                   borderRadius: '12px',
-                  padding: '40px',
+                  padding: '32px',
+                  textAlign: 'center',
                   marginBottom: '32px'
                 }}>
                   <div style={{
-                    fontSize: '56px',
+                    fontSize: '48px',
                     fontWeight: 'bold',
                     color: isHuman ? '#10b981' : '#ef4444',
                     marginBottom: '16px'
@@ -542,6 +569,167 @@ export default function DashboardPage() {
                   <p style={{ color: '#888888', fontSize: '14px' }}>
                     Confidence: {Math.round(aiResult.confidence * 100)}%
                   </p>
+                </div>
+
+                <div style={{ marginBottom: '24px' }}>
+                  <label style={{
+                    display: 'block',
+                    marginBottom: '8px',
+                    fontSize: '14px',
+                    color: '#888888'
+                  }}>
+                    Your Username
+                  </label>
+                  <input
+                    type="text"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    placeholder="@username"
+                    style={{
+                      width: '100%',
+                      backgroundColor: 'rgba(0, 0, 0, 0.4)',
+                      border: '1px solid rgba(255, 255, 255, 0.2)',
+                      borderRadius: '8px',
+                      padding: '12px',
+                      color: 'white',
+                      fontSize: '14px'
+                    }}
+                  />
+                </div>
+
+                <div style={{
+                  backgroundColor: 'rgba(16, 185, 129, 0.05)',
+                  border: '1px solid rgba(16, 185, 129, 0.2)',
+                  borderRadius: '8px',
+                  padding: '16px',
+                  marginBottom: '24px'
+                }}>
+                  <p style={{ fontSize: '14px', color: '#888888', marginBottom: '8px' }}>
+                    By verifying, you confirm that:
+                  </p>
+                  <ul style={{ fontSize: '13px', color: '#888888', paddingLeft: '20px', margin: 0 }}>
+                    <li>You are the original author of this content</li>
+                    <li>This content was written by you (human)</li>
+                    <li>You consent to this data being used for training</li>
+                  </ul>
+                </div>
+
+                <div style={{ display: 'flex', gap: '12px' }}>
+                  <button
+                    onClick={() => {
+                      setStep('input');
+                      setAiResult(null);
+                      setError('');
+                    }}
+                    style={{
+                      flex: 1,
+                      padding: '16px',
+                      backgroundColor: 'transparent',
+                      color: 'white',
+                      border: '1px solid rgba(255, 255, 255, 0.2)',
+                      borderRadius: '8px',
+                      fontSize: '16px',
+                      fontWeight: 'bold',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Back
+                  </button>
+                  <button
+                    onClick={handleVerify}
+                    disabled={!username}
+                    style={{
+                      flex: 2,
+                      padding: '16px',
+                      backgroundColor: '#10b981',
+                      color: 'black',
+                      border: 'none',
+                      borderRadius: '8px',
+                      fontSize: '16px',
+                      fontWeight: 'bold',
+                      cursor: username ? 'pointer' : 'not-allowed',
+                      opacity: username ? 1 : 0.5
+                    }}
+                  >
+                    Verify as Human
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Step 4: Verifying */}
+            {step === 'verifying' && (
+              <div style={{
+                textAlign: 'center',
+                padding: '60px 40px'
+              }}>
+                <div style={{
+                  width: '64px',
+                  height: '64px',
+                  border: '4px solid rgba(16, 185, 129, 0.3)',
+                  borderTop: '4px solid #10b981',
+                  borderRadius: '50%',
+                  margin: '0 auto 24px auto',
+                  animation: 'spin 1s linear infinite'
+                }}></div>
+                <h3 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '12px' }}>
+                  Creating Verification...
+                </h3>
+                <p style={{ color: '#888888' }}>Storing in database</p>
+                <style jsx>{`
+                  @keyframes spin {
+                    to { transform: rotate(360deg); }
+                  }
+                `}</style>
+              </div>
+            )}
+
+            {/* Step 5: Complete */}
+            {step === 'complete' && verification && (
+              <div style={{ textAlign: 'center' }}>
+                <div style={{
+                  fontSize: '56px',
+                  fontWeight: 'bold',
+                  color: '#10b981',
+                  marginBottom: '24px'
+                }}>
+                  Verification Complete
+                </div>
+                <p style={{ color: '#888888', marginBottom: '40px', fontSize: '16px' }}>
+                  Your content has been verified and saved to your dashboard
+                </p>
+
+                <div style={{
+                  backgroundColor: 'rgba(0, 0, 0, 0.4)',
+                  borderRadius: '8px',
+                  padding: '24px',
+                  marginBottom: '32px',
+                  textAlign: 'left'
+                }}>
+                  <div style={{ marginBottom: '16px' }}>
+                    <span style={{ color: '#888888', fontSize: '12px' }}>Verification ID</span>
+                    <div style={{ fontFamily: 'monospace', fontSize: '14px', marginTop: '4px' }}>
+                      {verification.id}
+                    </div>
+                  </div>
+                  <div style={{ marginBottom: '16px' }}>
+                    <span style={{ color: '#888888', fontSize: '12px' }}>Classification</span>
+                    <div style={{ fontSize: '14px', marginTop: '4px' }}>
+                      {verification.classification}
+                    </div>
+                  </div>
+                  <div style={{ marginBottom: '16px' }}>
+                    <span style={{ color: '#888888', fontSize: '12px' }}>AI Probability</span>
+                    <div style={{ fontSize: '14px', marginTop: '4px' }}>
+                      {Math.round(verification.ai_probability * 100)}%
+                    </div>
+                  </div>
+                  <div>
+                    <span style={{ color: '#888888', fontSize: '12px' }}>Confidence</span>
+                    <div style={{ fontSize: '14px', marginTop: '4px' }}>
+                      {Math.round(verification.confidence * 100)}%
+                    </div>
+                  </div>
                 </div>
 
                 <button
