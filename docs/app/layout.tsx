@@ -61,5 +61,9 @@ export default function RootLayout({
     </html>
   );
 
-  return hasClerkKeys ? <ClerkProvider>{content}</ClerkProvider> : content;
+  return hasClerkKeys ? (
+    <ClerkProvider publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}>
+      {content}
+    </ClerkProvider>
+  ) : content;
 }
