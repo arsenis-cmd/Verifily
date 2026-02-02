@@ -75,6 +75,15 @@ export async function POST(request: NextRequest) {
       metadata
     } = body;
 
+    // Log incoming data for debugging
+    console.log('Received verification data:', {
+      classification,
+      ai_probability,
+      confidence,
+      platform,
+      content_length: content?.length
+    });
+
     // Validate required fields
     if (!content || !classification || ai_probability === undefined || confidence === undefined) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -82,6 +91,7 @@ export async function POST(request: NextRequest) {
 
     // Normalize classification to match database constraint
     const normalizedClassification = normalizeClassification(classification);
+    console.log(`Normalized classification from "${classification}" to "${normalizedClassification}"`);
 
     // Generate content hash
     const content_hash = crypto
