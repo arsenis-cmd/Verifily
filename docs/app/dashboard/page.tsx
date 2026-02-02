@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import { useUser, UserButton } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/Button';
 import Link from 'next/link';
 
 export const dynamic = 'force-dynamic';
@@ -18,14 +17,19 @@ interface Verification {
   created_at: string;
 }
 
+type DetectionStep = 'input' | 'detecting' | 'complete';
+
 export default function DashboardPage() {
   const { user, isLoaded } = useUser();
   const router = useRouter();
   const [verifications, setVerifications] = useState<Verification[]>([]);
   const [loading, setLoading] = useState(true);
   const [showNewModal, setShowNewModal] = useState(false);
+  const [step, setStep] = useState<DetectionStep>('input');
   const [newContent, setNewContent] = useState('');
-  const [detecting, setDetecting] = useState(false);
+  const [platform, setPlatform] = useState('twitter');
+  const [aiResult, setAiResult] = useState<any>(null);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     if (isLoaded && !user) {
@@ -51,10 +55,15 @@ export default function DashboardPage() {
     }
   };
 
-  const handleNewDetection = async () => {
-    if (!newContent.trim()) return;
-    
-    setDetecting(true);
+  const handleDetectAI = async () => {
+    if (!newContent || newContent.length < 10) {
+      setError('Content must be at least 10 characters');
+      return;
+    }
+
+    setError('');
+    setStep('detecting');
+
     try {
       // Call Railway backend API
       const apiUrl = process.env.NEXT_PUBLIC_AI_API_URL || 'https://verifily-production.up.railway.app/api/v1';
@@ -68,6 +77,7 @@ export default function DashboardPage() {
       });
 
       const result = await response.json();
+      setAiResult(result);
 
       // Save to user's account
       await fetch('/api/verifications', {
@@ -78,97 +88,236 @@ export default function DashboardPage() {
           classification: result.classification,
           ai_probability: result.ai_probability,
           confidence: result.confidence,
+          platform,
           metadata: result
         })
       });
 
-      // Refresh list
-      await fetchVerifications();
-      setShowNewModal(false);
-      setNewContent('');
+      setStep('complete');
     } catch (error) {
       console.error('Error detecting content:', error);
-      alert('Failed to detect content. Please try again.');
-    } finally {
-      setDetecting(false);
+      setError('Failed to detect content. Please try again.');
+      setStep('input');
     }
+  };
+
+  const resetModal = () => {
+    setShowNewModal(false);
+    setStep('input');
+    setNewContent('');
+    setPlatform('twitter');
+    setAiResult(null);
+    setError('');
+    fetchVerifications();
   };
 
   if (!isLoaded || loading) {
     return (
-      <div className="min-h-screen bg-[#000000] flex items-center justify-center">
-        <div className="text-white">Loading...</div>
+      <div style={{
+        minHeight: '100vh',
+        backgroundColor: '#000000',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}>
+        <div style={{ color: '#888888' }}>Loading...</div>
       </div>
     );
   }
 
+  const isHuman = aiResult?.classification === 'HUMAN';
+
   return (
-    <div className="min-h-screen bg-[#000000]">
+    <div style={{
+      minHeight: '100vh',
+      backgroundColor: '#000000',
+      color: 'white',
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+    }}>
       {/* Header */}
-      <header className="border-b border-[#222222] bg-[#0a0a0a]">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/" className="text-2xl font-bold text-white">
+      <header style={{
+        borderBottom: '1px solid #222222',
+        backgroundColor: '#0a0a0a'
+      }}>
+        <div style={{
+          maxWidth: '1200px',
+          margin: '0 auto',
+          padding: '16px 24px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between'
+        }}>
+          <Link href="/" style={{
+            fontSize: '24px',
+            fontWeight: 'bold',
+            color: 'white',
+            textDecoration: 'none'
+          }}>
             Verifily
           </Link>
-          <div className="flex items-center gap-4">
-            <Button variant="primary" size="md" onClick={() => setShowNewModal(true)}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <button
+              onClick={() => setShowNewModal(true)}
+              style={{
+                padding: '10px 20px',
+                backgroundColor: '#10b981',
+                color: 'black',
+                border: 'none',
+                borderRadius: '8px',
+                fontSize: '14px',
+                fontWeight: '600',
+                cursor: 'pointer'
+              }}
+            >
               New Detection
-            </Button>
+            </button>
             <UserButton afterSignOutUrl="/" />
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-6 py-12">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2">
+      <main style={{
+        maxWidth: '1200px',
+        margin: '0 auto',
+        padding: '48px 24px'
+      }}>
+        <div style={{ marginBottom: '32px' }}>
+          <h1 style={{
+            fontSize: '36px',
+            fontWeight: 'bold',
+            marginBottom: '8px'
+          }}>
             Your Verifications
           </h1>
-          <p className="text-[#a1a1a1]">
+          <p style={{ color: '#888888', fontSize: '16px' }}>
             All your AI content detections in one place
           </p>
         </div>
 
-        {/* Verifications List */}
+        {/* Verifications Grid */}
         {verifications.length === 0 ? (
-          <div className="bg-[#111111] border border-[#222222] rounded-xl p-12 text-center">
-            <p className="text-[#666666] mb-4">No verifications yet</p>
-            <Button variant="primary" size="md" onClick={() => setShowNewModal(true)}>
+          <div style={{
+            backgroundColor: '#111111',
+            border: '1px solid #222222',
+            borderRadius: '12px',
+            padding: '60px 24px',
+            textAlign: 'center'
+          }}>
+            <div style={{ fontSize: '48px', marginBottom: '16px' }}>📊</div>
+            <p style={{ color: '#666666', marginBottom: '24px' }}>No verifications yet</p>
+            <button
+              onClick={() => setShowNewModal(true)}
+              style={{
+                padding: '12px 24px',
+                backgroundColor: '#10b981',
+                color: 'black',
+                border: 'none',
+                borderRadius: '8px',
+                fontSize: '14px',
+                fontWeight: '600',
+                cursor: 'pointer'
+              }}
+            >
               Create Your First Detection
-            </Button>
+            </button>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
+            gap: '20px'
+          }}>
             {verifications.map((verification) => (
               <div
                 key={verification.id}
-                className="bg-[#111111] border border-[#222222] rounded-xl p-6 hover:border-[#3b82f6]/50 transition-colors"
+                style={{
+                  backgroundColor: '#111111',
+                  border: '1px solid #222222',
+                  borderRadius: '12px',
+                  padding: '24px',
+                  transition: 'border-color 0.2s',
+                  cursor: 'pointer'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.borderColor = '#3b82f6'}
+                onMouseLeave={(e) => e.currentTarget.style.borderColor = '#222222'}
               >
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <span
-                      className={`px-3 py-1 rounded-full text-xs font-bold ${
-                        verification.classification === 'HUMAN'
-                          ? 'bg-green-500/10 border border-green-500/30 text-green-500'
-                          : verification.classification === 'AI'
-                          ? 'bg-red-500/10 border border-red-500/30 text-red-500'
-                          : 'bg-yellow-500/10 border border-yellow-500/30 text-yellow-500'
-                      }`}
-                    >
-                      {verification.classification}
-                    </span>
-                    <span className="text-[#666666] text-sm">
-                      {new Date(verification.created_at).toLocaleDateString()}
-                    </span>
-                  </div>
-                  <div className="text-[#a1a1a1] text-sm">
-                    AI: {(verification.ai_probability * 100).toFixed(1)}%
-                  </div>
+                {/* Classification Badge */}
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: '16px'
+                }}>
+                  <span style={{
+                    padding: '6px 12px',
+                    borderRadius: '20px',
+                    fontSize: '12px',
+                    fontWeight: 'bold',
+                    backgroundColor: verification.classification === 'HUMAN'
+                      ? 'rgba(16, 185, 129, 0.1)'
+                      : verification.classification === 'AI'
+                      ? 'rgba(239, 68, 68, 0.1)'
+                      : 'rgba(251, 191, 36, 0.1)',
+                    border: `1px solid ${
+                      verification.classification === 'HUMAN'
+                        ? 'rgba(16, 185, 129, 0.3)'
+                        : verification.classification === 'AI'
+                        ? 'rgba(239, 68, 68, 0.3)'
+                        : 'rgba(251, 191, 36, 0.3)'
+                    }`,
+                    color: verification.classification === 'HUMAN'
+                      ? '#10b981'
+                      : verification.classification === 'AI'
+                      ? '#ef4444'
+                      : '#fbbf24'
+                  }}>
+                    {verification.classification}
+                  </span>
+                  <span style={{ color: '#666666', fontSize: '12px' }}>
+                    {new Date(verification.created_at).toLocaleDateString()}
+                  </span>
                 </div>
-                <p className="text-white line-clamp-3">
+
+                {/* Content Preview */}
+                <p style={{
+                  color: '#a1a1a1',
+                  fontSize: '14px',
+                  lineHeight: '1.6',
+                  marginBottom: '16px',
+                  display: '-webkit-box',
+                  WebkitLineClamp: 3,
+                  WebkitBoxOrient: 'vertical',
+                  overflow: 'hidden'
+                }}>
                   {verification.content}
                 </p>
+
+                {/* Stats */}
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: '1fr 1fr',
+                  gap: '12px',
+                  paddingTop: '16px',
+                  borderTop: '1px solid #222222'
+                }}>
+                  <div>
+                    <div style={{ color: '#666666', fontSize: '11px', marginBottom: '4px' }}>
+                      AI PROBABILITY
+                    </div>
+                    <div style={{ fontSize: '18px', fontWeight: 'bold' }}>
+                      {(verification.ai_probability * 100).toFixed(1)}%
+                    </div>
+                  </div>
+                  <div>
+                    <div style={{ color: '#666666', fontSize: '11px', marginBottom: '4px' }}>
+                      CONFIDENCE
+                    </div>
+                    <div style={{ fontSize: '18px', fontWeight: 'bold' }}>
+                      {(verification.confidence * 100).toFixed(1)}%
+                    </div>
+                  </div>
+                </div>
               </div>
             ))}
           </div>
@@ -177,38 +326,241 @@ export default function DashboardPage() {
 
       {/* New Detection Modal */}
       {showNewModal && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-          <div className="bg-[#111111] border border-[#222222] rounded-2xl max-w-2xl w-full p-8">
-            <h2 className="text-3xl font-bold text-white mb-6">
-              New AI Detection
-            </h2>
-            <textarea
-              value={newContent}
-              onChange={(e) => setNewContent(e.target.value)}
-              placeholder="Paste the content you want to analyze..."
-              className="w-full h-64 bg-[#0a0a0a] border border-[#222222] rounded-xl p-4 text-white placeholder:text-[#666666] resize-none focus:outline-none focus:border-[#3b82f6] transition-colors mb-6"
-            />
-            <div className="flex items-center gap-4">
-              <Button
-                variant="primary"
-                size="lg"
-                onClick={handleNewDetection}
-                disabled={detecting || !newContent.trim()}
-              >
-                {detecting ? 'Analyzing...' : 'Detect AI'}
-              </Button>
-              <Button
-                variant="secondary"
-                size="lg"
-                onClick={() => {
-                  setShowNewModal(false);
-                  setNewContent('');
-                }}
-                disabled={detecting}
-              >
-                Cancel
-              </Button>
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.9)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 50,
+          padding: '20px',
+          overflowY: 'auto'
+        }}>
+          <div style={{
+            backgroundColor: '#111111',
+            border: '1px solid #222222',
+            borderRadius: '16px',
+            maxWidth: '800px',
+            width: '100%',
+            padding: '40px',
+            position: 'relative'
+          }}>
+            {/* Close Button */}
+            <button
+              onClick={resetModal}
+              style={{
+                position: 'absolute',
+                top: '20px',
+                right: '20px',
+                background: 'transparent',
+                border: 'none',
+                color: '#666666',
+                fontSize: '24px',
+                cursor: 'pointer',
+                padding: '4px 8px'
+              }}
+            >
+              ✕
+            </button>
+
+            {/* Header */}
+            <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+              <h2 style={{ fontSize: '32px', fontWeight: 'bold', marginBottom: '8px' }}>
+                New AI Detection
+              </h2>
+              <p style={{ color: '#888888', fontSize: '14px' }}>
+                Analyze content for AI-generated patterns
+              </p>
             </div>
+
+            {/* Step Indicator */}
+            <div style={{
+              display: 'flex',
+              justifyContent: 'center',
+              gap: '20px',
+              marginBottom: '40px'
+            }}>
+              {['input', 'detecting', 'complete'].map((s, i) => (
+                <div key={s} style={{
+                  width: '40px',
+                  height: '40px',
+                  borderRadius: '50%',
+                  backgroundColor: step === s || (step === 'complete' && i < 2)
+                    ? '#10b981'
+                    : 'rgba(255, 255, 255, 0.1)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontWeight: 'bold',
+                  fontSize: '14px'
+                }}>
+                  {i + 1}
+                </div>
+              ))}
+            </div>
+
+            {/* Error Message */}
+            {error && (
+              <div style={{
+                backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                border: '2px solid rgba(239, 68, 68, 0.5)',
+                borderRadius: '12px',
+                padding: '16px',
+                marginBottom: '24px',
+                color: '#ef4444'
+              }}>
+                {error}
+              </div>
+            )}
+
+            {/* Step 1: Input Content */}
+            {step === 'input' && (
+              <div>
+                <textarea
+                  value={newContent}
+                  onChange={(e) => setNewContent(e.target.value)}
+                  placeholder="Paste your content here..."
+                  style={{
+                    width: '100%',
+                    height: '200px',
+                    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                    borderRadius: '8px',
+                    padding: '16px',
+                    color: 'white',
+                    fontSize: '14px',
+                    fontFamily: 'inherit',
+                    resize: 'vertical',
+                    marginBottom: '20px'
+                  }}
+                />
+
+                <div style={{ marginBottom: '24px' }}>
+                  <label style={{
+                    display: 'block',
+                    marginBottom: '8px',
+                    fontSize: '14px',
+                    color: '#888888'
+                  }}>
+                    Platform
+                  </label>
+                  <select
+                    value={platform}
+                    onChange={(e) => setPlatform(e.target.value)}
+                    style={{
+                      width: '100%',
+                      backgroundColor: 'rgba(0, 0, 0, 0.4)',
+                      border: '1px solid rgba(255, 255, 255, 0.2)',
+                      borderRadius: '8px',
+                      padding: '12px',
+                      color: 'white',
+                      fontSize: '14px'
+                    }}
+                  >
+                    <option value="twitter">Twitter/X</option>
+                    <option value="linkedin">LinkedIn</option>
+                    <option value="blog">Blog Post</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+
+                <button
+                  onClick={handleDetectAI}
+                  disabled={!newContent || newContent.length < 10}
+                  style={{
+                    width: '100%',
+                    padding: '16px',
+                    backgroundColor: '#10b981',
+                    color: 'black',
+                    border: 'none',
+                    borderRadius: '8px',
+                    fontSize: '16px',
+                    fontWeight: 'bold',
+                    cursor: newContent.length >= 10 ? 'pointer' : 'not-allowed',
+                    opacity: newContent.length >= 10 ? 1 : 0.5
+                  }}
+                >
+                  Detect AI →
+                </button>
+              </div>
+            )}
+
+            {/* Step 2: Detecting */}
+            {step === 'detecting' && (
+              <div style={{
+                textAlign: 'center',
+                padding: '60px 40px'
+              }}>
+                <div style={{
+                  width: '64px',
+                  height: '64px',
+                  border: '4px solid rgba(16, 185, 129, 0.3)',
+                  borderTop: '4px solid #10b981',
+                  borderRadius: '50%',
+                  margin: '0 auto 24px auto',
+                  animation: 'spin 1s linear infinite'
+                }}></div>
+                <h3 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '12px' }}>
+                  Analyzing Content...
+                </h3>
+                <p style={{ color: '#888888' }}>Running AI detection model</p>
+                <style jsx>{`
+                  @keyframes spin {
+                    to { transform: rotate(360deg); }
+                  }
+                `}</style>
+              </div>
+            )}
+
+            {/* Step 3: Complete */}
+            {step === 'complete' && aiResult && (
+              <div style={{ textAlign: 'center' }}>
+                <div style={{
+                  backgroundColor: isHuman ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                  border: `2px solid ${isHuman ? 'rgba(16, 185, 129, 0.5)' : 'rgba(239, 68, 68, 0.5)'}`,
+                  borderRadius: '12px',
+                  padding: '40px',
+                  marginBottom: '32px'
+                }}>
+                  <div style={{
+                    fontSize: '56px',
+                    fontWeight: 'bold',
+                    color: isHuman ? '#10b981' : '#ef4444',
+                    marginBottom: '16px'
+                  }}>
+                    {Math.round(aiResult.ai_probability * 100)}% AI
+                  </div>
+                  <p style={{
+                    fontSize: '18px',
+                    color: isHuman ? '#10b981' : '#ef4444',
+                    fontWeight: '600',
+                    marginBottom: '8px'
+                  }}>
+                    {isHuman ? 'Likely Human-Written' : 'Likely AI-Generated'}
+                  </p>
+                  <p style={{ color: '#888888', fontSize: '14px' }}>
+                    Confidence: {Math.round(aiResult.confidence * 100)}%
+                  </p>
+                </div>
+
+                <button
+                  onClick={resetModal}
+                  style={{
+                    padding: '16px 32px',
+                    backgroundColor: '#10b981',
+                    color: 'black',
+                    border: 'none',
+                    borderRadius: '8px',
+                    fontSize: '16px',
+                    fontWeight: 'bold',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Done
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
