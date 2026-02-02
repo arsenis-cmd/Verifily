@@ -176,25 +176,6 @@ CREATE TRIGGER update_user_verifications_updated_at BEFORE UPDATE
     ON user_verifications FOR EACH ROW
     EXECUTE PROCEDURE update_user_verifications_updated_at();
 
--- RLS Policies for dashboard verifications
-ALTER TABLE user_verifications ENABLE ROW LEVEL SECURITY;
-
--- Users can only see their own verifications
-CREATE POLICY "Users can view own user_verifications"
-  ON user_verifications FOR SELECT
-  USING (auth.jwt() ->> 'sub' = user_id);
-
--- Users can create their own verifications
-CREATE POLICY "Users can create own user_verifications"
-  ON user_verifications FOR INSERT
-  WITH CHECK (auth.jwt() ->> 'sub' = user_id);
-
--- Users can update their own verifications
-CREATE POLICY "Users can update own user_verifications"
-  ON user_verifications FOR UPDATE
-  USING (auth.jwt() ->> 'sub' = user_id);
-
--- Users can delete their own verifications
-CREATE POLICY "Users can delete own user_verifications"
-  ON user_verifications FOR DELETE
-  USING (auth.jwt() ->> 'sub' = user_id);
+-- DISABLE RLS for user_verifications since we're using service role with Clerk auth
+-- Security is handled at the API level with Clerk authentication
+ALTER TABLE user_verifications DISABLE ROW LEVEL SECURITY;
