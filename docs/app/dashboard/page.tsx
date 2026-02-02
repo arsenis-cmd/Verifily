@@ -10,6 +10,7 @@ export const dynamic = 'force-dynamic';
 interface Verification {
   id: string;
   content: string;
+  content_hash: string;
   classification: 'HUMAN' | 'AI' | 'MIXED';
   ai_probability: number;
   confidence: number;
