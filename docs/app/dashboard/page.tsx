@@ -32,6 +32,8 @@ export default function DashboardPage() {
   const [aiResult, setAiResult] = useState<any>(null);
   const [verification, setVerification] = useState<any>(null);
   const [error, setError] = useState('');
+  const [selectedVerification, setSelectedVerification] = useState<Verification | null>(null);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
 
   useEffect(() => {
     if (isLoaded && !user) {
@@ -264,6 +266,10 @@ export default function DashboardPage() {
             {verifications.map((verification) => (
               <div
                 key={verification.id}
+                onClick={() => {
+                  setSelectedVerification(verification);
+                  setShowDetailsModal(true);
+                }}
                 style={{
                   backgroundColor: '#111111',
                   border: '1px solid #222222',
@@ -625,6 +631,25 @@ export default function DashboardPage() {
                   </ul>
                 </div>
 
+                {/* Show warning if AI probability is >= 20% */}
+                {aiResult.ai_probability >= 0.20 && (
+                  <div style={{
+                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                    border: '1px solid rgba(239, 68, 68, 0.3)',
+                    borderRadius: '8px',
+                    padding: '16px',
+                    marginBottom: '24px',
+                    textAlign: 'center'
+                  }}>
+                    <p style={{ fontSize: '14px', color: '#ef4444', fontWeight: '600', marginBottom: '4px' }}>
+                      Cannot Verify as Human
+                    </p>
+                    <p style={{ fontSize: '13px', color: '#888888' }}>
+                      Content must be less than 20% AI to verify as human-written. Your content is {Math.round(aiResult.ai_probability * 100)}% AI.
+                    </p>
+                  </div>
+                )}
+
                 <div style={{ display: 'flex', gap: '12px' }}>
                   <button
                     onClick={() => {
@@ -648,18 +673,18 @@ export default function DashboardPage() {
                   </button>
                   <button
                     onClick={handleVerify}
-                    disabled={!username}
+                    disabled={!username || aiResult.ai_probability >= 0.20}
                     style={{
                       flex: 2,
                       padding: '16px',
-                      backgroundColor: '#10b981',
-                      color: 'black',
+                      backgroundColor: aiResult.ai_probability >= 0.20 ? '#666666' : '#10b981',
+                      color: aiResult.ai_probability >= 0.20 ? '#333333' : 'black',
                       border: 'none',
                       borderRadius: '8px',
                       fontSize: '16px',
                       fontWeight: 'bold',
-                      cursor: username ? 'pointer' : 'not-allowed',
-                      opacity: username ? 1 : 0.5
+                      cursor: (username && aiResult.ai_probability < 0.20) ? 'pointer' : 'not-allowed',
+                      opacity: (username && aiResult.ai_probability < 0.20) ? 1 : 0.5
                     }}
                   >
                     Verify as Human
@@ -760,6 +785,216 @@ export default function DashboardPage() {
                 </button>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Verification Details Modal */}
+      {showDetailsModal && selectedVerification && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: '20px'
+          }}
+          onClick={() => setShowDetailsModal(false)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              backgroundColor: '#000000',
+              border: '1px solid #222222',
+              borderRadius: '16px',
+              padding: '40px',
+              maxWidth: '800px',
+              width: '100%',
+              maxHeight: '90vh',
+              overflow: 'auto'
+            }}
+          >
+            {/* Header */}
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'flex-start',
+              marginBottom: '32px'
+            }}>
+              <div>
+                <h2 style={{ fontSize: '28px', fontWeight: 'bold', marginBottom: '8px' }}>
+                  Verification Details
+                </h2>
+                <p style={{ color: '#666666', fontSize: '14px' }}>
+                  {new Date(selectedVerification.created_at).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })}
+                </p>
+              </div>
+              <button
+                onClick={() => setShowDetailsModal(false)}
+                style={{
+                  backgroundColor: 'transparent',
+                  border: 'none',
+                  color: '#666666',
+                  fontSize: '32px',
+                  cursor: 'pointer',
+                  lineHeight: 1,
+                  padding: 0
+                }}
+              >
+                ×
+              </button>
+            </div>
+
+            {/* Classification Badge */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '16px',
+              marginBottom: '32px'
+            }}>
+              <span style={{
+                padding: '8px 16px',
+                borderRadius: '20px',
+                fontSize: '14px',
+                fontWeight: 'bold',
+                backgroundColor: selectedVerification.classification === 'HUMAN'
+                  ? 'rgba(16, 185, 129, 0.1)'
+                  : selectedVerification.classification === 'AI'
+                  ? 'rgba(239, 68, 68, 0.1)'
+                  : 'rgba(251, 191, 36, 0.1)',
+                border: `1px solid ${
+                  selectedVerification.classification === 'HUMAN'
+                    ? 'rgba(16, 185, 129, 0.3)'
+                    : selectedVerification.classification === 'AI'
+                    ? 'rgba(239, 68, 68, 0.3)'
+                    : 'rgba(251, 191, 36, 0.3)'
+                }`,
+                color: selectedVerification.classification === 'HUMAN'
+                  ? '#10b981'
+                  : selectedVerification.classification === 'AI'
+                  ? '#ef4444'
+                  : '#fbbf24'
+              }}>
+                {selectedVerification.classification}
+              </span>
+              <div style={{ color: '#888888', fontSize: '14px' }}>
+                <span style={{ color: '#666666' }}>AI Probability:</span>{' '}
+                <span style={{ fontWeight: 'bold' }}>
+                  {Math.round(selectedVerification.ai_probability * 100)}%
+                </span>
+                {' | '}
+                <span style={{ color: '#666666' }}>Confidence:</span>{' '}
+                <span style={{ fontWeight: 'bold' }}>
+                  {Math.round(selectedVerification.confidence * 100)}%
+                </span>
+              </div>
+            </div>
+
+            {/* Platform */}
+            {selectedVerification.platform && (
+              <div style={{ marginBottom: '24px' }}>
+                <p style={{ color: '#666666', fontSize: '12px', marginBottom: '4px' }}>
+                  Platform
+                </p>
+                <p style={{ color: 'white', fontSize: '14px', textTransform: 'capitalize' }}>
+                  {selectedVerification.platform}
+                </p>
+              </div>
+            )}
+
+            {/* Content */}
+            <div style={{ marginBottom: '24px' }}>
+              <p style={{ color: '#666666', fontSize: '12px', marginBottom: '12px' }}>
+                Verified Content
+              </p>
+              <div style={{
+                backgroundColor: '#111111',
+                border: '1px solid #222222',
+                borderRadius: '12px',
+                padding: '24px',
+                maxHeight: '400px',
+                overflow: 'auto',
+                whiteSpace: 'pre-wrap',
+                wordBreak: 'break-word'
+              }}>
+                <p style={{
+                  color: '#e5e5e5',
+                  fontSize: '15px',
+                  lineHeight: '1.7',
+                  margin: 0
+                }}>
+                  {selectedVerification.content}
+                </p>
+              </div>
+            </div>
+
+            {/* Metadata */}
+            <div style={{
+              backgroundColor: '#111111',
+              border: '1px solid #222222',
+              borderRadius: '12px',
+              padding: '20px'
+            }}>
+              <p style={{ color: '#666666', fontSize: '12px', marginBottom: '12px' }}>
+                Technical Details
+              </p>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                <div>
+                  <p style={{ color: '#888888', fontSize: '12px' }}>Verification ID</p>
+                  <p style={{
+                    fontFamily: 'monospace',
+                    fontSize: '11px',
+                    color: '#a1a1a1',
+                    marginTop: '4px',
+                    wordBreak: 'break-all'
+                  }}>
+                    {selectedVerification.id}
+                  </p>
+                </div>
+                <div>
+                  <p style={{ color: '#888888', fontSize: '12px' }}>Content Hash</p>
+                  <p style={{
+                    fontFamily: 'monospace',
+                    fontSize: '11px',
+                    color: '#a1a1a1',
+                    marginTop: '4px'
+                  }}>
+                    {selectedVerification.content_hash}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Close Button */}
+            <button
+              onClick={() => setShowDetailsModal(false)}
+              style={{
+                width: '100%',
+                marginTop: '24px',
+                padding: '14px',
+                backgroundColor: '#10b981',
+                color: 'black',
+                border: 'none',
+                borderRadius: '8px',
+                fontSize: '15px',
+                fontWeight: '600',
+                cursor: 'pointer'
+              }}
+            >
+              Close
+            </button>
           </div>
         </div>
       )}
