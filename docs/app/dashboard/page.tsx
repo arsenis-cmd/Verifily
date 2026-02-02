@@ -113,6 +113,14 @@ export default function DashboardPage() {
       });
 
       const data = await response.json();
+
+      if (!response.ok) {
+        console.error('Error response:', data);
+        setError(`Failed to save: ${data.details || data.error || 'Unknown error'}`);
+        setStep('review');
+        return;
+      }
+
       setVerification(data.verification);
       setStep('complete');
     } catch (error) {
