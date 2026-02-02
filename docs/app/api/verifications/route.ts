@@ -6,9 +6,11 @@ import crypto from 'crypto';
 // GET - Fetch user's verifications
 export async function GET(request: NextRequest) {
   try {
-    const { userId } = await auth();
-    
+    const authResult = await auth();
+    const userId = authResult.userId;
+
     if (!userId) {
+      console.log('No userId in auth result:', authResult);
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -38,9 +40,11 @@ export async function GET(request: NextRequest) {
 // POST - Save a new verification
 export async function POST(request: NextRequest) {
   try {
-    const { userId } = await auth();
-    
+    const authResult = await auth();
+    const userId = authResult.userId;
+
     if (!userId) {
+      console.log('No userId in POST auth result:', authResult);
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

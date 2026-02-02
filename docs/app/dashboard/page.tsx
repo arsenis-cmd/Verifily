@@ -47,7 +47,9 @@ export default function DashboardPage() {
 
   const fetchVerifications = async () => {
     try {
-      const response = await fetch('/api/verifications');
+      const response = await fetch('/api/verifications', {
+        credentials: 'include'
+      });
       const data = await response.json();
       setVerifications(data.verifications || []);
     } catch (error) {
@@ -101,6 +103,7 @@ export default function DashboardPage() {
       // Save to user's account
       const response = await fetch('/api/verifications', {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           content: newContent,
