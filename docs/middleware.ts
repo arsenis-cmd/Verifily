@@ -6,6 +6,7 @@ const isPublicRoute = createRouteMatcher([
   '/creators(.*)',
   '/privacy(.*)',
   '/api/newsletter(.*)',
+  '/api/verifications(.*)',
   '/sign-in(.*)',
   '/sign-up(.*)',
   '/dashboard(.*)'  // Make dashboard public for now
