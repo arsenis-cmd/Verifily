@@ -3,6 +3,26 @@ import { auth } from '@clerk/nextjs/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import crypto from 'crypto';
 
+// Normalize classification to match database constraint
+function normalizeClassification(classification: string): 'HUMAN' | 'AI' | 'MIXED' {
+  const normalized = classification.toUpperCase().trim();
+
+  // Map common variations to standard values
+  if (normalized === 'HUMAN' || normalized === 'HUMAN-GENERATED' || normalized === 'REAL') {
+    return 'HUMAN';
+  }
+  if (normalized === 'AI' || normalized === 'AI-GENERATED' || normalized === 'ARTIFICIAL') {
+    return 'AI';
+  }
+  if (normalized === 'MIXED' || normalized === 'HYBRID' || normalized === 'PARTIAL') {
+    return 'MIXED';
+  }
+
+  // Default to MIXED for unknown classifications
+  console.warn(`Unknown classification "${classification}", defaulting to MIXED`);
+  return 'MIXED';
+}
+
 // GET - Fetch user's verifications
 export async function GET(request: NextRequest) {
   try {
@@ -60,6 +80,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
+    // Normalize classification to match database constraint
+    const normalizedClassification = normalizeClassification(classification);
+
     // Generate content hash
     const content_hash = crypto
       .createHash('sha256')
@@ -74,7 +97,7 @@ export async function POST(request: NextRequest) {
         user_id: userId,
         content,
         content_hash,
-        classification,
+        classification: normalizedClassification,
         ai_probability,
         confidence,
         platform,
