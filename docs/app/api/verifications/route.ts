@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
     const offset = parseInt(searchParams.get('offset') || '0');
 
     const { data, error } = await supabaseAdmin
-      .from('verifications')
+      .from('user_verifications')
       .select('*')
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
 
     // Insert verification
     const { data, error } = await supabaseAdmin
-      .from('verifications')
+      .from('user_verifications')
       .insert({
         user_id: userId,
         content,
