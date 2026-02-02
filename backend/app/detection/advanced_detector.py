@@ -97,18 +97,22 @@ class AdvancedAIDetector:
             import os
             custom_model_path = os.environ.get('VERIFILY_CUSTOM_MODEL')
 
-            if custom_model_path and os.path.exists(custom_model_path):
-                print(f"[Advanced Detector] Loading custom model from {custom_model_path}")
+            if custom_model_path:
+                # Check if it's a local path or HuggingFace Hub ID
+                is_local = os.path.exists(custom_model_path)
+                source = "local" if is_local else "HuggingFace Hub"
+
+                print(f"[Advanced Detector] Loading custom model from {source}: {custom_model_path}")
                 try:
                     self._ai_classifier_model = AutoModelForSequenceClassification.from_pretrained(
                         custom_model_path
                     ).to(self.device)
                     self._ai_classifier_tokenizer = AutoTokenizer.from_pretrained(custom_model_path)
                     self._ai_classifier_model.eval()
-                    print("[Advanced Detector] Custom model loaded successfully!")
+                    print(f"[Advanced Detector] Custom model loaded successfully from {source}!")
                     return self._ai_classifier_model, self._ai_classifier_tokenizer
                 except Exception as e:
-                    print(f"[Advanced Detector] Failed to load custom model: {e}")
+                    print(f"[Advanced Detector] Failed to load custom model from {source}: {e}")
                     print("[Advanced Detector] Falling back to default...")
 
             # Default: Use pre-trained model for AI detection

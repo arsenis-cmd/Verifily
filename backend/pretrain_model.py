@@ -43,18 +43,19 @@ class PublicDatasetTrainer:
         """
         print("[RAID] Loading dataset...")
         try:
-            # Load RAID from Hugging Face
-            raid = load_dataset("liamdugan/raid", split="train", streaming=True)
+            # Load RAID from Hugging Face - use non-streaming for reliability
+            print("[RAID] Downloading dataset (this may take a few minutes)...")
+            raid = load_dataset("liamdugan/raid", split=f"train[:{max_samples}]")
 
             samples = []
             for i, example in enumerate(raid):
-                if i >= max_samples:
-                    break
+                # RAID format: {generation, model, domain, attack}
+                # model: 'human' = human (0), anything else = AI (1)
+                text = example.get('generation', '')
+                model = example.get('model', 'unknown')
 
-                # RAID format: {text, label, model, domain, attack}
-                # label: 0=human, 1=AI
-                text = example.get('text', '')
-                label = example.get('label', 0)
+                # Convert model to binary label
+                label = 0 if model == 'human' else 1
 
                 if text and len(text) > 50:  # Filter short texts
                     samples.append({
@@ -63,14 +64,18 @@ class PublicDatasetTrainer:
                         'source': 'raid'
                     })
 
-                if i % 10000 == 0:
-                    print(f"[RAID] Loaded {i} samples...")
+                if (i + 1) % 10000 == 0:
+                    print(f"[RAID] Processed {i + 1} samples, collected {len(samples)}...")
 
-            print(f"[RAID] Total samples: {len(samples)}")
+            print(f"[RAID] Total samples collected: {len(samples)}")
+            print(f"[RAID]   Human: {sum(1 for s in samples if s['label'] == 0)}")
+            print(f"[RAID]   AI: {sum(1 for s in samples if s['label'] == 1)}")
             return samples
 
         except Exception as e:
             print(f"[RAID] Error loading: {e}")
+            import traceback
+            traceback.print_exc()
             return []
 
     def load_hc3_dataset(self, max_samples: int = 50000):
@@ -79,12 +84,18 @@ class PublicDatasetTrainer:
         """
         print("[HC3] Loading dataset...")
         try:
-            # Load HC3 from Hugging Face
-            hc3 = load_dataset("Hello-SimpleAI/HC3", split="train")
+            # HC3 has deprecated - try alternative dataset or skip
+            print("[HC3] Attempting to load with trust_remote_code...")
+            try:
+                hc3 = load_dataset("Hello-SimpleAI/HC3", split="train", trust_remote_code=True)
+            except:
+                print("[HC3] Main dataset failed, trying alternative: 'all' subset...")
+                hc3 = load_dataset("Hello-SimpleAI/HC3", "all", split="train")
 
             samples = []
+            processed = 0
             for i, example in enumerate(hc3):
-                if i >= max_samples:
+                if processed >= max_samples:
                     break
 
                 # HC3 format: {question, human_answers, chatgpt_answers}
@@ -100,6 +111,7 @@ class PublicDatasetTrainer:
                             'label': 0,
                             'source': 'hc3_human'
                         })
+                        processed += 1
 
                 # Add ChatGPT answers (label=1)
                 chatgpt_answers = example.get('chatgpt_answers', [])
@@ -111,15 +123,21 @@ class PublicDatasetTrainer:
                             'label': 1,
                             'source': 'hc3_chatgpt'
                         })
+                        processed += 1
 
-                if i % 5000 == 0:
-                    print(f"[HC3] Processed {i} examples...")
+                if (i + 1) % 5000 == 0:
+                    print(f"[HC3] Processed {i + 1} examples, collected {len(samples)}...")
 
-            print(f"[HC3] Total samples: {len(samples)}")
+            print(f"[HC3] Total samples collected: {len(samples)}")
+            print(f"[HC3]   Human: {sum(1 for s in samples if s['label'] == 0)}")
+            print(f"[HC3]   AI: {sum(1 for s in samples if s['label'] == 1)}")
             return samples
 
         except Exception as e:
             print(f"[HC3] Error loading: {e}")
+            print("[HC3] Skipping HC3 dataset - will use RAID and AI-Pile only")
+            import traceback
+            traceback.print_exc()
             return []
 
     def load_ai_detection_pile(self, max_samples: int = 50000):
@@ -128,15 +146,26 @@ class PublicDatasetTrainer:
         """
         print("[AI-Pile] Loading dataset...")
         try:
-            pile = load_dataset("artem9k/ai-text-detection-pile", split="train", streaming=True)
+            print("[AI-Pile] Downloading dataset (this may take a few minutes)...")
+            pile = load_dataset("artem9k/ai-text-detection-pile", split=f"train[:{max_samples}]")
 
             samples = []
             for i, example in enumerate(pile):
-                if i >= max_samples:
-                    break
-
                 text = example.get('text', '')
-                label = 1 if example.get('label') == 'generated' else 0
+
+                # Check multiple possible label field names
+                label_value = example.get('label', example.get('source', ''))
+
+                # Map to binary: 0=human, 1=AI
+                if isinstance(label_value, int):
+                    label = label_value
+                elif isinstance(label_value, str):
+                    # Common label strings
+                    label = 1 if label_value.lower() in ['generated', 'ai', 'machine', 'gpt', 'chatgpt', '1'] else 0
+                else:
+                    # Default: if source field contains model names, it's AI
+                    source_str = str(example.get('source', '')).lower()
+                    label = 1 if any(model in source_str for model in ['gpt', 'chatgpt', 'ai', 'generated']) else 0
 
                 if text and len(text) > 50:
                     samples.append({
@@ -145,14 +174,19 @@ class PublicDatasetTrainer:
                         'source': 'ai_pile'
                     })
 
-                if i % 10000 == 0:
-                    print(f"[AI-Pile] Loaded {i} samples...")
+                if (i + 1) % 10000 == 0:
+                    print(f"[AI-Pile] Processed {i + 1} samples, collected {len(samples)}...")
 
-            print(f"[AI-Pile] Total samples: {len(samples)}")
+            print(f"[AI-Pile] Total samples collected: {len(samples)}")
+            print(f"[AI-Pile]   Human: {sum(1 for s in samples if s['label'] == 0)}")
+            print(f"[AI-Pile]   AI: {sum(1 for s in samples if s['label'] == 1)}")
             return samples
 
         except Exception as e:
             print(f"[AI-Pile] Error loading: {e}")
+            print("[AI-Pile] Skipping AI-Pile dataset")
+            import traceback
+            traceback.print_exc()
             return []
 
     def prepare_combined_dataset(self, max_raid: int = 100000, max_hc3: int = 50000, max_pile: int = 50000):
@@ -167,19 +201,31 @@ class PublicDatasetTrainer:
         all_samples = []
 
         # Load RAID (priority - has adversarial attacks)
-        raid_samples = self.load_raid_dataset(max_raid)
-        all_samples.extend(raid_samples)
-        print()
+        if max_raid > 0:
+            raid_samples = self.load_raid_dataset(max_raid)
+            all_samples.extend(raid_samples)
+            print()
+        else:
+            print("[RAID] Skipped (max_samples=0)")
+            print()
 
         # Load HC3
-        hc3_samples = self.load_hc3_dataset(max_hc3)
-        all_samples.extend(hc3_samples)
-        print()
+        if max_hc3 > 0:
+            hc3_samples = self.load_hc3_dataset(max_hc3)
+            all_samples.extend(hc3_samples)
+            print()
+        else:
+            print("[HC3] Skipped (max_samples=0)")
+            print()
 
         # Load AI Detection Pile
-        pile_samples = self.load_ai_detection_pile(max_pile)
-        all_samples.extend(pile_samples)
-        print()
+        if max_pile > 0:
+            pile_samples = self.load_ai_detection_pile(max_pile)
+            all_samples.extend(pile_samples)
+            print()
+        else:
+            print("[AI-Pile] Skipped (max_samples=0)")
+            print()
 
         print(f"TOTAL COMBINED SAMPLES: {len(all_samples)}")
 

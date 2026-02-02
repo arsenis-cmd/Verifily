@@ -4,51 +4,46 @@ __pycache__/
 *$py.class
 *.so
 .Python
-env/
 venv/
+env/
 ENV/
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
 
-# Local database
-*.db
-*.sqlite
-*.sqlite3
-poc.db
+# Training artifacts (keep only final models, not checkpoints)
+models/*/checkpoint-*/
+*.log
+pretrain.log
+training_*.log
 
-# Environment
-.env
-.env.local
+# HuggingFace cache (will re-download on Railway)
+.cache/
+~/.cache/huggingface/
 
-# IDE
+# Development
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
 
+# Testing
+.pytest_cache/
+test_*.py
+tests/
+
+# Large datasets (don't upload to Railway)
+datasets/
+*.csv
+*.jsonl
+
+# Git
+.git/
+.gitignore
+
 # OS
 .DS_Store
 Thumbs.db
 
-# Testing
-.pytest_cache/
-.coverage
-htmlcov/
-
-# Documentation
-*.md
-!README.md
+# Local database
+*.db
+training_data.db
+models/

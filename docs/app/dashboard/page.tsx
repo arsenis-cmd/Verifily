@@ -1,565 +1,217 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useUser, UserButton } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/Button';
+import Link from 'next/link';
+
+export const dynamic = 'force-dynamic';
+
+interface Verification {
+  id: string;
+  content: string;
+  classification: 'HUMAN' | 'AI' | 'MIXED';
+  ai_probability: number;
+  confidence: number;
+  platform?: string;
+  created_at: string;
+}
 
 export default function DashboardPage() {
+  const { user, isLoaded } = useUser();
   const router = useRouter();
-  const [step, setStep] = useState<'input' | 'detecting' | 'review' | 'verifying' | 'complete'>('input');
-  const [content, setContent] = useState('');
-  const [username, setUsername] = useState('');
-  const [platform, setPlatform] = useState('twitter');
-  const [aiResult, setAiResult] = useState<any>(null);
-  const [verification, setVerification] = useState<any>(null);
-  const [error, setError] = useState('');
+  const [verifications, setVerifications] = useState<Verification[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showNewModal, setShowNewModal] = useState(false);
+  const [newContent, setNewContent] = useState('');
+  const [detecting, setDetecting] = useState(false);
 
-  const handleDetectAI = async () => {
-    if (!content || content.length < 10) {
-      setError('Content must be at least 10 characters');
-      return;
+  useEffect(() => {
+    if (isLoaded && !user) {
+      router.push('/sign-in');
     }
+  }, [user, isLoaded, router]);
 
-    setError('');
-    setStep('detecting');
+  useEffect(() => {
+    if (user) {
+      fetchVerifications();
+    }
+  }, [user]);
 
+  const fetchVerifications = async () => {
     try {
-      const response = await fetch('/api/verify/detect/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content, platform })
-      });
-
-      if (!response.ok) throw new Error('AI detection failed');
-
+      const response = await fetch('/api/verifications');
       const data = await response.json();
-      setAiResult(data);
-      setStep('review');
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to detect AI');
-      setStep('input');
+      setVerifications(data.verifications || []);
+    } catch (error) {
+      console.error('Error fetching verifications:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleVerify = async () => {
-    if (!username || username.length < 2) {
-      setError('Please enter your username');
-      return;
-    }
-
-    setError('');
-    setStep('verifying');
-
+  const handleNewDetection = async () => {
+    if (!newContent.trim()) return;
+    
+    setDetecting(true);
     try {
-      const response = await fetch('/api/verify/human/', {
+      // Call Railway backend API
+      const apiUrl = process.env.NEXT_PUBLIC_AI_API_URL || 'https://verifily-production.up.railway.app/api/v1';
+      const response = await fetch(`${apiUrl}/detect`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          content,
-          username,
-          platform,
-          consent_training_data: true
+          content: newContent,
+          content_type: 'text'
         })
       });
 
-      if (!response.ok) throw new Error('Verification failed');
+      const result = await response.json();
 
-      const data = await response.json();
-      setVerification(data.verification);
-      setStep('complete');
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to verify content');
-      setStep('review');
+      // Save to user's account
+      await fetch('/api/verifications', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content: newContent,
+          classification: result.classification,
+          ai_probability: result.ai_probability,
+          confidence: result.confidence,
+          metadata: result
+        })
+      });
+
+      // Refresh list
+      await fetchVerifications();
+      setShowNewModal(false);
+      setNewContent('');
+    } catch (error) {
+      console.error('Error detecting content:', error);
+      alert('Failed to detect content. Please try again.');
+    } finally {
+      setDetecting(false);
     }
   };
 
-  const handleDownloadCertificate = async () => {
-    if (!verification) return;
-
-    try {
-      // Fetch SVG from API
-      const response = await fetch(`/api/certificate/${verification.id}/`);
-      const svgText = await response.text();
-
-      // Create an image from SVG
-      const img = new Image();
-      const svgBlob = new Blob([svgText], { type: 'image/svg+xml;charset=utf-8' });
-      const svgUrl = URL.createObjectURL(svgBlob);
-
-      img.onload = () => {
-        // Create canvas
-        const canvas = document.createElement('canvas');
-        canvas.width = 1200;
-        canvas.height = 800;
-        const ctx = canvas.getContext('2d');
-
-        if (ctx) {
-          // Draw image on canvas
-          ctx.drawImage(img, 0, 0);
-
-          // Convert to PNG and download
-          canvas.toBlob((blob) => {
-            if (blob) {
-              const url = URL.createObjectURL(blob);
-              const a = document.createElement('a');
-              a.href = url;
-              a.download = `verifily-certificate-${verification.id}.png`;
-              document.body.appendChild(a);
-              a.click();
-              URL.revokeObjectURL(url);
-              URL.revokeObjectURL(svgUrl);
-              document.body.removeChild(a);
-            }
-          }, 'image/png');
-        }
-      };
-
-      img.src = svgUrl;
-    } catch (err) {
-      setError('Failed to download certificate');
-    }
-  };
-
-  const isHuman = aiResult?.classification === 'human';
+  if (!isLoaded || loading) {
+    return (
+      <div className="min-h-screen bg-[#000000] flex items-center justify-center">
+        <div className="text-white">Loading...</div>
+      </div>
+    );
+  }
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      backgroundColor: '#000000',
-      color: 'white',
-      padding: '80px 20px 60px 20px',
-      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-    }}>
-      <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+    <div className="min-h-screen bg-[#000000]">
+      {/* Header */}
+      <header className="border-b border-[#222222] bg-[#0a0a0a]">
+        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+          <Link href="/" className="text-2xl font-bold text-white">
+            Verifily
+          </Link>
+          <div className="flex items-center gap-4">
+            <Button variant="primary" size="md" onClick={() => setShowNewModal(true)}>
+              New Detection
+            </Button>
+            <UserButton afterSignOutUrl="/" />
+          </div>
+        </div>
+      </header>
 
-        {/* Header */}
-        <div style={{ textAlign: 'center', marginBottom: '60px' }}>
-          <h1 style={{ fontSize: '48px', fontWeight: 'bold', marginBottom: '12px' }}>
-            Verifily Dashboard
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto px-6 py-12">
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold text-white mb-2">
+            Your Verifications
           </h1>
-          <p style={{ color: '#888888', fontSize: '16px' }}>
-            Verify your content as human-written
+          <p className="text-[#a1a1a1]">
+            All your AI content detections in one place
           </p>
         </div>
 
-        {/* Step Indicator */}
-        <div style={{
-          display: 'flex',
-          justifyContent: 'center',
-          gap: '20px',
-          marginBottom: '60px'
-        }}>
-          {['input', 'detecting', 'review', 'verifying', 'complete'].map((s, i) => (
-            <div key={s} style={{
-              width: '40px',
-              height: '40px',
-              borderRadius: '50%',
-              backgroundColor: step === s || ['detecting', 'review', 'verifying', 'complete'].indexOf(step) > i
-                ? '#10b981'
-                : 'rgba(255, 255, 255, 0.1)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontWeight: 'bold',
-              fontSize: '14px'
-            }}>
-              {i + 1}
-            </div>
-          ))}
-        </div>
-
-        {/* Error Message */}
-        {error && (
-          <div style={{
-            backgroundColor: 'rgba(239, 68, 68, 0.1)',
-            border: '2px solid rgba(239, 68, 68, 0.5)',
-            borderRadius: '12px',
-            padding: '16px',
-            marginBottom: '24px',
-            color: '#ef4444'
-          }}>
-            {error}
+        {/* Verifications List */}
+        {verifications.length === 0 ? (
+          <div className="bg-[#111111] border border-[#222222] rounded-xl p-12 text-center">
+            <p className="text-[#666666] mb-4">No verifications yet</p>
+            <Button variant="primary" size="md" onClick={() => setShowNewModal(true)}>
+              Create Your First Detection
+            </Button>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {verifications.map((verification) => (
+              <div
+                key={verification.id}
+                className="bg-[#111111] border border-[#222222] rounded-xl p-6 hover:border-[#3b82f6]/50 transition-colors"
+              >
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <span
+                      className={`px-3 py-1 rounded-full text-xs font-bold ${
+                        verification.classification === 'HUMAN'
+                          ? 'bg-green-500/10 border border-green-500/30 text-green-500'
+                          : verification.classification === 'AI'
+                          ? 'bg-red-500/10 border border-red-500/30 text-red-500'
+                          : 'bg-yellow-500/10 border border-yellow-500/30 text-yellow-500'
+                      }`}
+                    >
+                      {verification.classification}
+                    </span>
+                    <span className="text-[#666666] text-sm">
+                      {new Date(verification.created_at).toLocaleDateString()}
+                    </span>
+                  </div>
+                  <div className="text-[#a1a1a1] text-sm">
+                    AI: {(verification.ai_probability * 100).toFixed(1)}%
+                  </div>
+                </div>
+                <p className="text-white line-clamp-3">
+                  {verification.content}
+                </p>
+              </div>
+            ))}
           </div>
         )}
+      </main>
 
-        {/* Step 1: Input Content */}
-        {step === 'input' && (
-          <div style={{
-            backgroundColor: 'rgba(255, 255, 255, 0.02)',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
-            borderRadius: '12px',
-            padding: '40px'
-          }}>
-            <h2 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '24px' }}>
-              Step 1: Submit Your Content
+      {/* New Detection Modal */}
+      {showNewModal && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+          <div className="bg-[#111111] border border-[#222222] rounded-2xl max-w-2xl w-full p-8">
+            <h2 className="text-3xl font-bold text-white mb-6">
+              New AI Detection
             </h2>
-
             <textarea
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              placeholder="Paste your content here..."
-              style={{
-                width: '100%',
-                height: '200px',
-                backgroundColor: 'rgba(0, 0, 0, 0.4)',
-                border: '1px solid rgba(255, 255, 255, 0.2)',
-                borderRadius: '8px',
-                padding: '16px',
-                color: 'white',
-                fontSize: '14px',
-                fontFamily: 'inherit',
-                resize: 'vertical',
-                marginBottom: '24px'
-              }}
+              value={newContent}
+              onChange={(e) => setNewContent(e.target.value)}
+              placeholder="Paste the content you want to analyze..."
+              className="w-full h-64 bg-[#0a0a0a] border border-[#222222] rounded-xl p-4 text-white placeholder:text-[#666666] resize-none focus:outline-none focus:border-[#3b82f6] transition-colors mb-6"
             />
-
-            <div style={{ marginBottom: '24px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#888888' }}>
-                Platform
-              </label>
-              <select
-                value={platform}
-                onChange={(e) => setPlatform(e.target.value)}
-                style={{
-                  width: '100%',
-                  backgroundColor: 'rgba(0, 0, 0, 0.4)',
-                  border: '1px solid rgba(255, 255, 255, 0.2)',
-                  borderRadius: '8px',
-                  padding: '12px',
-                  color: 'white',
-                  fontSize: '14px'
-                }}
+            <div className="flex items-center gap-4">
+              <Button
+                variant="primary"
+                size="lg"
+                onClick={handleNewDetection}
+                disabled={detecting || !newContent.trim()}
               >
-                <option value="twitter">Twitter/X</option>
-                <option value="linkedin">LinkedIn</option>
-                <option value="blog">Blog Post</option>
-                <option value="other">Other</option>
-              </select>
-            </div>
-
-            <button
-              onClick={handleDetectAI}
-              disabled={!content || content.length < 10}
-              style={{
-                width: '100%',
-                padding: '16px',
-                backgroundColor: '#10b981',
-                color: 'black',
-                border: 'none',
-                borderRadius: '8px',
-                fontSize: '16px',
-                fontWeight: 'bold',
-                cursor: content.length >= 10 ? 'pointer' : 'not-allowed',
-                opacity: content.length >= 10 ? 1 : 0.5
-              }}
-            >
-              Detect AI →
-            </button>
-          </div>
-        )}
-
-        {/* Step 2: Detecting */}
-        {step === 'detecting' && (
-          <div style={{
-            textAlign: 'center',
-            padding: '80px 40px'
-          }}>
-            <div style={{
-              width: '64px',
-              height: '64px',
-              border: '4px solid rgba(16, 185, 129, 0.3)',
-              borderTop: '4px solid #10b981',
-              borderRadius: '50%',
-              margin: '0 auto 24px auto',
-              animation: 'spin 1s linear infinite'
-            }}></div>
-            <h2 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '12px' }}>
-              Analyzing Content...
-            </h2>
-            <p style={{ color: '#888888' }}>Running AI detection model</p>
-            <style jsx>{`
-              @keyframes spin {
-                to { transform: rotate(360deg); }
-              }
-            `}</style>
-          </div>
-        )}
-
-        {/* Step 3: Review AI Results */}
-        {step === 'review' && aiResult && (
-          <div style={{
-            backgroundColor: 'rgba(255, 255, 255, 0.02)',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
-            borderRadius: '12px',
-            padding: '40px'
-          }}>
-            <h2 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '24px' }}>
-              Step 2: AI Detection Results
-            </h2>
-
-            <div style={{
-              backgroundColor: isHuman ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
-              border: `2px solid ${isHuman ? 'rgba(16, 185, 129, 0.5)' : 'rgba(239, 68, 68, 0.5)'}`,
-              borderRadius: '12px',
-              padding: '32px',
-              textAlign: 'center',
-              marginBottom: '32px'
-            }}>
-              <div style={{
-                fontSize: '48px',
-                fontWeight: 'bold',
-                color: isHuman ? '#10b981' : '#ef4444',
-                marginBottom: '8px'
-              }}>
-                {Math.round(aiResult.ai_probability * 100)}% AI Probability
-              </div>
-              <p style={{ fontSize: '20px', color: isHuman ? '#10b981' : '#ef4444', fontWeight: '600', marginBottom: '12px' }}>
-                Classification: {aiResult.classification.toUpperCase()}
-              </p>
-              <p style={{ color: '#888888', fontSize: '14px', marginBottom: '16px' }}>
-                Model Confidence: {Math.round(aiResult.confidence * 100)}%
-              </p>
-              <div style={{
-                backgroundColor: 'rgba(0, 0, 0, 0.3)',
-                borderRadius: '8px',
-                padding: '16px',
-                fontSize: '13px',
-                color: '#888888',
-                textAlign: 'left'
-              }}>
-                <div style={{ marginBottom: '8px' }}>
-                  <strong>Detection Breakdown:</strong>
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                  <div>AI Probability: {(aiResult.ai_probability * 100).toFixed(1)}%</div>
-                  <div>Human Probability: {((1 - aiResult.ai_probability) * 100).toFixed(1)}%</div>
-                  <div>Confidence Level: {(aiResult.confidence * 100).toFixed(1)}%</div>
-                  <div>Classification: {aiResult.classification}</div>
-                </div>
-              </div>
-            </div>
-
-            <div style={{ marginBottom: '24px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: '#888888' }}>
-                Your Username
-              </label>
-              <input
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="@username"
-                style={{
-                  width: '100%',
-                  backgroundColor: 'rgba(0, 0, 0, 0.4)',
-                  border: '1px solid rgba(255, 255, 255, 0.2)',
-                  borderRadius: '8px',
-                  padding: '12px',
-                  color: 'white',
-                  fontSize: '14px'
-                }}
-              />
-            </div>
-
-            <div style={{
-              backgroundColor: 'rgba(16, 185, 129, 0.05)',
-              border: '1px solid rgba(16, 185, 129, 0.2)',
-              borderRadius: '8px',
-              padding: '16px',
-              marginBottom: '24px'
-            }}>
-              <p style={{ fontSize: '14px', color: '#888888', marginBottom: '8px' }}>
-                By verifying, you confirm that:
-              </p>
-              <ul style={{ fontSize: '13px', color: '#888888', paddingLeft: '20px' }}>
-                <li>You are the original author of this content</li>
-                <li>This content was written by you (human)</li>
-                <li>You consent to this data being used for training</li>
-              </ul>
-            </div>
-
-            <div style={{ display: 'flex', gap: '12px' }}>
-              <button
+                {detecting ? 'Analyzing...' : 'Detect AI'}
+              </Button>
+              <Button
+                variant="secondary"
+                size="lg"
                 onClick={() => {
-                  setStep('input');
-                  setAiResult(null);
-                  setError('');
+                  setShowNewModal(false);
+                  setNewContent('');
                 }}
-                style={{
-                  flex: 1,
-                  padding: '16px',
-                  backgroundColor: 'transparent',
-                  color: 'white',
-                  border: '1px solid rgba(255, 255, 255, 0.2)',
-                  borderRadius: '8px',
-                  fontSize: '16px',
-                  fontWeight: 'bold',
-                  cursor: 'pointer'
-                }}
+                disabled={detecting}
               >
-                ← Back
-              </button>
-              <button
-                onClick={handleVerify}
-                disabled={!username}
-                style={{
-                  flex: 2,
-                  padding: '16px',
-                  backgroundColor: '#10b981',
-                  color: 'black',
-                  border: 'none',
-                  borderRadius: '8px',
-                  fontSize: '16px',
-                  fontWeight: 'bold',
-                  cursor: username ? 'pointer' : 'not-allowed',
-                  opacity: username ? 1 : 0.5
-                }}
-              >
-                Verify as Human →
-              </button>
+                Cancel
+              </Button>
             </div>
           </div>
-        )}
-
-        {/* Step 4: Verifying */}
-        {step === 'verifying' && (
-          <div style={{
-            textAlign: 'center',
-            padding: '80px 40px'
-          }}>
-            <div style={{
-              width: '64px',
-              height: '64px',
-              border: '4px solid rgba(16, 185, 129, 0.3)',
-              borderTop: '4px solid #10b981',
-              borderRadius: '50%',
-              margin: '0 auto 24px auto',
-              animation: 'spin 1s linear infinite'
-            }}></div>
-            <h2 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '12px' }}>
-              Creating Verification...
-            </h2>
-            <p style={{ color: '#888888' }}>Storing in database and generating certificate</p>
-            <style jsx>{`
-              @keyframes spin {
-                to { transform: rotate(360deg); }
-              }
-            `}</style>
-          </div>
-        )}
-
-        {/* Step 5: Complete */}
-        {step === 'complete' && verification && (
-          <div style={{
-            backgroundColor: 'rgba(255, 255, 255, 0.02)',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
-            borderRadius: '12px',
-            padding: '40px',
-            textAlign: 'center'
-          }}>
-            <div style={{
-              fontSize: '64px',
-              marginBottom: '24px'
-            }}>
-              ✓
-            </div>
-            <h2 style={{
-              fontSize: '32px',
-              fontWeight: 'bold',
-              color: '#10b981',
-              marginBottom: '16px'
-            }}>
-              Verification Complete
-            </h2>
-            <p style={{ color: '#888888', marginBottom: '40px' }}>
-              Your content has been verified as human-written
-            </p>
-
-            <div style={{
-              backgroundColor: 'rgba(0, 0, 0, 0.4)',
-              borderRadius: '8px',
-              padding: '24px',
-              marginBottom: '32px',
-              textAlign: 'left'
-            }}>
-              <div style={{ marginBottom: '12px' }}>
-                <span style={{ color: '#888888', fontSize: '12px' }}>Verification ID</span>
-                <div style={{ fontFamily: 'monospace', fontSize: '14px', marginTop: '4px' }}>
-                  {verification.id}
-                </div>
-              </div>
-              <div style={{ marginBottom: '12px' }}>
-                <span style={{ color: '#888888', fontSize: '12px' }}>AI Score</span>
-                <div style={{ fontSize: '14px', marginTop: '4px' }}>
-                  {verification.ai_score_at_verification}% AI probability
-                </div>
-              </div>
-              <div>
-                <span style={{ color: '#888888', fontSize: '12px' }}>Verified</span>
-                <div style={{ fontSize: '14px', marginTop: '4px' }}>
-                  {new Date(verification.verified_at).toLocaleString()}
-                </div>
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', gap: '12px', marginBottom: '24px' }}>
-              <button
-                onClick={handleDownloadCertificate}
-                style={{
-                  flex: 1,
-                  padding: '16px',
-                  backgroundColor: '#10b981',
-                  color: 'black',
-                  border: 'none',
-                  borderRadius: '8px',
-                  fontSize: '16px',
-                  fontWeight: 'bold',
-                  cursor: 'pointer'
-                }}
-              >
-                Download Certificate
-              </button>
-              <button
-                onClick={() => router.push(verification.public_url)}
-                style={{
-                  flex: 1,
-                  padding: '16px',
-                  backgroundColor: 'transparent',
-                  color: 'white',
-                  border: '1px solid rgba(255, 255, 255, 0.2)',
-                  borderRadius: '8px',
-                  fontSize: '16px',
-                  fontWeight: 'bold',
-                  cursor: 'pointer'
-                }}
-              >
-                View Public Page
-              </button>
-            </div>
-
-            <button
-              onClick={() => {
-                setStep('input');
-                setContent('');
-                setUsername('');
-                setAiResult(null);
-                setVerification(null);
-                setError('');
-              }}
-              style={{
-                padding: '12px 24px',
-                backgroundColor: 'transparent',
-                color: '#888888',
-                border: 'none',
-                fontSize: '14px',
-                cursor: 'pointer',
-                textDecoration: 'underline'
-              }}
-            >
-              Verify Another Content
-            </button>
-          </div>
-        )}
-
-      </div>
+        </div>
+      )}
     </div>
   );
 }

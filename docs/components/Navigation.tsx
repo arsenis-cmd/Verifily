@@ -4,6 +4,11 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from './ui/Button';
 import { motion } from 'framer-motion';
+import { SignedIn, SignedOut, UserButton } from '@clerk/nextjs';
+
+const hasClerk = typeof window === 'undefined'
+  ? process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY && process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY !== 'your_clerk_publishable_key'
+  : true;
 
 export default function Navigation() {
   const [scrolled, setScrolled] = useState(false);
@@ -71,7 +76,27 @@ export default function Navigation() {
           </div>
 
           {/* CTA Button */}
-          <div className="mr-12">
+          <div className="mr-12 flex items-center gap-4">
+            {hasClerk ? (
+              <>
+                <SignedOut>
+                  <Link href="/sign-in">
+                    <Button variant="secondary" size="sm">
+                      Sign In
+                    </Button>
+                  </Link>
+                </SignedOut>
+                <SignedIn>
+                  <UserButton afterSignOutUrl="/" />
+                </SignedIn>
+              </>
+            ) : (
+              <Link href="/dashboard">
+                <Button variant="secondary" size="sm">
+                  Dashboard
+                </Button>
+              </Link>
+            )}
             <Button variant="primary" size="sm">
               Add to Chrome
             </Button>

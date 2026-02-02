@@ -1,131 +1,60 @@
--- Verifily Database Schema
--- Run this in your Supabase SQL Editor
+-- Enable UUID extension
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- Users table
-CREATE TABLE IF NOT EXISTS users (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  email TEXT UNIQUE,
-  twitter_handle TEXT,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-
-  -- Consent tracking
-  consent_training_data BOOLEAN DEFAULT false,
-  consent_timestamp TIMESTAMP WITH TIME ZONE,
-  consent_version TEXT DEFAULT '1.0',
-
-  -- Stats
-  total_verifications INTEGER DEFAULT 0,
-  total_scans INTEGER DEFAULT 0
-);
-
--- Verifications table (THE GOLD MINE)
+-- Verifications table
 CREATE TABLE IF NOT EXISTS verifications (
-  id TEXT PRIMARY KEY,
-
-  -- Content (FULL TEXT STORED)
-  content_text TEXT NOT NULL,
-  content_hash TEXT NOT NULL UNIQUE,
-  word_count INTEGER,
-  language TEXT DEFAULT 'en',
-
-  -- Platform info
-  platform TEXT NOT NULL DEFAULT 'twitter',
-  platform_post_id TEXT,
-  platform_post_url TEXT,
-
-  -- User info
-  user_id UUID REFERENCES users(id),
-  user_handle TEXT NOT NULL,
-  user_email TEXT,
-
-  -- Verification details
-  verified_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  ai_score_at_verification INTEGER NOT NULL,
-  ai_probability DECIMAL(3,2),
-  classification TEXT CHECK (classification IN ('human', 'ai', 'mixed')),
-  confidence DECIMAL(3,2),
-
-  -- Consent (LEGALLY CRITICAL)
-  consent_training_data BOOLEAN NOT NULL DEFAULT false,
-  consent_timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
-  consent_version TEXT NOT NULL DEFAULT '1.0',
-
-  -- Generated assets
-  badge_url TEXT,
-  public_url TEXT,
-
-  -- View tracking
-  view_count INTEGER DEFAULT 1
-);
-
--- Waitlist table
-CREATE TABLE IF NOT EXISTS waitlist (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  email TEXT UNIQUE NOT NULL,
-  source TEXT DEFAULT 'extension',
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
--- AI Detection Logs (for tracking what we detect)
-CREATE TABLE IF NOT EXISTS ai_detections (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id TEXT NOT NULL,
+  content TEXT NOT NULL,
   content_hash TEXT NOT NULL,
+  classification TEXT NOT NULL CHECK (classification IN ('HUMAN', 'AI', 'MIXED')),
+  ai_probability DECIMAL(5,4) NOT NULL,
+  confidence DECIMAL(5,4) NOT NULL,
   platform TEXT,
-  platform_post_id TEXT,
-  detected_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  ai_probability DECIMAL(3,2),
-  classification TEXT,
-  confidence DECIMAL(3,2),
-  user_verified BOOLEAN DEFAULT false
+  platform_post_url TEXT,
+  metadata JSONB DEFAULT '{}',
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Indexes for performance
-CREATE INDEX IF NOT EXISTS idx_verifications_user_handle ON verifications(user_handle);
-CREATE INDEX IF NOT EXISTS idx_verifications_hash ON verifications(content_hash);
-CREATE INDEX IF NOT EXISTS idx_verifications_date ON verifications(verified_at DESC);
-CREATE INDEX IF NOT EXISTS idx_verifications_consent ON verifications(consent_training_data) WHERE consent_training_data = true;
-CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
-CREATE INDEX IF NOT EXISTS idx_users_handle ON users(twitter_handle);
-CREATE INDEX IF NOT EXISTS idx_ai_detections_hash ON ai_detections(content_hash);
+-- Indexes
+CREATE INDEX IF NOT EXISTS idx_verifications_user_id ON verifications(user_id);
+CREATE INDEX IF NOT EXISTS idx_verifications_created_at ON verifications(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_verifications_content_hash ON verifications(content_hash);
+CREATE INDEX IF NOT EXISTS idx_verifications_classification ON verifications(classification);
 
--- Function to increment user verification count
-CREATE OR REPLACE FUNCTION increment_user_verifications(user_uuid UUID)
-RETURNS void AS $$
+-- Updated at trigger
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
 BEGIN
-  UPDATE users
-  SET total_verifications = total_verifications + 1
-  WHERE id = user_uuid;
+    NEW.updated_at = NOW();
+    RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$ language 'plpgsql';
 
--- View for consented training data
-CREATE OR REPLACE VIEW training_data AS
-SELECT
-  id,
-  content_text,
-  word_count,
-  language,
-  platform,
-  verified_at,
-  ai_score_at_verification,
-  classification
-FROM verifications
-WHERE consent_training_data = true;
+CREATE TRIGGER update_verifications_updated_at BEFORE UPDATE
+    ON verifications FOR EACH ROW
+    EXECUTE PROCEDURE update_updated_at_column();
 
--- Row Level Security (RLS) - Optional but recommended
+-- RLS Policies
 ALTER TABLE verifications ENABLE ROW LEVEL SECURITY;
-ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 
--- Public read access to verifications (for public verification pages)
-CREATE POLICY "Public verifications are viewable by everyone"
+-- Users can only see their own verifications
+CREATE POLICY "Users can view own verifications"
   ON verifications FOR SELECT
-  USING (true);
+  USING (auth.jwt() ->> 'sub' = user_id);
 
--- Only service role can insert/update
-CREATE POLICY "Service role can insert verifications"
+-- Users can create their own verifications
+CREATE POLICY "Users can create own verifications"
   ON verifications FOR INSERT
-  WITH CHECK (true);
+  WITH CHECK (auth.jwt() ->> 'sub' = user_id);
 
-CREATE POLICY "Service role can update verifications"
+-- Users can update their own verifications
+CREATE POLICY "Users can update own verifications"
   ON verifications FOR UPDATE
-  USING (true);
+  USING (auth.jwt() ->> 'sub' = user_id);
+
+-- Users can delete their own verifications
+CREATE POLICY "Users can delete own verifications"
+  ON verifications FOR DELETE
+  USING (auth.jwt() ->> 'sub' = user_id);
