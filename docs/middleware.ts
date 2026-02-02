@@ -6,10 +6,8 @@ const isPublicRoute = createRouteMatcher([
   '/creators(.*)',
   '/privacy(.*)',
   '/api/newsletter(.*)',
-  '/api/verifications(.*)',
   '/sign-in(.*)',
-  '/sign-up(.*)',
-  '/dashboard(.*)'  // Make dashboard public for now
+  '/sign-up(.*)'
 ]);
 
 // Only use Clerk middleware if keys are configured
@@ -18,7 +16,9 @@ const hasClerkKeys = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY &&
 
 export default hasClerkKeys
   ? clerkMiddleware(async (auth, request) => {
-      if (!isPublicRoute(request)) {
+      // Don't protect API routes - let them handle auth internally
+      const isApiRoute = request.nextUrl.pathname.startsWith('/api/');
+      if (!isPublicRoute(request) && !isApiRoute) {
         await auth.protect();
       }
     })
