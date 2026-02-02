@@ -7,7 +7,8 @@ const isPublicRoute = createRouteMatcher([
   '/privacy(.*)',
   '/api/newsletter(.*)',
   '/sign-in(.*)',
-  '/sign-up(.*)'
+  '/sign-up(.*)',
+  '/dashboard(.*)'
 ]);
 
 // Only use Clerk middleware if keys are configured
