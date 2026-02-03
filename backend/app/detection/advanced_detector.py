@@ -45,7 +45,7 @@ except LookupError:
 
 @dataclass
 class AdvancedDetectionResult:
-    classification: str  # HUMAN, LIKELY_HUMAN, MIXED, LIKELY_AI, AI
+    classification: str  # HUMAN, LIKELY_HUMAN, UNCERTAIN, MIXED, LIKELY_AI, AI
     ai_probability: float  # 0-1
     confidence: float  # 0-1
     perplexity_score: float
@@ -55,6 +55,7 @@ class AdvancedDetectionResult:
     stylometric_score: float
     detailed_scores: Dict[str, float]
     content_hash: str
+    needs_review: bool = False  # True if confidence < threshold
 
 
 class AdvancedAIDetector:
@@ -196,6 +197,14 @@ class AdvancedAIDetector:
         )
 
         final_result.content_hash = content_hash
+
+        # UPDATED: Add confidence thresholding to flag low-confidence predictions
+        # Confidence < 0.65 should be reviewed (especially for borderline cases)
+        if final_result.confidence < 0.65 or final_result.classification == "UNCERTAIN":
+            final_result.needs_review = True
+            # Further reduce confidence for very uncertain cases
+            if final_result.confidence < 0.50:
+                final_result.confidence *= 0.85
 
         # Cache result
         self._cache[content_hash] = final_result
@@ -447,14 +456,15 @@ class AdvancedAIDetector:
         """
 
         # Adaptive weights based on text length
+        # UPDATED: Reduced stylometric weight to minimize false positives on professional writing
         if text_length < 50:
             # Short text: rely more on transformer and patterns
             weights = {
-                'perplexity': 0.15,
-                'burstiness': 0.10,
-                'entropy': 0.15,
-                'transformer': 0.40,
-                'stylometric': 0.20
+                'perplexity': 0.20,
+                'burstiness': 0.15,
+                'entropy': 0.20,
+                'transformer': 0.35,
+                'stylometric': 0.10  # Reduced from 0.20 to avoid flagging clear writing
             }
             base_confidence = 0.70
         elif text_length < 150:
@@ -462,9 +472,9 @@ class AdvancedAIDetector:
             weights = {
                 'perplexity': 0.25,
                 'burstiness': 0.15,
-                'entropy': 0.20,
+                'entropy': 0.25,
                 'transformer': 0.25,
-                'stylometric': 0.15
+                'stylometric': 0.10  # Reduced from 0.15
             }
             base_confidence = 0.85
         else:
@@ -472,9 +482,9 @@ class AdvancedAIDetector:
             weights = {
                 'perplexity': 0.30,
                 'burstiness': 0.20,
-                'entropy': 0.20,
+                'entropy': 0.25,
                 'transformer': 0.15,
-                'stylometric': 0.15
+                'stylometric': 0.10  # Reduced from 0.15
             }
             base_confidence = 0.95
 
@@ -487,10 +497,13 @@ class AdvancedAIDetector:
             weights['stylometric'] * stylometric_score
         )
 
-        # Platform adjustments
+        # Platform adjustments - UPDATED to reduce false positives
         if platform == 'twitter':
-            # Twitter: shorter, more casual - adjust expectations
-            ai_probability *= 0.95
+            # Twitter: shorter, more casual, character-limited - larger adjustment needed
+            ai_probability *= 0.85  # Increased from 0.95 (15% reduction vs 5%)
+        elif platform in ['linkedin', 'facebook']:
+            # Professional platforms: formal writing patterns
+            ai_probability *= 0.90
 
         # Confidence based on score agreement
         scores = [perplexity_score, burstiness_score, entropy_score,
@@ -500,17 +513,24 @@ class AdvancedAIDetector:
         # Low variance = high agreement = high confidence
         confidence = base_confidence * (1 - min(score_variance, 0.3))
 
-        # Classification thresholds
-        if ai_probability >= 0.80:
+        # UPDATED: Add uncertainty band for borderline cases (35-65% range)
+        # This reduces false positives by requiring stronger evidence
+        if 0.35 < ai_probability < 0.65:
+            # Borderline case - reduce confidence and mark as uncertain
+            confidence *= 0.70
+            classification = "UNCERTAIN"
+        # Classification thresholds (outside uncertainty band)
+        elif ai_probability >= 0.80:
             classification = "AI"
-        elif ai_probability >= 0.60:
+        elif ai_probability >= 0.65:
             classification = "LIKELY_AI"
-        elif ai_probability >= 0.40:
-            classification = "MIXED"
-        elif ai_probability >= 0.20:
+        elif ai_probability <= 0.35 and ai_probability >= 0.20:
             classification = "LIKELY_HUMAN"
-        else:
+        elif ai_probability < 0.20:
             classification = "HUMAN"
+        else:
+            # Fallback for edge cases
+            classification = "MIXED"
 
         return AdvancedDetectionResult(
             classification=classification,
@@ -531,7 +551,8 @@ class AdvancedAIDetector:
                 'text_length': text_length,
                 'score_variance': round(score_variance, 4)
             },
-            content_hash=""
+            content_hash="",
+            needs_review=False  # Will be set in detect() method based on confidence
         )
 
 

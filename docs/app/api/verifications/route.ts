@@ -8,13 +8,14 @@ function normalizeClassification(classification: string): 'HUMAN' | 'AI' | 'MIXE
   const normalized = classification.toUpperCase().trim();
 
   // Map common variations to standard values
-  if (normalized === 'HUMAN' || normalized === 'HUMAN-GENERATED' || normalized === 'REAL') {
+  if (normalized === 'HUMAN' || normalized === 'HUMAN-GENERATED' || normalized === 'REAL' || normalized === 'LIKELY_HUMAN') {
     return 'HUMAN';
   }
-  if (normalized === 'AI' || normalized === 'AI-GENERATED' || normalized === 'ARTIFICIAL') {
+  if (normalized === 'AI' || normalized === 'AI-GENERATED' || normalized === 'ARTIFICIAL' || normalized === 'LIKELY_AI') {
     return 'AI';
   }
-  if (normalized === 'MIXED' || normalized === 'HYBRID' || normalized === 'PARTIAL') {
+  if (normalized === 'MIXED' || normalized === 'HYBRID' || normalized === 'PARTIAL' || normalized === 'UNCERTAIN') {
+    // UNCERTAIN classification (new) maps to MIXED for database storage
     return 'MIXED';
   }
 
