@@ -25,8 +25,12 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("Starting PoC MVP API...")
-    await init_db()
-    logger.info("Database initialized")
+    try:
+        await init_db()
+        logger.info("Database initialized")
+    except Exception as e:
+        logger.warning(f"Database initialization failed: {e}")
+        logger.warning("Running without database - verification features disabled")
     yield
     logger.info("Shutting down...")
 
