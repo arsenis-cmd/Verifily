@@ -75,4 +75,4 @@ async def root():
 @app.get("/health")
 async def health():
     return {"status": "healthy"}
-# Force rebuild Wed Feb  4 12:49:21 JST 2026
+# Force rebuild Wed Feb  4 13:22:00 JST 2026 - Fix ML router and enable custom model
