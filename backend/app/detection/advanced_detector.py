@@ -362,9 +362,11 @@ class AdvancedAIDetector:
                 logits = outputs.logits
                 probs = torch.softmax(logits, dim=-1)
 
-            # Assuming label 1 is "AI-generated"
-            # (may need to adjust based on model)
-            ai_prob = probs[0][1].item() if probs.shape[1] > 1 else 0.5
+            # FIX: Model labels are inverted during training
+            # Label 0 should be "human" but model predicts it as "AI"
+            # Label 1 should be "AI" but model predicts it as "human"
+            # So we read label 0 instead of label 1
+            ai_prob = probs[0][0].item() if probs.shape[1] > 1 else 0.5
 
             return ai_prob
 
