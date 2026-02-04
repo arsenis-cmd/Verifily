@@ -15,9 +15,9 @@ from app.routes.verify import router as verify_router
 try:
     from app.routes.ml import router as ml_router
     ML_ROUTER_AVAILABLE = True
-except ImportError:
+except Exception as e:
     ML_ROUTER_AVAILABLE = False
-    logger.warning("ML router not available - training features disabled")
+    print(f"[WARNING] ML router not available - training features disabled: {e}")
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
