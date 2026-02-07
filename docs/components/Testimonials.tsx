@@ -24,7 +24,7 @@ export default function Testimonials() {
   ];
 
   return (
-    <section className="bg-[#0a0a0a]" style={{ padding: '240px 80px' }}>
+    <section className="bg-[#0a0a0a]">
       <div className="container">
         <div className="w-full mx-auto">
           <motion.div

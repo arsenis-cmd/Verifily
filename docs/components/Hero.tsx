@@ -6,7 +6,7 @@ import { Button } from './ui/Button';
 
 export default function Hero() {
   return (
-    <section className="relative bg-[#000000] overflow-hidden" style={{ padding: '240px 80px' }}>
+    <section className="relative bg-[#000000] overflow-hidden">
       {/* Background gradient glow */}
       <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-gradient-to-br from-white/[0.03] via-blue-500/[0.02] to-transparent blur-3xl pointer-events-none" />
 
