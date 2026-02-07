@@ -17,7 +17,6 @@ export default function Navigation() {
     const handleScroll = () => {
       setScrolled(window.scrollY > 20);
     };
-
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
@@ -29,51 +28,54 @@ export default function Navigation() {
       transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
         scrolled
-          ? 'bg-[rgba(0,0,0,0.85)] backdrop-blur-2xl border-b border-[#1a1a1a]'
+          ? 'bg-[rgba(0,0,0,0.85)] backdrop-blur-2xl border-b border-[#1a1a1a] shadow-2xl'
           : 'bg-transparent'
       }`}
     >
-      <div className="max-w-6xl mx-auto px-6">
-        <div className="flex items-center justify-between h-16">
+      <div className="w-full max-w-[1600px] mx-auto px-12 md:px-20">
+        <div className="flex items-center justify-between h-20">
           {/* Logo */}
           <Link
             href="/"
-            className="text-lg font-bold text-white hover:opacity-80 transition-opacity tracking-tight"
+            className="text-2xl font-bold text-white hover:opacity-80 transition-opacity tracking-tight"
           >
             Verifily
           </Link>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-8">
+          {/* Desktop Navigation — centered */}
+          <div className="hidden md:flex items-center gap-10">
             <Link
               href="#how-it-works"
-              className="text-[13px] text-[#888] hover:text-white transition-colors"
+              className="text-[15px] text-[#888888] hover:text-white transition-colors relative group"
             >
               How it Works
+              <span className="absolute -bottom-1 left-0 w-0 h-px bg-white group-hover:w-full transition-all duration-300" />
             </Link>
             <Link
               href="#features"
-              className="text-[13px] text-[#888] hover:text-white transition-colors"
+              className="text-[15px] text-[#888888] hover:text-white transition-colors relative group"
             >
               Features
+              <span className="absolute -bottom-1 left-0 w-0 h-px bg-white group-hover:w-full transition-all duration-300" />
             </Link>
             <Link
               href="/pricing"
-              className="text-[13px] text-[#888] hover:text-white transition-colors"
+              className="text-[15px] text-[#888888] hover:text-white transition-colors relative group"
             >
               Pricing
+              <span className="absolute -bottom-1 left-0 w-0 h-px bg-white group-hover:w-full transition-all duration-300" />
             </Link>
           </div>
 
-          {/* Right side */}
-          <div className="flex items-center gap-3">
+          {/* Right — auth + CTA */}
+          <div className="flex items-center gap-6">
             {hasClerk ? (
               <>
                 <SignedOut>
                   <Link href="/sign-in">
-                    <button className="text-[13px] text-[#888] hover:text-white transition-colors px-3 py-1.5">
-                      Sign in
-                    </button>
+                    <Button variant="secondary" size="sm">
+                      Sign In
+                    </Button>
                   </Link>
                 </SignedOut>
                 <SignedIn>
@@ -82,9 +84,9 @@ export default function Navigation() {
               </>
             ) : null}
             <Link href="/pilot">
-              <button className="h-9 px-5 text-[13px] font-medium text-white bg-gradient-to-r from-[#3b82f6] to-[#8b5cf6] rounded-full hover:opacity-90 transition-opacity">
+              <Button variant="primary" size="sm">
                 Request pilot
-              </button>
+              </Button>
             </Link>
           </div>
         </div>

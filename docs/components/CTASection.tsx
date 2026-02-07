@@ -2,10 +2,11 @@
 
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import { Button } from './ui/Button';
 
 export default function CTASection() {
   return (
-    <section id="cta" className="bg-[#000000] relative overflow-hidden py-32">
+    <section id="cta" className="bg-[#000000] relative overflow-hidden auto-height">
       {/* Glowing background effect */}
       <div
         className="absolute inset-0 opacity-30"
@@ -15,29 +16,33 @@ export default function CTASection() {
         }}
       />
 
-      <div className="relative z-10 max-w-3xl mx-auto px-6 text-center">
+      <div className="container relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          <h2 className="text-3xl md:text-4xl font-bold text-white tracking-tight mb-5">
+          <h2 className="text-white mb-8">
             Ready to scale your training data?
           </h2>
 
-          <p className="text-base text-[#888] leading-relaxed mb-10 max-w-xl mx-auto">
-            Transform blocked internal data into privacy-safe training corpora.
-            Join ML teams using Verifily to train legally and at scale.
-          </p>
+          <div className="flex justify-center">
+            <p className="text-xl md:text-2xl text-[#888] leading-relaxed mb-14 max-w-3xl text-center">
+              Transform blocked internal data into privacy-safe training corpora.
+              Join ML teams using Verifily to train legally and at scale.
+            </p>
+          </div>
 
-          <Link href="/pilot">
-            <button className="h-12 px-8 text-sm font-medium text-white bg-gradient-to-r from-[#3b82f6] to-[#8b5cf6] rounded-full hover:opacity-90 transition-opacity mb-5">
-              Request a pilot
-            </button>
-          </Link>
+          <div className="flex justify-center mb-8">
+            <Link href="/pilot">
+              <Button variant="primary" size="lg">
+                Request a pilot
+              </Button>
+            </Link>
+          </div>
 
-          <p className="text-xs text-[#555]">
+          <p className="text-sm text-[#555] text-center">
             Pilot-based pricing. Designed for ML teams and data platform engineers.
           </p>
         </motion.div>

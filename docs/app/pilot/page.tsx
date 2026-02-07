@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import { motion } from 'framer-motion';
+import { Button } from '@/components/ui/Button';
 
 export default function PilotPage() {
   const [formData, setFormData] = useState({
@@ -37,27 +38,30 @@ Compliance Region: ${formData.complianceRegion}`
   const update = (field: string, value: string) =>
     setFormData((prev) => ({ ...prev, [field]: value }));
 
+  const inputClass =
+    'w-full h-[56px] px-5 bg-[#000] border border-[#2a2a2a] rounded-xl text-base text-white placeholder-[#555] focus:outline-none focus:border-[#3b82f6] transition-colors';
+
   return (
     <div className="min-h-screen bg-[#000000] flex flex-col">
       <Navigation />
 
-      <main className="flex-grow flex items-start justify-center pt-28 pb-20 px-6">
-        <div className="w-full max-w-xl">
+      <main className="flex-grow flex items-center justify-center py-40 px-6">
+        <div className="w-full max-w-2xl">
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
             {/* Header */}
-            <div className="text-center mb-12">
-              <h1 className="text-3xl md:text-4xl font-bold text-white tracking-tight mb-4">
+            <div className="text-center mb-16">
+              <h1 className="text-white !text-5xl md:!text-6xl lg:!text-7xl mb-6">
                 Request a{' '}
                 <span className="bg-gradient-to-r from-[#3b82f6] to-[#8b5cf6] bg-clip-text text-transparent">
                   pilot
                 </span>
               </h1>
-              <div className="w-10 h-px bg-white/20 mx-auto mb-5" />
-              <p className="text-sm text-[#888] leading-relaxed max-w-md mx-auto">
+              <div className="w-12 h-px bg-white/20 mx-auto mb-8" />
+              <p className="text-lg md:text-xl text-[#888] leading-relaxed max-w-xl mx-auto text-center">
                 We&apos;re working with ML teams to refine our data transformation
                 pipeline. If you&apos;re training models and blocked by compliance
                 or data security, tell us about your use case.
@@ -65,12 +69,12 @@ Compliance Region: ${formData.complianceRegion}`
             </div>
 
             {!submitted ? (
-              <div className="bg-[#0a0a0a] border border-[#222] rounded-2xl p-8 md:p-10">
-                <form onSubmit={handleSubmit} className="space-y-5">
+              <div className="card">
+                <form onSubmit={handleSubmit} className="space-y-6">
                   {/* Name + Email row */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     <div>
-                      <label className="block text-xs font-medium text-[#aaa] mb-1.5">
+                      <label className="block text-sm font-medium text-[#aaa] mb-2">
                         Name *
                       </label>
                       <input
@@ -78,12 +82,12 @@ Compliance Region: ${formData.complianceRegion}`
                         required
                         value={formData.name}
                         onChange={(e) => update('name', e.target.value)}
-                        className="w-full h-11 px-3.5 bg-[#000] border border-[#2a2a2a] rounded-lg text-sm text-white placeholder-[#555] focus:outline-none focus:border-[#3b82f6] transition-colors"
+                        className={inputClass}
                         placeholder="Full name"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-[#aaa] mb-1.5">
+                      <label className="block text-sm font-medium text-[#aaa] mb-2">
                         Email *
                       </label>
                       <input
@@ -91,7 +95,7 @@ Compliance Region: ${formData.complianceRegion}`
                         required
                         value={formData.email}
                         onChange={(e) => update('email', e.target.value)}
-                        className="w-full h-11 px-3.5 bg-[#000] border border-[#2a2a2a] rounded-lg text-sm text-white placeholder-[#555] focus:outline-none focus:border-[#3b82f6] transition-colors"
+                        className={inputClass}
                         placeholder="you@company.com"
                       />
                     </div>
@@ -99,7 +103,7 @@ Compliance Region: ${formData.complianceRegion}`
 
                   {/* Company */}
                   <div>
-                    <label className="block text-xs font-medium text-[#aaa] mb-1.5">
+                    <label className="block text-sm font-medium text-[#aaa] mb-2">
                       Company *
                     </label>
                     <input
@@ -107,48 +111,48 @@ Compliance Region: ${formData.complianceRegion}`
                       required
                       value={formData.company}
                       onChange={(e) => update('company', e.target.value)}
-                      className="w-full h-11 px-3.5 bg-[#000] border border-[#2a2a2a] rounded-lg text-sm text-white placeholder-[#555] focus:outline-none focus:border-[#3b82f6] transition-colors"
+                      className={inputClass}
                       placeholder="Company name"
                     />
                   </div>
 
                   {/* Use Case */}
                   <div>
-                    <label className="block text-xs font-medium text-[#aaa] mb-1.5">
+                    <label className="block text-sm font-medium text-[#aaa] mb-2">
                       Use case *
                     </label>
                     <textarea
                       required
                       value={formData.useCase}
                       onChange={(e) => update('useCase', e.target.value)}
-                      rows={3}
-                      className="w-full px-3.5 py-2.5 bg-[#000] border border-[#2a2a2a] rounded-lg text-sm text-white placeholder-[#555] focus:outline-none focus:border-[#3b82f6] transition-colors resize-none"
+                      rows={4}
+                      className="w-full px-5 py-4 bg-[#000] border border-[#2a2a2a] rounded-xl text-base text-white placeholder-[#555] focus:outline-none focus:border-[#3b82f6] transition-colors resize-none"
                       placeholder="What are you training and why do you need synthetic data?"
                     />
                   </div>
 
                   {/* Dataset + Region row */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     <div>
-                      <label className="block text-xs font-medium text-[#aaa] mb-1.5">
+                      <label className="block text-sm font-medium text-[#aaa] mb-2">
                         Dataset type / size
                       </label>
                       <input
                         type="text"
                         value={formData.datasetSize}
                         onChange={(e) => update('datasetSize', e.target.value)}
-                        className="w-full h-11 px-3.5 bg-[#000] border border-[#2a2a2a] rounded-lg text-sm text-white placeholder-[#555] focus:outline-none focus:border-[#3b82f6] transition-colors"
+                        className={inputClass}
                         placeholder="e.g. 10K support tickets"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-[#aaa] mb-1.5">
+                      <label className="block text-sm font-medium text-[#aaa] mb-2">
                         Compliance region
                       </label>
                       <select
                         value={formData.complianceRegion}
                         onChange={(e) => update('complianceRegion', e.target.value)}
-                        className="w-full h-11 px-3.5 bg-[#000] border border-[#2a2a2a] rounded-lg text-sm text-white focus:outline-none focus:border-[#3b82f6] transition-colors"
+                        className={inputClass}
                       >
                         <option value="">Select...</option>
                         <option value="EU">EU (GDPR)</option>
@@ -160,28 +164,32 @@ Compliance Region: ${formData.complianceRegion}`
                   </div>
 
                   {/* Submit */}
-                  <button
-                    type="submit"
-                    className="w-full h-12 mt-2 text-sm font-medium text-white bg-gradient-to-r from-[#3b82f6] to-[#8b5cf6] rounded-lg hover:opacity-90 transition-opacity"
-                  >
-                    Apply for pilot program
-                  </button>
+                  <div className="pt-4">
+                    <Button
+                      type="submit"
+                      variant="primary"
+                      size="md"
+                      className="w-full"
+                    >
+                      Apply for pilot program
+                    </Button>
+                  </div>
                 </form>
 
-                <p className="text-[11px] text-[#555] text-center mt-5">
+                <p className="text-sm text-[#555] text-center mt-8">
                   We typically respond within 2 business days.
                   No commitment required.
                 </p>
               </div>
             ) : (
-              <div className="bg-[#0a0a0a] border border-[#222] rounded-2xl p-10 md:p-12 text-center">
-                <div className="w-12 h-12 bg-emerald-500/10 border border-emerald-500/30 rounded-full flex items-center justify-center mx-auto mb-5">
-                  <span className="text-emerald-400 text-lg">&#10003;</span>
+              <div className="card text-center">
+                <div className="w-16 h-16 bg-emerald-500/10 border border-emerald-500/30 rounded-full flex items-center justify-center mx-auto mb-8">
+                  <span className="text-emerald-400 text-2xl">&#10003;</span>
                 </div>
-                <h3 className="text-xl font-semibold text-white mb-3">
+                <h3 className="text-white mb-4">
                   Thank you for your interest
                 </h3>
-                <p className="text-sm text-[#888] mb-6 leading-relaxed max-w-sm mx-auto">
+                <p className="text-base text-[#888] mb-8 leading-relaxed max-w-md mx-auto">
                   Your default email client should open with a pre-filled message.
                   If not, email us directly at{' '}
                   <a
@@ -191,12 +199,13 @@ Compliance Region: ${formData.complianceRegion}`
                     pilot@verifily.io
                   </a>
                 </p>
-                <button
+                <Button
+                  variant="secondary"
+                  size="sm"
                   onClick={() => setSubmitted(false)}
-                  className="h-10 px-6 text-sm font-medium text-white border border-[#333] rounded-lg hover:border-[#555] hover:bg-white/[0.03] transition-all"
                 >
                   Submit another request
-                </button>
+                </Button>
               </div>
             )}
           </motion.div>
