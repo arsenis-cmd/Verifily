@@ -29,54 +29,51 @@ export default function Navigation() {
       transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
         scrolled
-          ? 'bg-[rgba(0,0,0,0.8)] backdrop-blur-2xl border-b border-[#1a1a1a] shadow-2xl'
+          ? 'bg-[rgba(0,0,0,0.85)] backdrop-blur-2xl border-b border-[#1a1a1a]'
           : 'bg-transparent'
       }`}
     >
-      <div className="w-full pl-32 pr-20">
-        <div className="flex items-center justify-between h-20 max-w-[1600px] mx-auto">
+      <div className="max-w-6xl mx-auto px-6">
+        <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link
             href="/"
-            className="text-2xl font-bold text-white hover:opacity-80 transition-opacity tracking-tight"
+            className="text-lg font-bold text-white hover:opacity-80 transition-opacity tracking-tight"
           >
             Verifily
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-10">
+          <div className="hidden md:flex items-center gap-8">
             <Link
               href="#how-it-works"
-              className="text-[15px] text-[#888888] hover:text-white transition-colors relative group"
+              className="text-[13px] text-[#888] hover:text-white transition-colors"
             >
               How it Works
-              <span className="absolute -bottom-1 left-0 w-0 h-px bg-white group-hover:w-full transition-all duration-300" />
             </Link>
             <Link
               href="#features"
-              className="text-[15px] text-[#888888] hover:text-white transition-colors relative group"
+              className="text-[13px] text-[#888] hover:text-white transition-colors"
             >
               Features
-              <span className="absolute -bottom-1 left-0 w-0 h-px bg-white group-hover:w-full transition-all duration-300" />
             </Link>
             <Link
               href="/pricing"
-              className="text-[15px] text-[#888888] hover:text-white transition-colors relative group"
+              className="text-[13px] text-[#888] hover:text-white transition-colors"
             >
-              Pilot Program
-              <span className="absolute -bottom-1 left-0 w-0 h-px bg-white group-hover:w-full transition-all duration-300" />
+              Pricing
             </Link>
           </div>
 
-          {/* CTA Button */}
-          <div className="mr-12 flex items-center gap-4">
+          {/* Right side */}
+          <div className="flex items-center gap-3">
             {hasClerk ? (
               <>
                 <SignedOut>
                   <Link href="/sign-in">
-                    <Button variant="secondary" size="sm">
-                      Sign In
-                    </Button>
+                    <button className="text-[13px] text-[#888] hover:text-white transition-colors px-3 py-1.5">
+                      Sign in
+                    </button>
                   </Link>
                 </SignedOut>
                 <SignedIn>
@@ -85,9 +82,9 @@ export default function Navigation() {
               </>
             ) : null}
             <Link href="/pilot">
-              <Button variant="primary" size="sm">
+              <button className="h-9 px-5 text-[13px] font-medium text-white bg-gradient-to-r from-[#3b82f6] to-[#8b5cf6] rounded-full hover:opacity-90 transition-opacity">
                 Request pilot
-              </Button>
+              </button>
             </Link>
           </div>
         </div>

@@ -4,76 +4,92 @@ import Link from 'next/link';
 
 export default function Footer() {
   return (
-    <footer className="bg-[#000000] border-t border-[#111111] w-full">
-      <div className="w-full px-48 py-6">
-        {/* Single row footer */}
-        <div className="flex items-center justify-between text-[8px]">
-          {/* Left: Brand */}
-          <div className="flex items-center gap-2">
+    <footer className="bg-[#000000] border-t border-[#111] w-full">
+      <div className="max-w-6xl mx-auto px-6 py-12">
+        {/* Top row */}
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-10 mb-10">
+          {/* Brand */}
+          <div>
             <Link
               href="/"
-              className="text-[8px] font-semibold text-white hover:opacity-80 transition-opacity"
+              className="text-base font-bold text-white hover:opacity-80 transition-opacity"
             >
               Verifily
             </Link>
-            <span className="text-[#333333]">|</span>
-            <span className="text-[#666666]">© 2026 All rights reserved</span>
+            <p className="text-xs text-[#555] mt-2 max-w-xs leading-relaxed">
+              Privacy-safe synthetic data for AI training.
+              Transform internal human data into training-ready corpora.
+            </p>
           </div>
 
-          {/* Center: Links */}
-          <div className="flex items-center gap-6">
-            <Link
-              href="/pilot"
-              className="text-[#666666] hover:text-white transition-colors"
-            >
-              Pilot Program
-            </Link>
-            <Link
-              href="#how-it-works"
-              className="text-[#666666] hover:text-white transition-colors"
-            >
-              How it Works
-            </Link>
-            <Link
-              href="#"
-              className="text-[#666666] hover:text-white transition-colors"
-            >
-              Documentation
-            </Link>
-            <Link
-              href="/privacy"
-              className="text-[#666666] hover:text-white transition-colors"
-            >
-              Privacy Policy
-            </Link>
-            <Link
-              href="#"
-              className="text-[#666666] hover:text-white transition-colors"
-            >
-              Terms
-            </Link>
-          </div>
+          {/* Link columns */}
+          <div className="flex gap-16">
+            <div>
+              <h4 className="text-xs font-semibold text-[#888] uppercase tracking-wider mb-4">
+                Product
+              </h4>
+              <ul className="space-y-2.5">
+                <li>
+                  <Link href="#how-it-works" className="text-sm text-[#666] hover:text-white transition-colors">
+                    How it Works
+                  </Link>
+                </li>
+                <li>
+                  <Link href="#features" className="text-sm text-[#666] hover:text-white transition-colors">
+                    Features
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/pricing" className="text-sm text-[#666] hover:text-white transition-colors">
+                    Pricing
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/pilot" className="text-sm text-[#666] hover:text-white transition-colors">
+                    Pilot Program
+                  </Link>
+                </li>
+              </ul>
+            </div>
 
-          {/* Right: Social */}
-          <div className="flex items-center gap-4">
-            <Link
-              href="#"
-              className="text-[#666666] hover:text-white transition-colors"
-            >
+            <div>
+              <h4 className="text-xs font-semibold text-[#888] uppercase tracking-wider mb-4">
+                Company
+              </h4>
+              <ul className="space-y-2.5">
+                <li>
+                  <Link href="/privacy" className="text-sm text-[#666] hover:text-white transition-colors">
+                    Privacy Policy
+                  </Link>
+                </li>
+                <li>
+                  <a href="mailto:pilot@verifily.io" className="text-sm text-[#666] hover:text-white transition-colors">
+                    Contact
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        {/* Divider */}
+        <div className="h-px bg-[#1a1a1a] mb-6" />
+
+        {/* Bottom row */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+          <p className="text-xs text-[#444]">
+            &copy; 2026 Verifily. All rights reserved.
+          </p>
+          <div className="flex items-center gap-5">
+            <a href="https://x.com" target="_blank" rel="noopener noreferrer" className="text-xs text-[#555] hover:text-white transition-colors">
               Twitter
-            </Link>
-            <Link
-              href="#"
-              className="text-[#666666] hover:text-white transition-colors"
-            >
+            </a>
+            <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="text-xs text-[#555] hover:text-white transition-colors">
               LinkedIn
-            </Link>
-            <Link
-              href="#"
-              className="text-[#666666] hover:text-white transition-colors"
-            >
+            </a>
+            <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="text-xs text-[#555] hover:text-white transition-colors">
               GitHub
-            </Link>
+            </a>
           </div>
         </div>
       </div>
