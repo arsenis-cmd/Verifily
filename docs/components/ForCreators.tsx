@@ -2,7 +2,7 @@
 
 export default function ForCreators() {
   return (
-    <section className="relative min-h-[50vh] flex items-center justify-center bg-[#0a0a0a] border-t border-[#111111]">
+    <section className="relative min-h-[50vh] flex items-center justify-center bg-[#000000] border-t border-[#111111]">
       <div className="container max-w-5xl mx-auto px-6">
         <div className="grid md:grid-cols-3 gap-8 text-center">
           <div className="card">
