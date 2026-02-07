@@ -5,10 +5,10 @@ import SmoothScrollWrapper from '@/components/SmoothScrollWrapper';
 
 export const metadata: Metadata = {
   title: "Privacy Policy - Verifily",
-  description: "Learn how Verifily collects, uses, and protects your personal information.",
+  description: "Learn how Verifily handles data privacy and security for synthetic dataset generation.",
   openGraph: {
     title: "Privacy Policy - Verifily",
-    description: "Learn how Verifily collects, uses, and protects your personal information.",
+    description: "Learn how Verifily handles data privacy and security for synthetic dataset generation.",
     url: "https://verifily.io/privacy",
     siteName: "Verifily",
   },
@@ -27,7 +27,7 @@ export default function PrivacyPolicy() {
             <h1 className="text-5xl md:text-6xl font-bold text-white tracking-tight mb-4">
               Privacy Policy
             </h1>
-            <p className="text-[#a1a1a1] text-lg">Effective Date: January 22, 2025</p>
+            <p className="text-[#a1a1a1] text-lg">Effective Date: February 1, 2026</p>
           </div>
 
           {/* Content */}
@@ -35,7 +35,7 @@ export default function PrivacyPolicy() {
             <section>
               <h2 className="text-3xl font-bold text-white mb-6">Introduction</h2>
               <p className="leading-relaxed text-lg">
-                Welcome to Verifily. We are committed to protecting your privacy and ensuring transparency about how we collect, use, and protect your personal information. This Privacy Policy explains our practices regarding data collection and usage when you use our browser extension and services.
+                Verifily provides a data transformation layer that converts internal human data into privacy-safe synthetic datasets for AI training. This Privacy Policy explains how we handle data when organizations use our platform, including what we collect, how we process it, and the safeguards we apply.
               </p>
             </section>
 
@@ -44,30 +44,30 @@ export default function PrivacyPolicy() {
 
               <div className="space-y-8">
                 <div>
-                  <h3 className="text-xl font-semibold text-white mb-4">1. Information You Provide</h3>
+                  <h3 className="text-xl font-semibold text-white mb-4">1. Organization Information</h3>
                   <ul className="list-disc list-inside space-y-3 ml-4 text-lg">
-                    <li><strong className="text-white">Email Address:</strong> When you join our waitlist or sign up for updates, we collect your email address.</li>
-                    <li><strong className="text-white">Content for Verification:</strong> When you verify content as human-written, we collect the text you choose to verify along with metadata (timestamp, source URL).</li>
+                    <li><strong className="text-white">Contact Details:</strong> Name, email, and company information provided when requesting a pilot or contacting us.</li>
+                    <li><strong className="text-white">Account Data:</strong> Organization name, pilot configuration, and billing details for active customers.</li>
                   </ul>
                 </div>
 
                 <div>
-                  <h3 className="text-xl font-semibold text-white mb-4">2. Automatically Collected Information</h3>
+                  <h3 className="text-xl font-semibold text-white mb-4">2. Dataset Metadata</h3>
                   <ul className="list-disc list-inside space-y-3 ml-4 text-lg">
-                    <li><strong className="text-white">Content Analysis Data:</strong> When the extension scans web pages for AI-generated content, we temporarily process text content to provide detection results.</li>
-                    <li><strong className="text-white">Usage Statistics:</strong> We collect aggregated, anonymized statistics about AI detection (e.g., total scans performed, percentage of AI-detected content).</li>
-                    <li><strong className="text-white">Browser Information:</strong> Basic technical information such as browser type and extension version for compatibility and troubleshooting.</li>
+                    <li><strong className="text-white">Pipeline Configuration:</strong> Transformation parameters, filter settings, expansion targets, and run history.</li>
+                    <li><strong className="text-white">Quality Metrics:</strong> Duplication rates, overlap scores, and leakage check results for synthetic outputs.</li>
+                    <li><strong className="text-white">Audit Logs:</strong> Timestamps, dataset versions, and run metadata for reproducibility and compliance.</li>
                   </ul>
                 </div>
 
                 <div className="border-l-2 border-white/20 pl-6 py-4 bg-white/[0.02]">
-                  <h3 className="text-xl font-semibold text-white mb-4">3. Information We Do NOT Collect</h3>
-                  <p className="font-semibold text-white mb-3 text-lg">We do not:</p>
+                  <h3 className="text-xl font-semibold text-white mb-4">3. What We Do NOT Retain</h3>
+                  <p className="font-semibold text-white mb-3 text-lg">By design, Verifily minimizes data retention:</p>
                   <ul className="list-disc list-inside space-y-3 ml-4 text-lg">
-                    <li>Track your browsing history beyond the pages where you actively use Verifily</li>
-                    <li>Collect personally identifiable information without your explicit consent</li>
-                    <li>Share your personal data with third-party advertisers</li>
-                    <li>Store your passwords or sensitive account credentials</li>
+                    <li>Raw seed data is processed in-memory and not stored beyond the transformation run unless explicitly configured</li>
+                    <li>We do not store or access the content of your training data after synthetic output is generated</li>
+                    <li>We do not share raw or synthetic datasets with third parties</li>
+                    <li>We do not use customer data to train our own models</li>
                   </ul>
                 </div>
               </div>
@@ -75,83 +75,74 @@ export default function PrivacyPolicy() {
 
             <section>
               <h2 className="text-3xl font-bold text-white mb-6">How We Use Your Information</h2>
-              <p className="mb-6 text-lg">We use the collected information for the following purposes:</p>
+              <p className="mb-6 text-lg">We use collected information for the following purposes:</p>
               <ul className="list-disc list-inside space-y-3 ml-4 text-lg">
-                <li><strong className="text-white">Provide AI Detection Services:</strong> Analyze content to detect AI-generated text and provide verification badges.</li>
-                <li><strong className="text-white">Improve Our Service:</strong> Enhance detection accuracy and user experience based on aggregated usage patterns.</li>
-                <li><strong className="text-white">Communication:</strong> Send you updates about new features, improvements, and important service announcements (only if you've opted in).</li>
-                <li><strong className="text-white">Verification Records:</strong> Maintain records of content you've verified as human-written, allowing you to prove authenticity.</li>
-                <li><strong className="text-white">Analytics:</strong> Generate aggregated statistics about AI content prevalence across the web (anonymized data only).</li>
+                <li><strong className="text-white">Data Transformation:</strong> Process input datasets through our pipeline to generate privacy-safe synthetic outputs.</li>
+                <li><strong className="text-white">Quality Assurance:</strong> Run deduplication, n-gram overlap, and leakage checks on synthetic datasets.</li>
+                <li><strong className="text-white">Platform Improvement:</strong> Use aggregated, anonymized pipeline metrics to improve transformation quality and system reliability.</li>
+                <li><strong className="text-white">Communication:</strong> Send pilot updates, product announcements, and service notifications (only with consent).</li>
+                <li><strong className="text-white">Compliance Support:</strong> Maintain audit logs and version history to support your regulatory obligations under GDPR, the EU AI Act, and similar frameworks.</li>
               </ul>
             </section>
 
             <section>
               <h2 className="text-3xl font-bold text-white mb-6">Data Storage and Security</h2>
-              <p className="mb-6 text-lg">We take data security seriously and implement industry-standard measures to protect your information:</p>
+              <p className="mb-6 text-lg">We implement industry-standard security measures:</p>
               <ul className="list-disc list-inside space-y-3 ml-4 text-lg">
-                <li><strong className="text-white">Encryption:</strong> All data transmitted between your browser and our servers is encrypted using HTTPS/TLS.</li>
-                <li><strong className="text-white">Secure Storage:</strong> Your data is stored on secure cloud servers with access controls and regular security audits.</li>
-                <li><strong className="text-white">Data Retention:</strong> We retain your verification records and email for as long as you use our service. You can request deletion at any time.</li>
-                <li><strong className="text-white">Local Storage:</strong> Some preferences and statistics are stored locally in your browser and never leave your device.</li>
+                <li><strong className="text-white">Encryption:</strong> All data in transit is encrypted via TLS. Data at rest is encrypted using AES-256.</li>
+                <li><strong className="text-white">Access Controls:</strong> Role-based access controls limit who can view or modify datasets and pipeline configurations.</li>
+                <li><strong className="text-white">Infrastructure:</strong> Hosted on secure cloud infrastructure with regular security audits and monitoring.</li>
+                <li><strong className="text-white">Data Isolation:</strong> Each organization's data is logically isolated. On-premise deployment is available for Enterprise customers.</li>
               </ul>
             </section>
 
             <section>
               <h2 className="text-3xl font-bold text-white mb-6">Data Sharing and Third Parties</h2>
-              <p className="mb-6 text-lg">We do not sell your personal information. We may share data only in these limited circumstances:</p>
+              <p className="mb-6 text-lg">We do not sell organizational or dataset information. We may share data only in these limited circumstances:</p>
               <ul className="list-disc list-inside space-y-3 ml-4 text-lg">
-                <li><strong className="text-white">Service Providers:</strong> We use trusted third-party services for hosting and infrastructure (e.g., Railway.app for backend hosting). These providers are contractually obligated to protect your data.</li>
-                <li><strong className="text-white">Legal Requirements:</strong> We may disclose information if required by law, court order, or to protect our rights and safety.</li>
-                <li><strong className="text-white">Aggregated Data:</strong> We may share anonymized, aggregated statistics (e.g., "X% of tweets analyzed contain AI content") for research or marketing purposes.</li>
+                <li><strong className="text-white">Infrastructure Providers:</strong> We use trusted cloud providers for hosting and compute. These providers are bound by data processing agreements.</li>
+                <li><strong className="text-white">Legal Requirements:</strong> We may disclose information if required by law, court order, or to protect our legal rights.</li>
+                <li><strong className="text-white">Aggregated Metrics:</strong> We may share anonymized, aggregated platform metrics (e.g., average expansion ratios) for research or reporting purposes.</li>
               </ul>
             </section>
 
             <section>
-              <h2 className="text-3xl font-bold text-white mb-6">Your Rights and Choices</h2>
-              <p className="mb-6 text-lg">You have the following rights regarding your personal data:</p>
+              <h2 className="text-3xl font-bold text-white mb-6">Your Rights</h2>
+              <p className="mb-6 text-lg">Organizations and their representatives have the following rights:</p>
               <ul className="list-disc list-inside space-y-3 ml-4 text-lg">
-                <li><strong className="text-white">Access:</strong> Request a copy of the personal data we hold about you.</li>
-                <li><strong className="text-white">Correction:</strong> Request correction of inaccurate or incomplete data.</li>
-                <li><strong className="text-white">Deletion:</strong> Request deletion of your personal data (subject to legal retention requirements).</li>
-                <li><strong className="text-white">Opt-Out:</strong> Unsubscribe from marketing emails at any time using the link in our emails.</li>
-                <li><strong className="text-white">Disable Extension:</strong> You can disable or uninstall the extension at any time, which will stop all data collection.</li>
-                <li><strong className="text-white">Toggle Detection:</strong> Use the on/off toggle in the extension popup to temporarily disable AI detection without uninstalling.</li>
+                <li><strong className="text-white">Access:</strong> Request details about what data we hold related to your organization.</li>
+                <li><strong className="text-white">Correction:</strong> Request correction of inaccurate account or contact information.</li>
+                <li><strong className="text-white">Deletion:</strong> Request deletion of your organization's data, including pipeline configurations and audit logs (subject to legal retention requirements).</li>
+                <li><strong className="text-white">Data Portability:</strong> Export your synthetic datasets and pipeline configurations at any time.</li>
+                <li><strong className="text-white">Opt-Out:</strong> Unsubscribe from marketing communications at any time.</li>
               </ul>
             </section>
 
             <section>
               <h2 className="text-3xl font-bold text-white mb-6">Cookies and Tracking</h2>
               <p className="leading-relaxed text-lg">
-                The Verifily extension does not use traditional cookies. However, we use browser local storage to save your preferences and statistics on your device. This data is not transmitted to our servers unless you actively use verification features.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="text-3xl font-bold text-white mb-6">Children's Privacy</h2>
-              <p className="leading-relaxed text-lg">
-                Verifily is not intended for users under the age of 13. We do not knowingly collect personal information from children. If you believe we have inadvertently collected data from a child, please contact us immediately.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="text-3xl font-bold text-white mb-6">Changes to This Privacy Policy</h2>
-              <p className="mb-6 text-lg">
-                We may update this Privacy Policy from time to time to reflect changes in our practices or legal requirements. We will notify you of significant changes by:
-              </p>
-              <ul className="list-disc list-inside space-y-3 ml-4 text-lg">
-                <li>Updating the "Effective Date" at the top of this policy</li>
-                <li>Sending an email notification if you're on our mailing list</li>
-                <li>Displaying a notification in the extension</li>
-              </ul>
-              <p className="mt-6 leading-relaxed text-lg">
-                Your continued use of Verifily after changes indicates your acceptance of the updated policy.
+                Our website uses minimal cookies for essential functionality (e.g., session management for authenticated dashboard access). We do not use third-party advertising trackers. Analytics, if used, are privacy-respecting and anonymized.
               </p>
             </section>
 
             <section>
               <h2 className="text-3xl font-bold text-white mb-6">International Data Transfers</h2>
               <p className="leading-relaxed text-lg">
-                Your data may be processed and stored in countries outside your country of residence. We ensure appropriate safeguards are in place to protect your data in accordance with this Privacy Policy and applicable laws.
+                Data may be processed in jurisdictions outside your country of residence. We ensure appropriate safeguards (such as Standard Contractual Clauses) are in place for cross-border transfers in accordance with GDPR and applicable data protection laws.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="text-3xl font-bold text-white mb-6">Changes to This Privacy Policy</h2>
+              <p className="mb-6 text-lg">
+                We may update this Privacy Policy to reflect changes in our practices or legal requirements. We will notify you of material changes by:
+              </p>
+              <ul className="list-disc list-inside space-y-3 ml-4 text-lg">
+                <li>Updating the &quot;Effective Date&quot; at the top of this policy</li>
+                <li>Sending an email notification to active pilot and production customers</li>
+              </ul>
+              <p className="mt-6 leading-relaxed text-lg">
+                Continued use of Verifily after changes indicates acceptance of the updated policy.
               </p>
             </section>
 
@@ -159,7 +150,7 @@ export default function PrivacyPolicy() {
             <section className="border border-white/10 rounded-lg p-8 md:p-12 bg-white/[0.02] text-center">
               <h2 className="text-3xl font-bold text-white mb-6">Contact Us</h2>
               <p className="mb-8 leading-relaxed text-lg">
-                If you have questions, concerns, or requests regarding this Privacy Policy or your personal data, please contact us:
+                If you have questions, concerns, or requests regarding this Privacy Policy or your data, please contact us:
               </p>
               <div className="space-y-3 text-lg">
                 <p>
@@ -183,7 +174,7 @@ export default function PrivacyPolicy() {
 
           {/* Footer Note */}
           <div className="text-center mt-20 pt-12 border-t border-white/10">
-            <p className="text-[#a1a1a1]/60">&copy; 2025 Verifily. All rights reserved.</p>
+            <p className="text-[#a1a1a1]/60">&copy; 2026 Verifily. All rights reserved.</p>
           </div>
         </div>
       </main>

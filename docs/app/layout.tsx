@@ -16,13 +16,13 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Verifily - Know what's AI. Prove what's human.",
-  description: "The browser extension that detects AI-generated content and lets you verify your authentic human work. Join the trust layer for the AI era.",
-  keywords: "AI detection, content verification, human verification, AI checker, content authenticity",
+  title: "Verifily — Privacy-safe synthetic data for AI training",
+  description: "Transform internal human data into privacy-safe synthetic datasets. Expand training corpora 5–10× while reducing compliance risk under GDPR and the EU AI Act.",
+  keywords: "synthetic data, AI training data, GDPR compliance, EU AI Act, privacy-safe datasets, data transformation, machine learning infrastructure",
   authors: [{ name: "Verifily" }],
   openGraph: {
-    title: "Verifily - Know what's AI. Prove what's human.",
-    description: "The browser extension that detects AI-generated content and lets you verify your authentic human work.",
+    title: "Verifily — Privacy-safe synthetic data for AI training",
+    description: "Transform internal human data into privacy-safe synthetic datasets. Expand training corpora 5–10× while reducing compliance risk under GDPR and the EU AI Act.",
     url: "https://verifily.io",
     siteName: "Verifily",
     images: [
@@ -37,8 +37,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Verifily - Know what's AI. Prove what's human.",
-    description: "The browser extension that detects AI-generated content and lets you verify your authentic human work.",
+    title: "Verifily — Privacy-safe synthetic data for AI training",
+    description: "Transform internal human data into privacy-safe synthetic datasets. Expand training corpora 5–10× while reducing compliance risk.",
     images: ["/og-image.png"],
   },
 };
@@ -64,8 +64,8 @@ export default function RootLayout({
   return hasClerkKeys ? (
     <ClerkProvider
       publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
-      afterSignInUrl="/dashboard"
-      afterSignUpUrl="/dashboard"
+      afterSignInUrl="/"
+      afterSignUpUrl="/"
       signInUrl="/sign-in"
       signUpUrl="/sign-up"
     >

@@ -1,8 +1,8 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import Link from 'next/link';
 import { Button } from './ui/Button';
-import DesktopMockup from './DesktopMockup';
 
 export default function Hero() {
   return (
@@ -21,10 +21,11 @@ export default function Hero() {
           >
             {/* Main headline */}
             <h1 className="text-5xl md:text-7xl font-bold text-white tracking-tight mb-6 text-center">
-              Detect AI.{' '}
+              Make human data{' '}
               <span className="bg-gradient-to-r from-[#3b82f6] to-[#8b5cf6] bg-clip-text text-transparent">
-                Verify Human.
-              </span>
+                trainable—legally
+              </span>{' '}
+              and at scale
             </h1>
 
             {/* Divider line */}
@@ -32,50 +33,73 @@ export default function Hero() {
 
             {/* Subheadline */}
             <div className="flex justify-center mb-8">
-              <p className="text-lg md:text-xl text-[#a1a1a1] max-w-2xl leading-relaxed text-center">
-                The browser extension that instantly identifies AI-generated content and lets you prove your work is authentically human.
+              <p className="text-lg md:text-xl text-[#a1a1a1] max-w-3xl leading-relaxed text-center">
+                Under GDPR and the EU AI Act, many teams can't train on raw internal human data.
+                Verifily converts it into privacy-safe synthetic datasets—typically expanding it 5–10×—so you can train without exposing raw data.
               </p>
             </div>
 
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mb-8">
-              <Button variant="primary" size="lg">
-                Add to Chrome — It's Free
-              </Button>
+              <Link href="/pilot">
+                <Button variant="primary" size="lg">
+                  Request a pilot
+                </Button>
+              </Link>
               <Button
                 variant="secondary"
                 size="lg"
                 onClick={() => {
-                  const newsletterSection = document.querySelector('#newsletter');
-                  newsletterSection?.scrollIntoView({ behavior: 'smooth' });
+                  const howItWorksSection = document.querySelector('#how-it-works');
+                  howItWorksSection?.scrollIntoView({ behavior: 'smooth' });
                 }}
               >
-                Subscribe to Newsletter
+                How it works
               </Button>
             </div>
 
             {/* Trust badges */}
             <div className="flex items-center justify-center gap-6 text-sm text-[#666666]">
               <span className="flex items-center gap-2">
-                <span className="text-green-500">✓</span> 95%+ Accuracy
+                <span className="text-green-500">✓</span> 5–10× Dataset Expansion
               </span>
               <span className="flex items-center gap-2">
-                <span className="text-green-500">✓</span> Privacy First
+                <span className="text-green-500">✓</span> GDPR & EU AI Act Ready
               </span>
               <span className="flex items-center gap-2">
-                <span className="text-green-500">✓</span> Instant Results
+                <span className="text-green-500">✓</span> Privacy-Safe Synthetic Data
               </span>
             </div>
           </motion.div>
 
-          {/* Desktop mockup with video */}
+          {/* Data flow visualization */}
           <motion.div
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
-            className="mt-16"
+            className="mt-16 w-full max-w-4xl"
           >
-            <DesktopMockup />
+            <div className="grid grid-cols-3 gap-8 items-center">
+              {/* Input */}
+              <div className="card text-center p-8">
+                <div className="text-4xl font-bold text-white mb-3">1M</div>
+                <div className="text-sm text-[#888888]">Human examples</div>
+                <div className="text-xs text-[#666666] mt-2">(internal data)</div>
+              </div>
+
+              {/* Arrow */}
+              <div className="flex flex-col items-center">
+                <div className="text-3xl text-[#3b82f6] mb-2">→</div>
+                <div className="text-xs text-[#888888] text-center">Verifily transformation</div>
+              </div>
+
+              {/* Output */}
+              <div className="card text-center p-8 border-[#3b82f6]/30 bg-gradient-to-br from-[#3b82f6]/5 to-transparent">
+                <div className="text-4xl font-bold bg-gradient-to-r from-[#3b82f6] to-[#8b5cf6] bg-clip-text text-transparent mb-3">5–10M</div>
+                <div className="text-sm text-white">Training-ready synthetic</div>
+                <div className="text-xs text-[#888888] mt-2">(privacy-safe)</div>
+              </div>
+            </div>
           </motion.div>
         </div>
       </div>

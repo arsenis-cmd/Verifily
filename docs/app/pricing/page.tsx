@@ -1,402 +1,181 @@
 'use client';
 
 import Link from 'next/link';
-import { useUser } from '@clerk/nextjs';
+import Navigation from '@/components/Navigation';
+import Footer from '@/components/Footer';
+import { Button } from '@/components/ui/Button';
+import { motion } from 'framer-motion';
 
 export default function PricingPage() {
-  const { user } = useUser();
-
-  const plans = [
+  const tiers = [
     {
-      name: 'Free',
-      price: '$0',
-      period: 'forever',
-      description: 'Perfect for trying out Verifily',
-      features: [
-        '10 AI detections per month',
-        '5 human verifications per month',
-        'Basic detection accuracy',
-        'Email support',
-        'Public verification badges'
-      ],
-      cta: 'Get Started',
-      highlighted: false,
-      link: user ? '/dashboard' : '/sign-up'
-    },
-    {
-      name: 'Pro',
-      price: '$19',
-      period: 'per month',
-      description: 'For content creators and professionals',
-      features: [
-        'Unlimited AI detections',
-        'Unlimited human verifications',
-        'Advanced detection accuracy',
-        'Priority email support',
-        'Custom verification badges',
-        'API access',
-        'Export verification history',
-        'Advanced analytics'
-      ],
-      cta: 'Start Free Trial',
-      highlighted: true,
-      link: user ? '/dashboard' : '/sign-up'
-    },
-    {
-      name: 'Enterprise',
+      title: 'Starter Pilot',
       price: 'Custom',
-      period: 'contact us',
-      description: 'For teams and organizations',
+      description: 'For teams exploring synthetic data transformation',
       features: [
-        'Everything in Pro',
-        'Dedicated account manager',
-        'Custom integration support',
-        'SLA guarantees',
-        'Advanced security features',
-        'White-label solutions',
-        'Training & onboarding',
-        'Custom contract terms'
+        'Up to 100K input examples',
+        '5–10× expansion to synthetic',
+        'Standard leakage controls',
+        'Email support',
+        'Basic audit logging',
+        'JSONL/Parquet export'
+      ]
+    },
+    {
+      title: 'Production',
+      price: 'Custom',
+      description: 'For ongoing production training pipelines',
+      features: [
+        'Unlimited input examples',
+        '5–10× expansion to synthetic',
+        'Advanced leakage controls',
+        'Priority support + Slack channel',
+        'Full audit logs + versioning',
+        'Custom export formats',
+        'Integration support',
+        'SLA guarantees'
       ],
-      cta: 'Contact Sales',
-      highlighted: false,
-      link: 'mailto:sales@verifily.io'
+      highlighted: true
+    },
+    {
+      title: 'Enterprise',
+      price: 'Custom',
+      description: 'For organizations with specialized needs',
+      features: [
+        'Everything in Production',
+        'Dedicated account manager',
+        'On-premise deployment options',
+        'Custom data processing agreements',
+        'White-glove onboarding',
+        'Advanced security + compliance review',
+        'Custom contract terms'
+      ]
     }
   ];
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      backgroundColor: '#000000',
-      color: 'white',
-      padding: '80px 20px'
-    }}>
-      {/* Header */}
-      <div style={{
-        maxWidth: '1200px',
-        margin: '0 auto',
-        textAlign: 'center',
-        marginBottom: '80px'
-      }}>
-        <Link
-          href="/"
-          style={{
-            display: 'inline-block',
-            marginBottom: '40px',
-            color: '#666666',
-            textDecoration: 'none',
-            fontSize: '14px',
-            transition: 'color 0.2s'
-          }}
-          onMouseEnter={(e) => e.currentTarget.style.color = '#10b981'}
-          onMouseLeave={(e) => e.currentTarget.style.color = '#666666'}
-        >
-          ← Back to Home
-        </Link>
+    <div className="min-h-screen bg-[#000000] flex flex-col">
+      <Navigation />
 
-        <h1 style={{
-          fontSize: '56px',
-          fontWeight: 'bold',
-          marginBottom: '20px',
-          background: 'linear-gradient(135deg, #10b981 0%, #3b82f6 100%)',
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent',
-          backgroundClip: 'text'
-        }}>
-          Simple, Transparent Pricing
-        </h1>
-
-        <p style={{
-          fontSize: '20px',
-          color: '#888888',
-          maxWidth: '600px',
-          margin: '0 auto'
-        }}>
-          Choose the plan that fits your needs. All plans include access to our AI detection technology.
-        </p>
-      </div>
-
-      {/* Pricing Cards */}
-      <div style={{
-        maxWidth: '1200px',
-        margin: '0 auto',
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-        gap: '32px',
-        marginBottom: '80px'
-      }}>
-        {plans.map((plan) => (
-          <div
-            key={plan.name}
-            style={{
-              backgroundColor: plan.highlighted ? '#111111' : '#0a0a0a',
-              border: plan.highlighted ? '2px solid #10b981' : '1px solid #222222',
-              borderRadius: '20px',
-              padding: '40px',
-              position: 'relative',
-              transition: 'transform 0.2s, border-color 0.2s',
-              transform: plan.highlighted ? 'scale(1.05)' : 'scale(1)'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'scale(1.05)';
-              if (!plan.highlighted) {
-                e.currentTarget.style.borderColor = '#10b981';
-              }
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = plan.highlighted ? 'scale(1.05)' : 'scale(1)';
-              if (!plan.highlighted) {
-                e.currentTarget.style.borderColor = '#222222';
-              }
-            }}
+      <main className="flex-grow pt-32 pb-16">
+        <div className="max-w-6xl mx-auto px-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="text-center mb-16"
           >
-            {plan.highlighted && (
-              <div style={{
-                position: 'absolute',
-                top: '-12px',
-                left: '50%',
-                transform: 'translateX(-50%)',
-                backgroundColor: '#10b981',
-                color: 'black',
-                padding: '4px 16px',
-                borderRadius: '12px',
-                fontSize: '12px',
-                fontWeight: 'bold'
-              }}>
-                MOST POPULAR
-              </div>
-            )}
+            <h1 className="text-5xl md:text-6xl font-bold text-white tracking-tight mb-6">
+              Pilot-based{' '}
+              <span className="bg-gradient-to-r from-[#3b82f6] to-[#8b5cf6] bg-clip-text text-transparent">
+                pricing
+              </span>
+            </h1>
 
-            <div style={{ marginBottom: '24px' }}>
-              <h3 style={{
-                fontSize: '24px',
-                fontWeight: 'bold',
-                marginBottom: '8px'
-              }}>
-                {plan.name}
-              </h3>
-              <p style={{
-                color: '#666666',
-                fontSize: '14px',
-                minHeight: '40px'
-              }}>
-                {plan.description}
-              </p>
-            </div>
+            <div className="w-16 h-[2px] bg-white/20 mx-auto mb-8" />
 
-            <div style={{ marginBottom: '32px' }}>
-              <div style={{
-                fontSize: '48px',
-                fontWeight: 'bold',
-                marginBottom: '4px'
-              }}>
-                {plan.price}
-              </div>
-              <div style={{
-                color: '#666666',
-                fontSize: '14px'
-              }}>
-                {plan.period}
-              </div>
-            </div>
+            <p className="text-lg text-[#a1a1a1] max-w-2xl mx-auto">
+              Priced per dataset size. Start with a pilot to validate fit. No long-term contracts required.
+            </p>
+          </motion.div>
 
-            <ul style={{
-              listStyle: 'none',
-              padding: 0,
-              margin: '0 0 32px 0'
-            }}>
-              {plan.features.map((feature, index) => (
-                <li
-                  key={index}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'flex-start',
-                    gap: '12px',
-                    marginBottom: '16px',
-                    color: '#a1a1a1',
-                    fontSize: '14px'
-                  }}
-                >
-                  <span style={{
-                    color: '#10b981',
-                    fontSize: '18px',
-                    lineHeight: 1,
-                    flexShrink: 0
-                  }}>
-                    ✓
-                  </span>
-                  <span>{feature}</span>
-                </li>
-              ))}
-            </ul>
+          {/* Pricing Tiers */}
+          <div className="grid md:grid-cols-3 gap-8 mb-16">
+            {tiers.map((tier, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: index * 0.1 }}
+                className={`card relative ${tier.highlighted ? 'border-[#3b82f6]/50' : ''}`}
+              >
+                {tier.highlighted && (
+                  <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-[#3b82f6] text-white text-xs font-semibold px-4 py-1 rounded-full">
+                    POPULAR
+                  </div>
+                )}
 
-            <Link
-              href={plan.link}
-              style={{
-                display: 'block',
-                width: '100%',
-                padding: '16px',
-                backgroundColor: plan.highlighted ? '#10b981' : 'transparent',
-                color: plan.highlighted ? 'black' : 'white',
-                border: plan.highlighted ? 'none' : '1px solid rgba(255, 255, 255, 0.2)',
-                borderRadius: '12px',
-                fontSize: '16px',
-                fontWeight: 'bold',
-                textAlign: 'center',
-                textDecoration: 'none',
-                transition: 'all 0.2s',
-                cursor: 'pointer'
-              }}
-              onMouseEnter={(e) => {
-                if (plan.highlighted) {
-                  e.currentTarget.style.backgroundColor = '#0ea472';
-                } else {
-                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (plan.highlighted) {
-                  e.currentTarget.style.backgroundColor = '#10b981';
-                } else {
-                  e.currentTarget.style.backgroundColor = 'transparent';
-                }
-              }}
-            >
-              {plan.cta}
+                <div className="mb-6">
+                  <h3 className="text-2xl font-bold text-white mb-2">{tier.title}</h3>
+                  <p className="text-sm text-[#888888] mb-4">{tier.description}</p>
+                  <div className="text-4xl font-bold text-white">{tier.price}</div>
+                </div>
+
+                <ul className="space-y-3 mb-6">
+                  {tier.features.map((feature, i) => (
+                    <li key={i} className="flex items-start gap-3 text-sm text-[#a1a1a1]">
+                      <span className="text-[#3b82f6] mt-0.5">✓</span>
+                      <span>{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* CTA */}
+          <div className="text-center mb-16">
+            <Link href="/pilot">
+              <Button variant="primary" size="lg">
+                Request a pilot
+              </Button>
             </Link>
-          </div>
-        ))}
-      </div>
-
-      {/* FAQ Section */}
-      <div style={{
-        maxWidth: '800px',
-        margin: '0 auto',
-        textAlign: 'center'
-      }}>
-        <h2 style={{
-          fontSize: '36px',
-          fontWeight: 'bold',
-          marginBottom: '40px'
-        }}>
-          Frequently Asked Questions
-        </h2>
-
-        <div style={{ textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '24px' }}>
-          <div style={{
-            backgroundColor: '#111111',
-            border: '1px solid #222222',
-            borderRadius: '12px',
-            padding: '24px'
-          }}>
-            <h3 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '12px' }}>
-              Can I upgrade or downgrade my plan?
-            </h3>
-            <p style={{ color: '#888888', fontSize: '14px', lineHeight: '1.6' }}>
-              Yes! You can upgrade or downgrade your plan at any time. Changes will be reflected immediately, and billing will be prorated.
+            <p className="text-sm text-[#666666] mt-4">
+              All tiers include 5–10× dataset expansion and privacy-safe synthetic data generation
             </p>
           </div>
 
-          <div style={{
-            backgroundColor: '#111111',
-            border: '1px solid #222222',
-            borderRadius: '12px',
-            padding: '24px'
-          }}>
-            <h3 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '12px' }}>
-              What payment methods do you accept?
-            </h3>
-            <p style={{ color: '#888888', fontSize: '14px', lineHeight: '1.6' }}>
-              We accept all major credit cards (Visa, Mastercard, American Express) and support payment via Stripe for secure transactions.
-            </p>
-          </div>
+          {/* FAQ */}
+          <div className="max-w-3xl mx-auto">
+            <h2 className="text-3xl font-bold text-white mb-8 text-center">Frequently Asked Questions</h2>
 
-          <div style={{
-            backgroundColor: '#111111',
-            border: '1px solid #222222',
-            borderRadius: '12px',
-            padding: '24px'
-          }}>
-            <h3 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '12px' }}>
-              Is there a free trial for the Pro plan?
-            </h3>
-            <p style={{ color: '#888888', fontSize: '14px', lineHeight: '1.6' }}>
-              Yes! We offer a 14-day free trial for the Pro plan. No credit card required to start your trial.
-            </p>
-          </div>
+            <div className="space-y-4">
+              <div className="card">
+                <h3 className="text-lg font-semibold text-white mb-2">How is pricing calculated?</h3>
+                <p className="text-sm text-[#888888] leading-relaxed">
+                  Pricing is based on the size of your input dataset and the complexity of transformation required.
+                  We start with a pilot to understand your use case and provide a custom quote.
+                </p>
+              </div>
 
-          <div style={{
-            backgroundColor: '#111111',
-            border: '1px solid #222222',
-            borderRadius: '12px',
-            padding: '24px'
-          }}>
-            <h3 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '12px' }}>
-              How accurate is the AI detection?
-            </h3>
-            <p style={{ color: '#888888', fontSize: '14px', lineHeight: '1.6' }}>
-              Our AI detection model has been trained on millions of samples and achieves over 95% accuracy. Pro users get access to our most advanced detection model with even higher accuracy rates.
-            </p>
-          </div>
+              <div className="card">
+                <h3 className="text-lg font-semibold text-white mb-2">What happens during a pilot?</h3>
+                <p className="text-sm text-[#888888] leading-relaxed">
+                  We work with your team to transform a sample dataset (typically 10–100K examples), validate quality,
+                  and ensure the synthetic output meets your training requirements. Pilots typically run 2–4 weeks.
+                </p>
+              </div>
 
-          <div style={{
-            backgroundColor: '#111111',
-            border: '1px solid #222222',
-            borderRadius: '12px',
-            padding: '24px'
-          }}>
-            <h3 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '12px' }}>
-              Can I cancel my subscription at any time?
-            </h3>
-            <p style={{ color: '#888888', fontSize: '14px', lineHeight: '1.6' }}>
-              Absolutely. You can cancel your subscription at any time with no cancellation fees. You'll continue to have access until the end of your billing period.
-            </p>
+              <div className="card">
+                <h3 className="text-lg font-semibold text-white mb-2">Do you guarantee GDPR/EU AI Act compliance?</h3>
+                <p className="text-sm text-[#888888] leading-relaxed">
+                  Verifily is designed to help teams meet regulatory requirements by transforming data into privacy-safe
+                  synthetic derivatives. However, compliance depends on your specific use case and legal interpretation.
+                  We recommend consulting your legal team.
+                </p>
+              </div>
+
+              <div className="card">
+                <h3 className="text-lg font-semibold text-white mb-2">Can we deploy on-premise?</h3>
+                <p className="text-sm text-[#888888] leading-relaxed">
+                  Yes, on-premise deployment is available for Enterprise customers. This ensures your raw data never
+                  leaves your infrastructure.
+                </p>
+              </div>
+
+              <div className="card">
+                <h3 className="text-lg font-semibold text-white mb-2">What formats do you support?</h3>
+                <p className="text-sm text-[#888888] leading-relaxed">
+                  We export to JSONL, Parquet, and custom formats as needed. We can also integrate directly with
+                  HuggingFace Datasets, PyTorch DataLoaders, or your internal training pipeline.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+      </main>
 
-      {/* CTA Section */}
-      <div style={{
-        maxWidth: '800px',
-        margin: '80px auto 0',
-        textAlign: 'center',
-        padding: '60px 40px',
-        backgroundColor: '#111111',
-        border: '1px solid #222222',
-        borderRadius: '20px'
-      }}>
-        <h2 style={{
-          fontSize: '32px',
-          fontWeight: 'bold',
-          marginBottom: '16px'
-        }}>
-          Ready to get started?
-        </h2>
-        <p style={{
-          color: '#888888',
-          fontSize: '16px',
-          marginBottom: '32px'
-        }}>
-          Join thousands of creators verifying their authentic human content.
-        </p>
-        <Link
-          href={user ? '/dashboard' : '/sign-up'}
-          style={{
-            display: 'inline-block',
-            padding: '16px 40px',
-            backgroundColor: '#10b981',
-            color: 'black',
-            borderRadius: '12px',
-            fontSize: '18px',
-            fontWeight: 'bold',
-            textDecoration: 'none',
-            transition: 'background-color 0.2s'
-          }}
-          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#0ea472'}
-          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#10b981'}
-        >
-          Start Free
-        </Link>
-      </div>
+      <Footer />
     </div>
   );
 }

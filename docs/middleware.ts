@@ -3,12 +3,14 @@ import { NextResponse } from 'next/server';
 
 const isPublicRoute = createRouteMatcher([
   '/',
-  '/creators(.*)',
   '/privacy(.*)',
+  '/pricing(.*)',
+  '/pilot(.*)',
+  '/dashboard(.*)',
   '/api/newsletter(.*)',
+  '/api/waitlist(.*)',
   '/sign-in(.*)',
   '/sign-up(.*)',
-  '/dashboard(.*)'
 ]);
 
 // Only use Clerk middleware if keys are configured

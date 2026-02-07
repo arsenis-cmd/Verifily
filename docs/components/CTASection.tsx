@@ -1,6 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import Link from 'next/link';
 import { Button } from './ui/Button';
 
 export default function CTASection() {
@@ -23,26 +24,28 @@ export default function CTASection() {
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            <h2 className="headline-lg mb-6">Ready to verify your work?</h2>
+            <h2 className="headline-lg mb-6">Ready to scale your training data?</h2>
 
             <p className="body-lg mb-12">
-              Join thousands of creators building trust in the AI era.
+              Transform blocked internal data into privacy-safe training corpora.
               <br />
-              Free forever for individuals.
+              Join ML teams using Verifily to train legally and at scale.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
-              <Button
-                variant="primary"
-                size="lg"
-                className="animate-pulse-glow px-24"
-              >
-                Add to Chrome — It's Free
-              </Button>
+              <Link href="/pilot">
+                <Button
+                  variant="primary"
+                  size="lg"
+                  className="animate-pulse-glow px-24"
+                >
+                  Request a pilot
+                </Button>
+              </Link>
             </div>
 
             <p className="text-sm text-[#666666]">
-              Chrome extension available now. Firefox and Safari coming soon.
+              Pilot-based pricing. Designed for ML teams and data platform engineers.
             </p>
           </motion.div>
         </div>

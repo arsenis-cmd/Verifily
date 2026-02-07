@@ -4,7 +4,7 @@ export default function SignUpPage() {
   return (
     <div className="min-h-screen bg-[#000000] flex items-center justify-center">
       <SignUp
-        forceRedirectUrl="/dashboard"
+        forceRedirectUrl="/"
         signInUrl="/sign-in"
         appearance={{
           elements: {

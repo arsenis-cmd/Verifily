@@ -38,22 +38,22 @@ export default function Stats() {
 
   const stats = [
     {
-      number: '95',
-      suffix: '%+',
-      label: 'Accuracy',
-      description: 'Detection accuracy across tested AI-generated content',
-    },
-    {
-      number: '<2',
-      suffix: 's',
-      label: 'Response Time',
-      description: 'Average time to analyze any webpage or text selection',
+      number: '5',
+      suffix: '–10×',
+      label: 'Dataset Expansion',
+      description: 'Typical multiplier from internal human data to synthetic training corpora',
     },
     {
       number: '100',
       suffix: '%',
-      label: 'Privacy-First',
-      description: 'Your content is encrypted locally. We never see it.',
+      label: 'Privacy-Safe',
+      description: 'Raw data stays internal—only privacy-safe synthetic output is exported',
+    },
+    {
+      number: '0',
+      suffix: '',
+      label: 'Legal Risk',
+      description: 'Designed for GDPR and EU AI Act compliance requirements',
     },
   ];
 

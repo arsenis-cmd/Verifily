@@ -5,19 +5,19 @@ import { motion } from 'framer-motion';
 export default function Features() {
   const features = [
     {
-      title: 'Instant AI Detection',
+      title: 'Dataset Transformation',
       description:
-        'Analyze any text with one click. Our multi-model system identifies AI-generated content with 95%+ accuracy.',
+        'Convert internal human data into privacy-safe synthetic datasets. Preserve distribution and signal while removing personally identifiable information.',
     },
     {
-      title: 'Human Verification',
+      title: 'Leakage Controls',
       description:
-        'Prove your work is authentic. Get a verification badge you can share—your proof of human authorship.',
+        'Designed to reduce memorization and leakage risk through deduplication, n-gram overlap filtering, similarity checks, and redaction.',
     },
     {
-      title: 'Verified Portfolio',
+      title: 'Auditability & Versioning',
       description:
-        'Track all verified content in one dashboard. Build a reputation for authentic human work.',
+        'Track transformations with audit logs, version datasets for reproducibility, and integrate with existing training pipelines seamlessly.',
     },
   ];
 
@@ -33,14 +33,14 @@ export default function Features() {
           className="mb-24"
         >
           <h2 className="text-white mb-6">
-            Three ways to{' '}
+            Infrastructure for{' '}
             <span className="bg-gradient-to-r from-[#3b82f6] to-[#8b5cf6] bg-clip-text text-transparent">
-              take control
+              privacy-safe training
             </span>
           </h2>
           <div className="flex justify-center">
             <p className="text-2xl text-[#888888] max-w-3xl text-center">
-              Everything you need to verify authenticity in the AI era
+              Plugs into your existing ML stack to transform data and expand training corpora
             </p>
           </div>
         </motion.div>

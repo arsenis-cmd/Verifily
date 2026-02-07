@@ -6,21 +6,21 @@ export default function HowItWorks() {
   const steps = [
     {
       number: '01',
-      title: 'Install Extension',
+      title: 'Ingest Internal Data',
       description:
-        'Add Verifily to Chrome in one click. No account required to start detecting AI content.',
+        'Connect your internal human data under a data-processing agreement. No scraping—only authorized access to your proprietary data.',
     },
     {
       number: '02',
-      title: 'Detect or Verify',
+      title: 'Transform to Synthetic',
       description:
-        'Highlight any text and click "Check for AI"—or verify your own work as human-created.',
+        'Process data in a controlled environment with privacy-safe transformations: de-identification, leakage controls, and distribution preservation.',
     },
     {
       number: '03',
-      title: 'Get Results',
+      title: 'Export Training Corpora',
       description:
-        'See detailed analysis in seconds. Share your verification badge anywhere.',
+        'Receive versioned, training-ready synthetic datasets. Teams train on synthetic output—not raw data. Typically expands datasets 5–10×.',
     },
   ];
 
@@ -38,7 +38,7 @@ export default function HowItWorks() {
           <h2 className="text-white mb-6">How it works</h2>
           <div className="flex justify-center">
             <p className="text-2xl text-[#888888] max-w-3xl text-center">
-              From detection to verification in seconds
+              Three steps from raw human data to training-ready synthetic datasets
             </p>
           </div>
         </motion.div>

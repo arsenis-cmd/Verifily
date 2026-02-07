@@ -38,8 +38,8 @@ export async function POST(request: Request) {
       subject: 'Welcome to Verifily Newsletter',
       html: `
         <h2>Welcome to Verifily!</h2>
-        <p>Thank you for subscribing to our newsletter. You'll receive updates on the latest developments in AI detection and content verification.</p>
-        <p>Stay tuned for exclusive insights and early access to new features!</p>
+        <p>Thank you for subscribing to our newsletter. You'll receive updates on privacy-safe synthetic data, dataset transformation, and compliance tooling for ML teams.</p>
+        <p>Stay tuned for product updates and early access to new capabilities.</p>
         <br/>
         <p>Best regards,<br/>The Verifily Team</p>
       `,

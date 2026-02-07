@@ -1,12 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase';
+
+/**
+ * POST /api/waitlist
+ *
+ * Accepts email signups for the Verifily waitlist.
+ * Previously backed by Supabase — now logs to console and
+ * optionally sends a notification via Resend if configured.
+ *
+ * TODO: Replace with a production-grade storage backend
+ * (database, CRM, etc.) when ready.
+ */
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { email, source = 'extension' } = body;
+    const { email } = body;
 
-    // Validate email
     if (!email || !email.includes('@')) {
       return NextResponse.json(
         { error: 'Invalid email address' },
@@ -14,50 +23,35 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if email already exists
-    const { data: existing } = await supabaseAdmin
-      .from('waitlist')
-      .select('*')
-      .eq('email', email.toLowerCase().trim())
-      .single();
+    const normalizedEmail = email.toLowerCase().trim();
 
-    if (existing) {
-      return NextResponse.json({
-        success: true,
-        message: 'Already on waitlist',
-        already_exists: true
-      });
-    }
+    // Log for now — replace with database insert in production
+    console.log(`[waitlist] New signup: ${normalizedEmail}`);
 
-    // Add to waitlist
-    const { data, error } = await supabaseAdmin
-      .from('waitlist')
-      .insert({
-        email: email.toLowerCase().trim(),
-        source,
-        created_at: new Date().toISOString()
-      })
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Waitlist error:', error);
-      return NextResponse.json(
-        { error: 'Failed to join waitlist', details: error.message },
-        { status: 500 }
-      );
+    // Send notification if Resend is configured
+    if (process.env.RESEND_API_KEY) {
+      try {
+        const { Resend } = await import('resend');
+        const resend = new Resend(process.env.RESEND_API_KEY);
+        await resend.emails.send({
+          from: 'Verifily <noreply@verifily.io>',
+          to: process.env.NOTIFICATION_EMAIL || 'pilot@verifily.io',
+          subject: 'New Waitlist Signup',
+          html: `<p>New waitlist signup: <strong>${normalizedEmail}</strong></p>`,
+        });
+      } catch (emailErr) {
+        console.error('[waitlist] Failed to send notification:', emailErr);
+      }
     }
 
     return NextResponse.json({
       success: true,
       message: 'Successfully joined waitlist',
-      data
     });
-
   } catch (error) {
-    console.error('Waitlist API error:', error);
+    console.error('[waitlist] API error:', error);
     return NextResponse.json(
-      { error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown error' },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }

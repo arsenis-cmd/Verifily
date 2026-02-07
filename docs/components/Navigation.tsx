@@ -46,13 +46,6 @@ export default function Navigation() {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-10">
             <Link
-              href="/dashboard"
-              className="text-[15px] text-[#888888] hover:text-white transition-colors relative group"
-            >
-              Dashboard
-              <span className="absolute -bottom-1 left-0 w-0 h-px bg-white group-hover:w-full transition-all duration-300" />
-            </Link>
-            <Link
               href="#how-it-works"
               className="text-[15px] text-[#888888] hover:text-white transition-colors relative group"
             >
@@ -67,10 +60,10 @@ export default function Navigation() {
               <span className="absolute -bottom-1 left-0 w-0 h-px bg-white group-hover:w-full transition-all duration-300" />
             </Link>
             <Link
-              href="#pricing"
+              href="/pricing"
               className="text-[15px] text-[#888888] hover:text-white transition-colors relative group"
             >
-              Pricing
+              Pilot Program
               <span className="absolute -bottom-1 left-0 w-0 h-px bg-white group-hover:w-full transition-all duration-300" />
             </Link>
           </div>
@@ -90,16 +83,12 @@ export default function Navigation() {
                   <UserButton afterSignOutUrl="/" />
                 </SignedIn>
               </>
-            ) : (
-              <Link href="/dashboard">
-                <Button variant="secondary" size="sm">
-                  Dashboard
-                </Button>
-              </Link>
-            )}
-            <Button variant="primary" size="sm">
-              Add to Chrome
-            </Button>
+            ) : null}
+            <Link href="/pilot">
+              <Button variant="primary" size="sm">
+                Request pilot
+              </Button>
+            </Link>
           </div>
         </div>
       </div>

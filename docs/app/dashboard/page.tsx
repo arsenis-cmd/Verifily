@@ -1,1004 +1,589 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useUser, UserButton } from '@clerk/nextjs';
-import { useRouter } from 'next/navigation';
+import { Suspense, useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
+import Navigation from '@/components/Navigation';
 
-export const dynamic = 'force-dynamic';
+// ─── Types ──────────────────────────────────────────────────────────────────
 
-interface Verification {
-  id: string;
-  content: string;
-  content_hash: string;
-  classification: 'HUMAN' | 'AI' | 'MIXED';
-  ai_probability: number;
-  confidence: number;
-  platform?: string;
-  created_at: string;
+interface Project {
+  name: string;
+  status: string;
+  inputSize: number;
+  outputSize: number;
+  lastRun: string;
 }
 
-type DetectionStep = 'input' | 'detecting' | 'review' | 'verifying' | 'complete';
+interface Dataset {
+  id: string;
+  name: string;
+  type: string;
+  size: number;
+  version: string;
+  hash: string;
+  created: string;
+  status: string;
+}
+
+interface Run {
+  id: string;
+  input: string;
+  output: string;
+  filters: string[];
+  expansionFactor: string;
+  duration: string;
+  status: string;
+  timestamp: string;
+}
+
+interface Quality {
+  duplicationRate: string;
+  overlapRate: string;
+  leakageChecksPassed: boolean;
+}
+
+interface DashboardData {
+  project: Project;
+  datasets: Dataset[];
+  runs: Run[];
+  quality: Quality;
+}
+
+type Tab = 'overview' | 'datasets' | 'runs' | 'quality' | 'export';
+
+// ─── Access Gate ────────────────────────────────────────────────────────────
+
+const PILOT_ACCESS_KEY = 'verifily_pilot_access';
+
+function usePilotAccess() {
+  const searchParams = useSearchParams();
+  const [hasAccess, setHasAccess] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    // Check URL param first: /dashboard?access=pilot-2025
+    const accessParam = searchParams.get('access');
+    if (accessParam) {
+      localStorage.setItem(PILOT_ACCESS_KEY, accessParam);
+      setHasAccess(true);
+      return;
+    }
+    // Fallback: check localStorage
+    const stored = localStorage.getItem(PILOT_ACCESS_KEY);
+    setHasAccess(!!stored);
+  }, [searchParams]);
+
+  return hasAccess;
+}
+
+// ─── Helpers ────────────────────────────────────────────────────────────────
+
+function formatNumber(n: number): string {
+  return n.toLocaleString();
+}
+
+function formatDate(iso: string): string {
+  return new Date(iso).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
+function StatusBadge({ status }: { status: string }) {
+  const colors: Record<string, string> = {
+    Ready: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30',
+    Ingested: 'bg-blue-500/10 text-blue-400 border-blue-500/30',
+    Processing: 'bg-amber-500/10 text-amber-400 border-amber-500/30',
+    Success: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30',
+    Failed: 'bg-red-500/10 text-red-400 border-red-500/30',
+  };
+  return (
+    <span
+      className={`inline-block px-2.5 py-0.5 text-xs font-medium rounded-full border ${
+        colors[status] ?? 'bg-white/5 text-[#888] border-white/10'
+      }`}
+    >
+      {status}
+    </span>
+  );
+}
+
+const EXPORT_FORMATS = [
+  { label: 'JSONL', format: 'jsonl' },
+  { label: 'CSV', format: 'csv' },
+  { label: 'Parquet', format: 'parquet' },
+  { label: 'HuggingFace Datasets', format: 'huggingface' },
+];
+
+// ─── Locked State ───────────────────────────────────────────────────────────
+
+function LockedDashboard() {
+  return (
+    <div className="min-h-screen bg-[#000000] text-white">
+      <Navigation />
+      <main className="max-w-2xl mx-auto px-6 pt-48 pb-24 text-center">
+        <div className="bg-[#0a0a0a] border border-[#222] rounded-xl p-12">
+          <div className="text-4xl mb-6 opacity-40">&#x1F512;</div>
+          <h1 className="text-2xl font-bold tracking-tight mb-4">
+            Pilot access required
+          </h1>
+          <p className="text-sm text-[#888] mb-8 leading-relaxed">
+            The Verifily Data Operations dashboard is available only to
+            pilot customers. If you are evaluating Verifily, request a
+            pilot and we will provision your access.
+          </p>
+          <Link
+            href="/pilot"
+            className="inline-block px-6 py-3 bg-[#3b82f6] hover:bg-[#2563eb] text-white text-sm font-medium rounded-lg transition-colors"
+          >
+            Request a pilot
+          </Link>
+          <p className="text-xs text-[#555] mt-8">
+            Already have an access link? Open the URL your pilot lead shared with you.
+          </p>
+        </div>
+      </main>
+    </div>
+  );
+}
+
+// ─── Page ───────────────────────────────────────────────────────────────────
 
 export default function DashboardPage() {
-  const { user, isLoaded } = useUser();
-  const router = useRouter();
-  const [verifications, setVerifications] = useState<Verification[]>([]);
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-[#000000] flex items-center justify-center">
+          <p className="text-[#666] text-sm">Loading...</p>
+        </div>
+      }
+    >
+      <DashboardContent />
+    </Suspense>
+  );
+}
+
+function DashboardContent() {
+  const hasAccess = usePilotAccess();
+  const [activeTab, setActiveTab] = useState<Tab>('overview');
+  const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [showNewModal, setShowNewModal] = useState(false);
-  const [step, setStep] = useState<DetectionStep>('input');
-  const [newContent, setNewContent] = useState('');
-  const [platform, setPlatform] = useState('twitter');
-  const [username, setUsername] = useState('');
-  const [aiResult, setAiResult] = useState<any>(null);
-  const [verification, setVerification] = useState<any>(null);
-  const [error, setError] = useState('');
-  const [selectedVerification, setSelectedVerification] = useState<Verification | null>(null);
-  const [showDetailsModal, setShowDetailsModal] = useState(false);
 
-  useEffect(() => {
-    if (isLoaded && !user) {
-      router.push('/sign-in');
-    }
-  }, [user, isLoaded, router]);
-
-  useEffect(() => {
-    if (user) {
-      fetchVerifications();
-    }
-  }, [user]);
-
-  const fetchVerifications = async () => {
+  const fetchDashboard = useCallback(async () => {
     try {
-      const response = await fetch('/api/verifications', {
-        credentials: 'include'
-      });
-      const data = await response.json();
-      setVerifications(data.verifications || []);
-    } catch (error) {
-      console.error('Error fetching verifications:', error);
+      const res = await fetch('/api/dashboard/');
+      const json = await res.json();
+      setData(json);
+    } catch (err) {
+      console.error('Failed to load dashboard data:', err);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const handleDetectAI = async () => {
-    if (!newContent || newContent.length < 10) {
-      setError('Content must be at least 10 characters');
-      return;
-    }
+  useEffect(() => {
+    if (hasAccess) fetchDashboard();
+  }, [hasAccess, fetchDashboard]);
 
-    setError('');
-    setStep('detecting');
-
-    try {
-      // Call Railway backend API
-      const apiUrl = process.env.NEXT_PUBLIC_AI_API_URL || 'https://verifily-production.up.railway.app/api/v1';
-      const response = await fetch(`${apiUrl}/detect`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          content: newContent,
-          content_type: 'text'
-        })
-      });
-
-      const result = await response.json();
-      setAiResult(result);
-      setStep('review');
-    } catch (error) {
-      console.error('Error detecting content:', error);
-      setError('Failed to detect content. Please try again.');
-      setStep('input');
-    }
-  };
-
-  const handleVerify = async () => {
-    if (!username || username.length < 2) {
-      setError('Please enter your username');
-      return;
-    }
-
-    setError('');
-    setStep('verifying');
-
-    try {
-      // Save to user's account
-      const response = await fetch('/api/verifications', {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          content: newContent,
-          classification: aiResult.classification,
-          ai_probability: aiResult.ai_probability,
-          confidence: aiResult.confidence,
-          platform,
-          metadata: { ...aiResult, username }
-        })
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        console.error('Error response:', data);
-        setError(`Failed to save: ${data.details || data.error || 'Unknown error'}`);
-        setStep('review');
-        return;
-      }
-
-      setVerification(data.verification);
-      setStep('complete');
-    } catch (error) {
-      console.error('Error saving verification:', error);
-      setError('Failed to save verification. Please try again.');
-      setStep('review');
-    }
-  };
-
-  const resetModal = () => {
-    setShowNewModal(false);
-    setStep('input');
-    setNewContent('');
-    setPlatform('twitter');
-    setUsername('');
-    setAiResult(null);
-    setVerification(null);
-    setError('');
-    fetchVerifications();
-  };
-
-  if (!isLoaded || loading) {
+  // Still checking access
+  if (hasAccess === null) {
     return (
-      <div style={{
-        minHeight: '100vh',
-        backgroundColor: '#000000',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center'
-      }}>
-        <div style={{ color: '#888888' }}>Loading...</div>
+      <div className="min-h-screen bg-[#000000] flex items-center justify-center">
+        <p className="text-[#666] text-sm">Loading...</p>
       </div>
     );
   }
 
-  const isHuman = aiResult?.classification === 'HUMAN';
+  // No access — show locked state
+  if (!hasAccess) {
+    return <LockedDashboard />;
+  }
+
+  // Loading data
+  if (loading || !data) {
+    return (
+      <div className="min-h-screen bg-[#000000] flex items-center justify-center">
+        <p className="text-[#666] text-sm">Loading dashboard...</p>
+      </div>
+    );
+  }
+
+  const { project, datasets, runs, quality } = data;
+
+  const handleExport = (format: string) => {
+    if (format === 'jsonl' || format === 'csv') {
+      window.open(`/api/dashboard/export/?format=${format}`, '_blank');
+    } else {
+      alert(`${format.toUpperCase()} export is available in production. Use JSONL or CSV in the pilot.`);
+    }
+  };
+
+  const tabs: { key: Tab; label: string }[] = [
+    { key: 'overview', label: 'Overview' },
+    { key: 'datasets', label: 'Datasets' },
+    { key: 'runs', label: 'Pipeline / Runs' },
+    { key: 'quality', label: 'Quality & Safety' },
+    { key: 'export', label: 'Export' },
+  ];
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      backgroundColor: '#000000',
-      color: 'white',
-      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-    }}>
-      {/* Header */}
-      <header style={{
-        borderBottom: '1px solid #222222',
-        backgroundColor: '#0a0a0a'
-      }}>
-        <div style={{
-          maxWidth: '1200px',
-          margin: '0 auto',
-          padding: '16px 24px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between'
-        }}>
-          <Link href="/" style={{
-            fontSize: '24px',
-            fontWeight: 'bold',
-            color: 'white',
-            textDecoration: 'none'
-          }}>
-            Verifily
-          </Link>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <button
-              onClick={() => setShowNewModal(true)}
-              style={{
-                padding: '10px 20px',
-                backgroundColor: '#10b981',
-                color: 'black',
-                border: 'none',
-                borderRadius: '8px',
-                fontSize: '14px',
-                fontWeight: '600',
-                cursor: 'pointer'
-              }}
-            >
-              New Detection
-            </button>
-            <UserButton afterSignOutUrl="/" />
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen bg-[#000000] text-white">
+      <Navigation />
 
-      {/* Main Content */}
-      <main style={{
-        maxWidth: '1200px',
-        margin: '0 auto',
-        padding: '48px 24px'
-      }}>
-        <div style={{ marginBottom: '32px' }}>
-          <h1 style={{
-            fontSize: '36px',
-            fontWeight: 'bold',
-            marginBottom: '8px'
-          }}>
-            Your Verifications
+      {/* Pilot banner */}
+      <div className="bg-[#0a0a0a] border-b border-[#222]">
+        <div className="max-w-6xl mx-auto px-6 py-3 flex items-center justify-between">
+          <p className="text-xs text-[#888] tracking-wide uppercase">
+            Pilot-only dashboard &mdash; available to evaluation customers
+          </p>
+          <Link
+            href="/pilot"
+            className="text-xs text-[#3b82f6] hover:text-[#60a5fa] transition-colors"
+          >
+            Request access &rarr;
+          </Link>
+        </div>
+      </div>
+
+      <main className="max-w-6xl mx-auto px-6 pt-28 pb-24">
+        {/* Header */}
+        <div className="mb-10">
+          <h1 className="text-3xl font-bold tracking-tight mb-2">
+            Data Operations
           </h1>
-          <p style={{ color: '#888888', fontSize: '16px' }}>
-            All your AI content detections in one place
+          <p className="text-[#888] text-sm">
+            Monitor datasets, transformation runs, and synthetic output quality.
           </p>
         </div>
 
-        {/* Verifications Grid */}
-        {verifications.length === 0 ? (
-          <div style={{
-            backgroundColor: '#111111',
-            border: '1px solid #222222',
-            borderRadius: '12px',
-            padding: '60px 24px',
-            textAlign: 'center'
-          }}>
-            <p style={{ color: '#666666', marginBottom: '24px' }}>No verifications yet</p>
+        {/* Tabs */}
+        <div className="flex gap-1 mb-10 border-b border-[#222] overflow-x-auto">
+          {tabs.map((t) => (
             <button
-              onClick={() => setShowNewModal(true)}
-              style={{
-                padding: '12px 24px',
-                backgroundColor: '#10b981',
-                color: 'black',
-                border: 'none',
-                borderRadius: '8px',
-                fontSize: '14px',
-                fontWeight: '600',
-                cursor: 'pointer'
-              }}
+              key={t.key}
+              onClick={() => setActiveTab(t.key)}
+              className={`px-5 py-3 text-sm font-medium transition-colors whitespace-nowrap ${
+                activeTab === t.key
+                  ? 'text-white border-b-2 border-[#3b82f6]'
+                  : 'text-[#666] hover:text-[#aaa]'
+              }`}
             >
-              Create Your First Detection
+              {t.label}
             </button>
-          </div>
-        ) : (
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
-            gap: '20px'
-          }}>
-            {verifications.map((verification) => (
+          ))}
+        </div>
+
+        {/* ── Overview ─────────────────────────────────────── */}
+        {activeTab === 'overview' && (
+          <section className="space-y-8">
+            <div className="bg-[#0a0a0a] border border-[#222] rounded-xl p-8">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+                <div>
+                  <p className="text-xs text-[#666] uppercase tracking-wider mb-1">
+                    Project
+                  </p>
+                  <h2 className="text-xl font-semibold mb-3">
+                    {project.name}
+                  </h2>
+                  <StatusBadge status={project.status} />
+                </div>
+                <button
+                  onClick={() => setActiveTab('export')}
+                  className="self-start md:self-center px-5 py-2.5 bg-[#3b82f6] hover:bg-[#2563eb] text-white text-sm font-medium rounded-lg transition-colors"
+                >
+                  Export synthetic dataset
+                </button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {[
+                { label: 'Input examples', value: formatNumber(project.inputSize) },
+                { label: 'Synthetic output', value: formatNumber(project.outputSize) },
+                {
+                  label: 'Expansion ratio',
+                  value: `${(project.outputSize / project.inputSize).toFixed(1)}×`,
+                },
+                { label: 'Last run', value: formatDate(project.lastRun) },
+              ].map((kpi) => (
+                <div
+                  key={kpi.label}
+                  className="bg-[#0a0a0a] border border-[#222] rounded-xl p-5"
+                >
+                  <p className="text-xs text-[#666] uppercase tracking-wider mb-2">
+                    {kpi.label}
+                  </p>
+                  <p className="text-lg font-semibold">{kpi.value}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="bg-[#0a0a0a] border border-[#222] rounded-xl p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-sm font-semibold uppercase tracking-wider text-[#888]">
+                  Recent runs
+                </h3>
+                <button
+                  onClick={() => setActiveTab('runs')}
+                  className="text-xs text-[#3b82f6] hover:text-[#60a5fa] transition-colors"
+                >
+                  View all &rarr;
+                </button>
+              </div>
+              <div className="space-y-3">
+                {runs.slice(0, 2).map((run) => (
+                  <div
+                    key={run.id}
+                    className="flex items-center justify-between py-2 border-b border-[#1a1a1a] last:border-0"
+                  >
+                    <div>
+                      <p className="text-sm font-medium">{run.input}</p>
+                      <p className="text-xs text-[#666] mt-0.5">
+                        {run.expansionFactor} expansion &middot; {run.duration}
+                      </p>
+                    </div>
+                    <StatusBadge status={run.status} />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* ── Datasets ─────────────────────────────────────── */}
+        {activeTab === 'datasets' && (
+          <section>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm">
+                <thead>
+                  <tr className="border-b border-[#222] text-xs text-[#666] uppercase tracking-wider">
+                    <th className="pb-3 pr-4 font-medium">Name</th>
+                    <th className="pb-3 pr-4 font-medium">Type</th>
+                    <th className="pb-3 pr-4 font-medium">Examples</th>
+                    <th className="pb-3 pr-4 font-medium">Version</th>
+                    <th className="pb-3 pr-4 font-medium">Hash</th>
+                    <th className="pb-3 pr-4 font-medium">Created</th>
+                    <th className="pb-3 font-medium">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {datasets.map((ds) => (
+                    <tr
+                      key={ds.id}
+                      className="border-b border-[#1a1a1a] hover:bg-[#0a0a0a] transition-colors"
+                    >
+                      <td className="py-4 pr-4 font-medium">{ds.name}</td>
+                      <td className="py-4 pr-4 text-[#aaa]">{ds.type}</td>
+                      <td className="py-4 pr-4 font-mono text-[#aaa]">
+                        {formatNumber(ds.size)}
+                      </td>
+                      <td className="py-4 pr-4 text-[#aaa]">{ds.version}</td>
+                      <td className="py-4 pr-4 font-mono text-xs text-[#666]">
+                        {ds.hash}
+                      </td>
+                      <td className="py-4 pr-4 text-[#aaa]">{ds.created}</td>
+                      <td className="py-4">
+                        <StatusBadge status={ds.status} />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <p className="text-xs text-[#555] mt-6">
+              Metadata only &mdash; raw data is not displayed in this interface.
+            </p>
+          </section>
+        )}
+
+        {/* ── Pipeline / Runs ──────────────────────────────── */}
+        {activeTab === 'runs' && (
+          <section className="space-y-4">
+            {runs.map((run) => (
               <div
-                key={verification.id}
-                onClick={() => {
-                  setSelectedVerification(verification);
-                  setShowDetailsModal(true);
-                }}
-                style={{
-                  backgroundColor: '#111111',
-                  border: '1px solid #222222',
-                  borderRadius: '12px',
-                  padding: '24px',
-                  transition: 'border-color 0.2s',
-                  cursor: 'pointer'
-                }}
-                onMouseEnter={(e) => e.currentTarget.style.borderColor = '#3b82f6'}
-                onMouseLeave={(e) => e.currentTarget.style.borderColor = '#222222'}
+                key={run.id}
+                className="bg-[#0a0a0a] border border-[#222] rounded-xl p-6"
               >
-                {/* Classification Badge */}
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  marginBottom: '16px'
-                }}>
-                  <span style={{
-                    padding: '6px 12px',
-                    borderRadius: '20px',
-                    fontSize: '12px',
-                    fontWeight: 'bold',
-                    backgroundColor: verification.classification === 'HUMAN'
-                      ? 'rgba(16, 185, 129, 0.1)'
-                      : verification.classification === 'AI'
-                      ? 'rgba(239, 68, 68, 0.1)'
-                      : 'rgba(251, 191, 36, 0.1)',
-                    border: `1px solid ${
-                      verification.classification === 'HUMAN'
-                        ? 'rgba(16, 185, 129, 0.3)'
-                        : verification.classification === 'AI'
-                        ? 'rgba(239, 68, 68, 0.3)'
-                        : 'rgba(251, 191, 36, 0.3)'
-                    }`,
-                    color: verification.classification === 'HUMAN'
-                      ? '#10b981'
-                      : verification.classification === 'AI'
-                      ? '#ef4444'
-                      : '#fbbf24'
-                  }}>
-                    {verification.classification}
-                  </span>
-                  <span style={{ color: '#666666', fontSize: '12px' }}>
-                    {new Date(verification.created_at).toLocaleDateString()}
-                  </span>
+                <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-4">
+                  <div>
+                    <p className="text-xs text-[#666] font-mono mb-1">
+                      {run.id}
+                    </p>
+                    <p className="text-sm font-medium">
+                      {run.input}{' '}
+                      <span className="text-[#555]">&rarr;</span>{' '}
+                      {run.output}
+                    </p>
+                  </div>
+                  <StatusBadge status={run.status} />
                 </div>
 
-                {/* Content Preview */}
-                <p style={{
-                  color: '#a1a1a1',
-                  fontSize: '14px',
-                  lineHeight: '1.6',
-                  marginBottom: '16px',
-                  display: '-webkit-box',
-                  WebkitLineClamp: 3,
-                  WebkitBoxOrient: 'vertical',
-                  overflow: 'hidden'
-                }}>
-                  {verification.content}
-                </p>
-
-                {/* Stats */}
-                <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: '1fr 1fr',
-                  gap: '12px',
-                  paddingTop: '16px',
-                  borderTop: '1px solid #222222'
-                }}>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                   <div>
-                    <div style={{ color: '#666666', fontSize: '11px', marginBottom: '4px' }}>
-                      AI PROBABILITY
-                    </div>
-                    <div style={{ fontSize: '18px', fontWeight: 'bold' }}>
-                      {(verification.ai_probability * 100).toFixed(1)}%
-                    </div>
+                    <p className="text-xs text-[#666] mb-1">Expansion</p>
+                    <p className="font-medium">{run.expansionFactor}</p>
                   </div>
                   <div>
-                    <div style={{ color: '#666666', fontSize: '11px', marginBottom: '4px' }}>
-                      CONFIDENCE
-                    </div>
-                    <div style={{ fontSize: '18px', fontWeight: 'bold' }}>
-                      {(verification.confidence * 100).toFixed(1)}%
+                    <p className="text-xs text-[#666] mb-1">Duration</p>
+                    <p className="font-medium">{run.duration}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-[#666] mb-1">Timestamp</p>
+                    <p className="font-medium">{formatDate(run.timestamp)}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-[#666] mb-1">Filters</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {run.filters.map((f) => (
+                        <span
+                          key={f}
+                          className="inline-block px-2 py-0.5 text-xs bg-white/5 border border-white/10 rounded text-[#aaa]"
+                        >
+                          {f}
+                        </span>
+                      ))}
                     </div>
                   </div>
                 </div>
               </div>
             ))}
-          </div>
+          </section>
         )}
+
+        {/* ── Quality & Safety ─────────────────────────────── */}
+        {activeTab === 'quality' && (
+          <section className="space-y-6">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="bg-[#0a0a0a] border border-[#222] rounded-xl p-6">
+                <p className="text-xs text-[#666] uppercase tracking-wider mb-2">
+                  Duplication rate
+                </p>
+                <p className="text-2xl font-semibold">
+                  {quality.duplicationRate}
+                </p>
+              </div>
+              <div className="bg-[#0a0a0a] border border-[#222] rounded-xl p-6">
+                <p className="text-xs text-[#666] uppercase tracking-wider mb-2">
+                  N-gram overlap rate
+                </p>
+                <p className="text-2xl font-semibold">
+                  {quality.overlapRate}
+                </p>
+              </div>
+              <div className="bg-[#0a0a0a] border border-[#222] rounded-xl p-6">
+                <p className="text-xs text-[#666] uppercase tracking-wider mb-2">
+                  Leakage checks
+                </p>
+                <p className="text-2xl font-semibold text-emerald-400">
+                  {quality.leakageChecksPassed ? 'Passed' : 'Action needed'}
+                </p>
+              </div>
+            </div>
+
+            <div className="bg-[#0a0a0a] border border-[#222] rounded-xl p-6">
+              <h3 className="text-sm font-semibold mb-3">About these metrics</h3>
+              <ul className="space-y-2 text-sm text-[#888]">
+                <li>
+                  <strong className="text-[#aaa]">Duplication rate</strong> &mdash;
+                  percentage of synthetic examples that are near-duplicates of
+                  seed data.
+                </li>
+                <li>
+                  <strong className="text-[#aaa]">Overlap rate</strong> &mdash;
+                  n-gram overlap between synthetic output and original seed corpus.
+                </li>
+                <li>
+                  <strong className="text-[#aaa]">Leakage checks</strong> &mdash;
+                  automated checks for PII leakage and verbatim memorization.
+                </li>
+              </ul>
+              <p className="text-xs text-[#555] mt-4">
+                These controls are designed to reduce memorization risk.
+                They do not guarantee zero leakage &mdash; review outputs
+                before production use.
+              </p>
+            </div>
+          </section>
+        )}
+
+        {/* ── Export / Integration ─────────────────────────── */}
+        {activeTab === 'export' && (
+          <section className="space-y-6">
+            <div className="bg-[#0a0a0a] border border-[#222] rounded-xl p-8">
+              <h3 className="text-lg font-semibold mb-4">
+                Download synthetic dataset
+              </h3>
+              <div className="flex flex-wrap gap-3 mb-6">
+                {EXPORT_FORMATS.map((fmt) => (
+                  <button
+                    key={fmt.format}
+                    onClick={() => handleExport(fmt.format)}
+                    className="px-4 py-2 text-sm border border-[#333] rounded-lg text-[#aaa] hover:text-white hover:border-[#3b82f6] transition-colors"
+                  >
+                    {fmt.label}
+                  </button>
+                ))}
+              </div>
+              <p className="text-xs text-[#555]">
+                JSONL and CSV downloads contain sample synthetic data.
+                In production, files are generated on demand and delivered via signed URL.
+              </p>
+            </div>
+
+            <div className="bg-[#0a0a0a] border border-[#222] rounded-xl p-8">
+              <h3 className="text-lg font-semibold mb-4">Integration</h3>
+              <p className="text-sm text-[#888] mb-4">
+                Synthetic datasets integrate with existing training pipelines.
+                Supported targets include:
+              </p>
+              <ul className="space-y-2 text-sm text-[#aaa]">
+                <li className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 bg-[#3b82f6] rounded-full" />
+                  HuggingFace Datasets
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 bg-[#3b82f6] rounded-full" />
+                  PyTorch DataLoaders
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 bg-[#3b82f6] rounded-full" />
+                  Internal training infrastructure (custom adapters)
+                </li>
+              </ul>
+              <p className="text-xs text-[#555] mt-4">
+                Need a custom integration? Contact your pilot lead or{' '}
+                <Link
+                  href="/pilot"
+                  className="text-[#3b82f6] hover:underline"
+                >
+                  request a pilot
+                </Link>
+                .
+              </p>
+            </div>
+          </section>
+        )}
+
+        {/* Footer note */}
+        <div className="mt-16 pt-8 border-t border-[#1a1a1a] text-center">
+          <p className="text-xs text-[#555]">
+            This dashboard is available only to pilot customers evaluating
+            Verifily. Data shown is representative.
+          </p>
+          <p className="text-xs text-[#444] mt-2">
+            Questions?{' '}
+            <a
+              href="mailto:pilot@verifily.io"
+              className="text-[#3b82f6] hover:underline"
+            >
+              pilot@verifily.io
+            </a>
+          </p>
+        </div>
       </main>
-
-      {/* New Detection Modal */}
-      {showNewModal && (
-        <div style={{
-          position: 'fixed',
-          inset: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.9)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 50,
-          padding: '20px',
-          overflowY: 'auto'
-        }}>
-          <div style={{
-            backgroundColor: '#111111',
-            border: '1px solid #222222',
-            borderRadius: '16px',
-            maxWidth: '800px',
-            width: '100%',
-            padding: '40px',
-            position: 'relative'
-          }}>
-            {/* Close Button */}
-            <button
-              onClick={resetModal}
-              style={{
-                position: 'absolute',
-                top: '20px',
-                right: '20px',
-                background: 'transparent',
-                border: 'none',
-                color: '#666666',
-                fontSize: '24px',
-                cursor: 'pointer',
-                padding: '4px 8px'
-              }}
-            >
-              ✕
-            </button>
-
-            {/* Header */}
-            <div style={{ textAlign: 'center', marginBottom: '40px' }}>
-              <h2 style={{ fontSize: '32px', fontWeight: 'bold', marginBottom: '8px' }}>
-                New AI Detection
-              </h2>
-              <p style={{ color: '#888888', fontSize: '14px' }}>
-                Analyze content for AI-generated patterns
-              </p>
-            </div>
-
-            {/* Step Indicator */}
-            <div style={{
-              display: 'flex',
-              justifyContent: 'center',
-              gap: '20px',
-              marginBottom: '40px'
-            }}>
-              {['input', 'detecting', 'review', 'verifying', 'complete'].map((s, i) => {
-                const stepIndex = ['input', 'detecting', 'review', 'verifying', 'complete'].indexOf(step);
-                const currentIndex = ['input', 'detecting', 'review', 'verifying', 'complete'].indexOf(s);
-                return (
-                  <div key={s} style={{
-                    width: '40px',
-                    height: '40px',
-                    borderRadius: '50%',
-                    backgroundColor: currentIndex <= stepIndex
-                      ? '#10b981'
-                      : 'rgba(255, 255, 255, 0.1)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontWeight: 'bold',
-                    fontSize: '14px'
-                  }}>
-                    {i + 1}
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Error Message */}
-            {error && (
-              <div style={{
-                backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                border: '2px solid rgba(239, 68, 68, 0.5)',
-                borderRadius: '12px',
-                padding: '16px',
-                marginBottom: '24px',
-                color: '#ef4444'
-              }}>
-                {error}
-              </div>
-            )}
-
-            {/* Step 1: Input Content */}
-            {step === 'input' && (
-              <div>
-                <textarea
-                  value={newContent}
-                  onChange={(e) => setNewContent(e.target.value)}
-                  placeholder="Paste your content here..."
-                  style={{
-                    width: '100%',
-                    height: '200px',
-                    backgroundColor: 'rgba(0, 0, 0, 0.4)',
-                    border: '1px solid rgba(255, 255, 255, 0.2)',
-                    borderRadius: '8px',
-                    padding: '16px',
-                    color: 'white',
-                    fontSize: '14px',
-                    fontFamily: 'inherit',
-                    resize: 'vertical',
-                    marginBottom: '20px'
-                  }}
-                />
-
-                <div style={{ marginBottom: '24px' }}>
-                  <label style={{
-                    display: 'block',
-                    marginBottom: '8px',
-                    fontSize: '14px',
-                    color: '#888888'
-                  }}>
-                    Platform
-                  </label>
-                  <select
-                    value={platform}
-                    onChange={(e) => setPlatform(e.target.value)}
-                    style={{
-                      width: '100%',
-                      backgroundColor: 'rgba(0, 0, 0, 0.4)',
-                      border: '1px solid rgba(255, 255, 255, 0.2)',
-                      borderRadius: '8px',
-                      padding: '12px',
-                      color: 'white',
-                      fontSize: '14px'
-                    }}
-                  >
-                    <option value="twitter">Twitter/X</option>
-                    <option value="linkedin">LinkedIn</option>
-                    <option value="blog">Blog Post</option>
-                    <option value="other">Other</option>
-                  </select>
-                </div>
-
-                <button
-                  onClick={handleDetectAI}
-                  disabled={!newContent || newContent.length < 10}
-                  style={{
-                    width: '100%',
-                    padding: '16px',
-                    backgroundColor: '#10b981',
-                    color: 'black',
-                    border: 'none',
-                    borderRadius: '8px',
-                    fontSize: '16px',
-                    fontWeight: 'bold',
-                    cursor: newContent.length >= 10 ? 'pointer' : 'not-allowed',
-                    opacity: newContent.length >= 10 ? 1 : 0.5
-                  }}
-                >
-                  Detect AI →
-                </button>
-              </div>
-            )}
-
-            {/* Step 2: Detecting */}
-            {step === 'detecting' && (
-              <div style={{
-                textAlign: 'center',
-                padding: '60px 40px'
-              }}>
-                <div style={{
-                  width: '64px',
-                  height: '64px',
-                  border: '4px solid rgba(16, 185, 129, 0.3)',
-                  borderTop: '4px solid #10b981',
-                  borderRadius: '50%',
-                  margin: '0 auto 24px auto',
-                  animation: 'spin 1s linear infinite'
-                }}></div>
-                <h3 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '12px' }}>
-                  Analyzing Content...
-                </h3>
-                <p style={{ color: '#888888' }}>Running AI detection model</p>
-                <style jsx>{`
-                  @keyframes spin {
-                    to { transform: rotate(360deg); }
-                  }
-                `}</style>
-              </div>
-            )}
-
-            {/* Step 3: Review AI Results */}
-            {step === 'review' && aiResult && (
-              <div>
-                <div style={{
-                  backgroundColor: isHuman ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
-                  border: `2px solid ${isHuman ? 'rgba(16, 185, 129, 0.5)' : 'rgba(239, 68, 68, 0.5)'}`,
-                  borderRadius: '12px',
-                  padding: '32px',
-                  textAlign: 'center',
-                  marginBottom: '32px'
-                }}>
-                  <div style={{
-                    fontSize: '48px',
-                    fontWeight: 'bold',
-                    color: isHuman ? '#10b981' : '#ef4444',
-                    marginBottom: '16px'
-                  }}>
-                    {Math.round(aiResult.ai_probability * 100)}% AI
-                  </div>
-                  <p style={{
-                    fontSize: '18px',
-                    color: isHuman ? '#10b981' : '#ef4444',
-                    fontWeight: '600',
-                    marginBottom: '8px'
-                  }}>
-                    {isHuman ? 'Likely Human-Written' : 'Likely AI-Generated'}
-                  </p>
-                  <p style={{ color: '#888888', fontSize: '14px' }}>
-                    Confidence: {Math.round(aiResult.confidence * 100)}%
-                  </p>
-                </div>
-
-                <div style={{ marginBottom: '24px' }}>
-                  <label style={{
-                    display: 'block',
-                    marginBottom: '8px',
-                    fontSize: '14px',
-                    color: '#888888'
-                  }}>
-                    Your Username
-                  </label>
-                  <input
-                    type="text"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    placeholder="@username"
-                    style={{
-                      width: '100%',
-                      backgroundColor: 'rgba(0, 0, 0, 0.4)',
-                      border: '1px solid rgba(255, 255, 255, 0.2)',
-                      borderRadius: '8px',
-                      padding: '12px',
-                      color: 'white',
-                      fontSize: '14px'
-                    }}
-                  />
-                </div>
-
-                <div style={{
-                  backgroundColor: 'rgba(16, 185, 129, 0.05)',
-                  border: '1px solid rgba(16, 185, 129, 0.2)',
-                  borderRadius: '8px',
-                  padding: '16px',
-                  marginBottom: '24px'
-                }}>
-                  <p style={{ fontSize: '14px', color: '#888888', marginBottom: '8px' }}>
-                    By verifying, you confirm that:
-                  </p>
-                  <ul style={{ fontSize: '13px', color: '#888888', paddingLeft: '20px', margin: 0 }}>
-                    <li>You are the original author of this content</li>
-                    <li>This content was written by you (human)</li>
-                    <li>You consent to this data being used for training</li>
-                  </ul>
-                </div>
-
-                {/* Show warning if AI probability is >= 30% */}
-                {aiResult.ai_probability >= 0.30 && (
-                  <div style={{
-                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                    border: '1px solid rgba(239, 68, 68, 0.3)',
-                    borderRadius: '8px',
-                    padding: '16px',
-                    marginBottom: '24px',
-                    textAlign: 'center'
-                  }}>
-                    <p style={{ fontSize: '14px', color: '#ef4444', fontWeight: '600', marginBottom: '4px' }}>
-                      Cannot Verify as Human
-                    </p>
-                    <p style={{ fontSize: '13px', color: '#888888' }}>
-                      Content must be less than 30% AI to verify as human-written. Your content is {Math.round(aiResult.ai_probability * 100)}% AI.
-                    </p>
-                  </div>
-                )}
-
-                <div style={{ display: 'flex', gap: '12px' }}>
-                  <button
-                    onClick={() => {
-                      setStep('input');
-                      setAiResult(null);
-                      setError('');
-                    }}
-                    style={{
-                      flex: 1,
-                      padding: '16px',
-                      backgroundColor: 'transparent',
-                      color: 'white',
-                      border: '1px solid rgba(255, 255, 255, 0.2)',
-                      borderRadius: '8px',
-                      fontSize: '16px',
-                      fontWeight: 'bold',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    Back
-                  </button>
-                  <button
-                    onClick={handleVerify}
-                    disabled={!username || aiResult.ai_probability >= 0.30}
-                    style={{
-                      flex: 2,
-                      padding: '16px',
-                      backgroundColor: aiResult.ai_probability >= 0.30 ? '#666666' : '#10b981',
-                      color: aiResult.ai_probability >= 0.30 ? '#333333' : 'black',
-                      border: 'none',
-                      borderRadius: '8px',
-                      fontSize: '16px',
-                      fontWeight: 'bold',
-                      cursor: (username && aiResult.ai_probability < 0.30) ? 'pointer' : 'not-allowed',
-                      opacity: (username && aiResult.ai_probability < 0.30) ? 1 : 0.5
-                    }}
-                  >
-                    Verify as Human
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Step 4: Verifying */}
-            {step === 'verifying' && (
-              <div style={{
-                textAlign: 'center',
-                padding: '60px 40px'
-              }}>
-                <div style={{
-                  width: '64px',
-                  height: '64px',
-                  border: '4px solid rgba(16, 185, 129, 0.3)',
-                  borderTop: '4px solid #10b981',
-                  borderRadius: '50%',
-                  margin: '0 auto 24px auto',
-                  animation: 'spin 1s linear infinite'
-                }}></div>
-                <h3 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '12px' }}>
-                  Creating Verification...
-                </h3>
-                <p style={{ color: '#888888' }}>Storing in database</p>
-                <style jsx>{`
-                  @keyframes spin {
-                    to { transform: rotate(360deg); }
-                  }
-                `}</style>
-              </div>
-            )}
-
-            {/* Step 5: Complete */}
-            {step === 'complete' && verification && (
-              <div style={{ textAlign: 'center' }}>
-                <div style={{
-                  fontSize: '56px',
-                  fontWeight: 'bold',
-                  color: '#10b981',
-                  marginBottom: '24px'
-                }}>
-                  Verification Complete
-                </div>
-                <p style={{ color: '#888888', marginBottom: '40px', fontSize: '16px' }}>
-                  Your content has been verified and saved to your dashboard
-                </p>
-
-                <div style={{
-                  backgroundColor: 'rgba(0, 0, 0, 0.4)',
-                  borderRadius: '8px',
-                  padding: '24px',
-                  marginBottom: '32px',
-                  textAlign: 'left'
-                }}>
-                  <div style={{ marginBottom: '16px' }}>
-                    <span style={{ color: '#888888', fontSize: '12px' }}>Verification ID</span>
-                    <div style={{ fontFamily: 'monospace', fontSize: '14px', marginTop: '4px' }}>
-                      {verification.id}
-                    </div>
-                  </div>
-                  <div style={{ marginBottom: '16px' }}>
-                    <span style={{ color: '#888888', fontSize: '12px' }}>Classification</span>
-                    <div style={{ fontSize: '14px', marginTop: '4px' }}>
-                      {verification.classification}
-                    </div>
-                  </div>
-                  <div style={{ marginBottom: '16px' }}>
-                    <span style={{ color: '#888888', fontSize: '12px' }}>AI Probability</span>
-                    <div style={{ fontSize: '14px', marginTop: '4px' }}>
-                      {Math.round(verification.ai_probability * 100)}%
-                    </div>
-                  </div>
-                  <div>
-                    <span style={{ color: '#888888', fontSize: '12px' }}>Confidence</span>
-                    <div style={{ fontSize: '14px', marginTop: '4px' }}>
-                      {Math.round(verification.confidence * 100)}%
-                    </div>
-                  </div>
-                </div>
-
-                <button
-                  onClick={resetModal}
-                  style={{
-                    padding: '16px 32px',
-                    backgroundColor: '#10b981',
-                    color: 'black',
-                    border: 'none',
-                    borderRadius: '8px',
-                    fontSize: '16px',
-                    fontWeight: 'bold',
-                    cursor: 'pointer'
-                  }}
-                >
-                  Done
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Verification Details Modal */}
-      {showDetailsModal && selectedVerification && (
-        <div
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.8)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1000,
-            padding: '20px'
-          }}
-          onClick={() => setShowDetailsModal(false)}
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              backgroundColor: '#000000',
-              border: '1px solid #222222',
-              borderRadius: '16px',
-              padding: '40px',
-              maxWidth: '800px',
-              width: '100%',
-              maxHeight: '90vh',
-              overflow: 'auto'
-            }}
-          >
-            {/* Header */}
-            <div style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'flex-start',
-              marginBottom: '32px'
-            }}>
-              <div>
-                <h2 style={{ fontSize: '28px', fontWeight: 'bold', marginBottom: '8px' }}>
-                  Verification Details
-                </h2>
-                <p style={{ color: '#666666', fontSize: '14px' }}>
-                  {new Date(selectedVerification.created_at).toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                  })}
-                </p>
-              </div>
-              <button
-                onClick={() => setShowDetailsModal(false)}
-                style={{
-                  backgroundColor: 'transparent',
-                  border: 'none',
-                  color: '#666666',
-                  fontSize: '32px',
-                  cursor: 'pointer',
-                  lineHeight: 1,
-                  padding: 0
-                }}
-              >
-                ×
-              </button>
-            </div>
-
-            {/* Classification Badge */}
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '16px',
-              marginBottom: '32px'
-            }}>
-              <span style={{
-                padding: '8px 16px',
-                borderRadius: '20px',
-                fontSize: '14px',
-                fontWeight: 'bold',
-                backgroundColor: selectedVerification.classification === 'HUMAN'
-                  ? 'rgba(16, 185, 129, 0.1)'
-                  : selectedVerification.classification === 'AI'
-                  ? 'rgba(239, 68, 68, 0.1)'
-                  : 'rgba(251, 191, 36, 0.1)',
-                border: `1px solid ${
-                  selectedVerification.classification === 'HUMAN'
-                    ? 'rgba(16, 185, 129, 0.3)'
-                    : selectedVerification.classification === 'AI'
-                    ? 'rgba(239, 68, 68, 0.3)'
-                    : 'rgba(251, 191, 36, 0.3)'
-                }`,
-                color: selectedVerification.classification === 'HUMAN'
-                  ? '#10b981'
-                  : selectedVerification.classification === 'AI'
-                  ? '#ef4444'
-                  : '#fbbf24'
-              }}>
-                {selectedVerification.classification}
-              </span>
-              <div style={{ color: '#888888', fontSize: '14px' }}>
-                <span style={{ color: '#666666' }}>AI Probability:</span>{' '}
-                <span style={{ fontWeight: 'bold' }}>
-                  {Math.round(selectedVerification.ai_probability * 100)}%
-                </span>
-                {' | '}
-                <span style={{ color: '#666666' }}>Confidence:</span>{' '}
-                <span style={{ fontWeight: 'bold' }}>
-                  {Math.round(selectedVerification.confidence * 100)}%
-                </span>
-              </div>
-            </div>
-
-            {/* Platform */}
-            {selectedVerification.platform && (
-              <div style={{ marginBottom: '24px' }}>
-                <p style={{ color: '#666666', fontSize: '12px', marginBottom: '4px' }}>
-                  Platform
-                </p>
-                <p style={{ color: 'white', fontSize: '14px', textTransform: 'capitalize' }}>
-                  {selectedVerification.platform}
-                </p>
-              </div>
-            )}
-
-            {/* Content */}
-            <div style={{ marginBottom: '24px' }}>
-              <p style={{ color: '#666666', fontSize: '12px', marginBottom: '12px' }}>
-                Verified Content
-              </p>
-              <div style={{
-                backgroundColor: '#111111',
-                border: '1px solid #222222',
-                borderRadius: '12px',
-                padding: '24px',
-                maxHeight: '400px',
-                overflow: 'auto',
-                whiteSpace: 'pre-wrap',
-                wordBreak: 'break-word'
-              }}>
-                <p style={{
-                  color: '#e5e5e5',
-                  fontSize: '15px',
-                  lineHeight: '1.7',
-                  margin: 0
-                }}>
-                  {selectedVerification.content}
-                </p>
-              </div>
-            </div>
-
-            {/* Metadata */}
-            <div style={{
-              backgroundColor: '#111111',
-              border: '1px solid #222222',
-              borderRadius: '12px',
-              padding: '20px'
-            }}>
-              <p style={{ color: '#666666', fontSize: '12px', marginBottom: '12px' }}>
-                Technical Details
-              </p>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                <div>
-                  <p style={{ color: '#888888', fontSize: '12px' }}>Verification ID</p>
-                  <p style={{
-                    fontFamily: 'monospace',
-                    fontSize: '11px',
-                    color: '#a1a1a1',
-                    marginTop: '4px',
-                    wordBreak: 'break-all'
-                  }}>
-                    {selectedVerification.id}
-                  </p>
-                </div>
-                <div>
-                  <p style={{ color: '#888888', fontSize: '12px' }}>Content Hash</p>
-                  <p style={{
-                    fontFamily: 'monospace',
-                    fontSize: '11px',
-                    color: '#a1a1a1',
-                    marginTop: '4px'
-                  }}>
-                    {selectedVerification.content_hash}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Close Button */}
-            <button
-              onClick={() => setShowDetailsModal(false)}
-              style={{
-                width: '100%',
-                marginTop: '24px',
-                padding: '14px',
-                backgroundColor: '#10b981',
-                color: 'black',
-                border: 'none',
-                borderRadius: '8px',
-                fontSize: '15px',
-                fontWeight: '600',
-                cursor: 'pointer'
-              }}
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

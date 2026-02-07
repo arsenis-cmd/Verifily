@@ -32,7 +32,7 @@ const nextConfig: NextConfig = {
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: https: blob:",
               "font-src 'self' data:",
-              "connect-src 'self' https://*.clerk.accounts.dev https://clerk.verifily.io https://api.clerk.com https://clerk-telemetry.com https://*.railway.app https://ujyggrwjrjdztmsbioub.supabase.co wss://ujyggrwjrjdztmsbioub.supabase.co",
+              "connect-src 'self' https://*.clerk.accounts.dev https://clerk.verifily.io https://api.clerk.com https://clerk-telemetry.com",
               "frame-src 'self' https://*.clerk.accounts.dev https://clerk.verifily.io https://challenges.cloudflare.com",
               "worker-src 'self' blob:",
             ].join("; "),

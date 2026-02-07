@@ -23,10 +23,10 @@ export default function Footer() {
           {/* Center: Links */}
           <div className="flex items-center gap-6">
             <Link
-              href="#"
+              href="/pilot"
               className="text-[#666666] hover:text-white transition-colors"
             >
-              Chrome Extension
+              Pilot Program
             </Link>
             <Link
               href="#how-it-works"
@@ -41,7 +41,7 @@ export default function Footer() {
               Documentation
             </Link>
             <Link
-              href="#"
+              href="/privacy"
               className="text-[#666666] hover:text-white transition-colors"
             >
               Privacy Policy
