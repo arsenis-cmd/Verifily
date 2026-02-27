@@ -109,15 +109,15 @@ const Solution = () => {
   const pipelineSteps = [
     {
       id: 1,
-      name: 'Transform',
-      desc: 'Normalize, label, dedupe',
+      name: 'Annotate',
+      desc: 'Score every row on 6 axes',
       icon: 'data',
       completed: true,
     },
     {
       id: 2,
-      name: 'Contract',
-      desc: 'Validate run artifacts',
+      name: 'Select',
+      desc: 'Quality-aware subset',
       icon: 'check',
       completed: true,
     },
@@ -131,14 +131,14 @@ const Solution = () => {
     },
     {
       id: 4,
-      name: 'Contamination',
-      desc: 'Detect train/eval overlap',
+      name: 'Predict',
+      desc: 'Forecast training outcome',
       icon: 'shield',
       completed: false,
     },
     {
       id: 5,
-      name: 'Decision',
+      name: 'Gate',
       desc: 'SHIP / DON\'T SHIP',
       icon: 'flag',
       completed: false,
@@ -163,9 +163,9 @@ const Solution = () => {
       {/* Headline */}
       <div ref={textRef} className="max-w-3xl mx-auto px-4 text-center mb-20">
         <h2 className="text-3xl md:text-5xl font-semibold text-slate-900 leading-tight">
-          Four checks.
+          Score. Select. Predict.
           <br />
-          <span className="gradient-text">One decision.</span>
+          <span className="gradient-text">Ship.</span>
         </h2>
       </div>
 
@@ -234,10 +234,10 @@ const Solution = () => {
 
       {/* CTA */}
       <div className="flex justify-center">
-        <button className="bg-slate-900 text-white font-medium px-8 py-4 rounded-full flex items-center gap-2 hover:bg-slate-800 transition-colors shadow-lg hover:shadow-xl">
-          Get started
+        <a href="#waitlist" className="bg-slate-900 text-white font-medium px-8 py-4 rounded-full flex items-center gap-2 hover:bg-slate-800 transition-colors shadow-lg hover:shadow-xl">
+          Join the waitlist
           <ChevronRight className="w-5 h-5" />
-        </button>
+        </a>
       </div>
     </section>
   );

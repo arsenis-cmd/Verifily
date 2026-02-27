@@ -4,130 +4,142 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 const STEPS = [
   {
     number: '01',
-    title: 'Transform',
-    body: 'Normalize, label, deduplicate, and synthesize your dataset into a versioned, auditable artifact. Every row is tracked. Every dataset gets a content-addressed version ID and a lineage record.',
-    highlight: ['versioned, auditable artifact', 'content-addressed version ID'],
-    visualKey: 'transform',
+    title: 'Annotate',
+    body: 'Score every row across 6 quality axes using a trained DeBERTa-v3-large ensemble. Three models, 105,000 human annotations. Not heuristics — real model inference.',
+    highlight: ['DeBERTa-v3-large ensemble', '105,000 human annotations'],
+    visualKey: 'annotate',
   },
   {
     number: '02',
-    title: 'Contract',
-    body: 'Each training run must include its config, file hashes, environment snapshot, and eval results. If artifacts are missing or invalid, the pipeline stops before any comparison begins.',
-    highlight: ['config, file hashes, environment snapshot', 'pipeline stops'],
-    visualKey: 'contract',
+    title: 'Select',
+    body: 'Pick the best subset for training. Quality-aware selection with automatic deduplication. Quality goes up, diversity stays high.',
+    highlight: ['Quality-aware selection', 'diversity stays high'],
+    visualKey: 'select',
   },
   {
     number: '03',
-    title: 'Contamination',
-    body: 'SHA-256 exact matching and n-gram Jaccard similarity catch both verbatim copies and light paraphrases between train and eval. Configurable thresholds. Zero-tolerance mode for high-stakes evals.',
-    highlight: ['verbatim copies and light paraphrases', 'Zero-tolerance mode'],
-    visualKey: 'contamination',
+    title: 'Predict',
+    body: 'Forecast training outcomes before you spend compute. Risk factors with specific fix commands. Tier classification from excellent to unusable.',
+    highlight: ['Forecast training outcomes', 'Tier classification'],
+    visualKey: 'predict',
   },
   {
     number: '04',
-    title: 'Decision',
-    body: 'Verifily compares your candidate run against baselines and emits a verdict: SHIP, INVESTIGATE, or DON\'T SHIP — with exit codes your CI already understands.',
+    title: 'Gate',
+    body: 'One command. All checks. One decision. SHIP, INVESTIGATE, or DON\'T SHIP — with exit codes your CI already understands.',
     highlight: ['SHIP, INVESTIGATE, or DON\'T SHIP', 'exit codes'],
-    visualKey: 'decision',
+    visualKey: 'gate',
   },
 ];
 
 // ── Visual card for each step ───────────────────────────────────────
 const StepVisual = ({ activeStep }: { activeStep: number }) => {
   const visuals: Record<string, React.ReactNode> = {
-    transform: (
+    annotate: (
       <div className="bg-slate-50 rounded-2xl p-6 border border-slate-200 shadow-lg">
         <div className="flex items-center gap-3 mb-5">
           <div className="w-10 h-10 rounded-lg bg-blue-500 flex items-center justify-center">
             <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
             </svg>
           </div>
-          <span className="text-sm font-semibold text-slate-800">Dataset Pipeline</span>
-          <span className="ml-auto text-xs text-slate-400 font-mono">v1 &rarr; v2</span>
+          <span className="text-sm font-semibold text-slate-800">Quality Profile</span>
+          <span className="ml-auto text-xs text-slate-400 font-mono">6 axes</span>
         </div>
         {[
-          { step: 'Ingest', count: '1,240 rows', status: 'done' },
-          { step: 'Normalize', count: '1,240 rows', status: 'done' },
-          { step: 'Deduplicate', count: '1,186 rows', status: 'done' },
-          { step: 'Label + Synthesize', count: '1,402 rows', status: 'done' },
+          { axis: 'coherence', score: 0.943, pct: 94 },
+          { axis: 'informativeness', score: 0.890, pct: 89 },
+          { axis: 'complexity', score: 0.751, pct: 75 },
+          { axis: 'safety', score: 0.993, pct: 99 },
+          { axis: 'formatting', score: 0.717, pct: 72 },
+          { axis: 'uniqueness', score: 0.294, pct: 29 },
         ].map((item, i) => (
-          <div key={i} className="flex items-center gap-3 py-2.5 border-t border-slate-100">
-            <svg className="w-4 h-4 text-emerald-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-            </svg>
-            <span className="text-sm text-slate-700">{item.step}</span>
-            <span className="ml-auto text-xs text-slate-400 font-mono">{item.count}</span>
+          <div key={i} className="flex items-center gap-3 py-2 border-t border-slate-100">
+            <span className="text-xs text-slate-500 w-28">{item.axis}</span>
+            <div className="flex-1 h-2 bg-slate-200 rounded-full overflow-hidden">
+              <div className="h-full bg-blue-500 rounded-full" style={{ width: `${item.pct}%` }} />
+            </div>
+            <span className="text-xs text-slate-700 font-mono w-12 text-right">{item.score.toFixed(3)}</span>
           </div>
         ))}
-        <div className="mt-3 pt-3 border-t border-slate-200">
-          <span className="text-xs text-slate-500 font-mono">version_id: a3f8c1d2e4b7</span>
-        </div>
       </div>
     ),
 
-    contract: (
+    select: (
       <div className="bg-slate-50 rounded-2xl p-6 border border-slate-200 shadow-lg">
         <div className="flex items-center gap-3 mb-5">
-          <div className="w-10 h-10 rounded-lg bg-indigo-500 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-lg bg-emerald-500 flex items-center justify-center">
             <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
             </svg>
           </div>
-          <span className="text-sm font-semibold text-slate-800">Run Contract</span>
-          <span className="ml-auto text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded font-medium">VALID</span>
+          <span className="text-sm font-semibold text-slate-800">Data Selection</span>
+          <span className="ml-auto text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded font-medium">DONE</span>
         </div>
-        {[
-          { file: 'config.yaml', status: true },
-          { file: 'hashes.json', status: true },
-          { file: 'environment.json', status: true },
-          { file: 'eval/eval_results.json', status: true },
-        ].map((item, i) => (
-          <div key={i} className="flex items-center gap-3 py-2.5 border-t border-slate-100">
-            <svg className={`w-4 h-4 flex-shrink-0 ${item.status ? 'text-emerald-500' : 'text-red-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-              <path strokeLinecap="round" strokeLinejoin="round" d={item.status ? "M5 13l4 4L19 7" : "M6 18L18 6M6 6l12 12"} />
-            </svg>
-            <span className="text-sm text-slate-700 font-mono">{item.file}</span>
+        <div className="grid grid-cols-2 gap-4 mb-4">
+          <div className="bg-white rounded-xl p-4 border border-slate-200 text-center">
+            <p className="text-xs text-slate-500 mb-1">Before</p>
+            <p className="text-2xl font-bold text-slate-800">200</p>
+            <p className="text-xs text-slate-400">rows</p>
           </div>
-        ))}
-        <div className="mt-3 pt-3 border-t border-slate-200">
-          <span className="text-xs text-slate-500 font-mono">chain_hash: 9e2f...b41a</span>
+          <div className="bg-white rounded-xl p-4 border border-slate-200 text-center">
+            <p className="text-xs text-slate-500 mb-1">After</p>
+            <p className="text-2xl font-bold text-emerald-600">100</p>
+            <p className="text-xs text-slate-400">rows</p>
+          </div>
+        </div>
+        <div className="space-y-2">
+          <div className="flex justify-between text-sm py-1.5 border-t border-slate-100">
+            <span className="text-slate-500">Avg quality</span>
+            <span className="font-mono text-slate-700">0.736 &rarr; <span className="text-emerald-600 font-semibold">0.780</span></span>
+          </div>
+          <div className="flex justify-between text-sm py-1.5 border-t border-slate-100">
+            <span className="text-slate-500">Diversity</span>
+            <span className="font-mono text-slate-700">1.000</span>
+          </div>
+          <div className="flex justify-between text-sm py-1.5 border-t border-slate-100">
+            <span className="text-slate-500">Strategy</span>
+            <span className="font-mono text-slate-700">quality_diverse</span>
+          </div>
         </div>
       </div>
     ),
 
-    contamination: (
+    predict: (
       <div className="bg-slate-50 rounded-2xl p-6 border border-slate-200 shadow-lg">
         <div className="flex items-center gap-3 mb-5">
-          <div className="w-10 h-10 rounded-lg bg-red-500 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-lg bg-violet-500 flex items-center justify-center">
             <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
             </svg>
           </div>
-          <span className="text-sm font-semibold text-slate-800">Leakage Report</span>
-          <span className="ml-auto text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded font-medium">FAIL</span>
+          <span className="text-sm font-semibold text-slate-800">Training Prediction</span>
         </div>
-        <div className="space-y-3">
-          <div className="flex justify-between py-2 border-t border-slate-100">
-            <span className="text-sm text-slate-600">Exact overlaps</span>
-            <span className="text-sm text-red-600 font-semibold font-mono">5 (0.333)</span>
+        <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 mb-4">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-sm text-slate-600">Predicted tier</span>
+            <span className="text-sm font-bold text-emerald-700">GOOD</span>
           </div>
-          <div className="flex justify-between py-2 border-t border-slate-100">
-            <span className="text-sm text-slate-600">Near duplicates</span>
-            <span className="text-sm text-amber-600 font-semibold font-mono">7 (0.583)</span>
-          </div>
-          <div className="flex justify-between py-2 border-t border-slate-100">
-            <span className="text-sm text-slate-600">Jaccard threshold</span>
-            <span className="text-sm text-slate-500 font-mono">0.8</span>
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-slate-600">Confidence</span>
+            <span className="text-sm font-semibold text-slate-800 font-mono">82%</span>
           </div>
         </div>
-        <div className="mt-3 pt-3 border-t border-slate-200 text-xs text-red-600 font-mono">
-          Flagged: exact_03, exact_04, exact_06, near_02, near_05...
+        <div className="space-y-2">
+          <p className="text-xs text-slate-500 font-medium mb-1">Risk factors</p>
+          <div className="flex items-start gap-2 text-sm">
+            <span className="text-amber-500 mt-0.5 flex-shrink-0">!</span>
+            <span className="text-slate-600">Low uniqueness — run <span className="font-mono text-xs bg-slate-100 px-1 rounded">verifily select --dedup</span></span>
+          </div>
+          <div className="flex items-start gap-2 text-sm">
+            <span className="text-amber-500 mt-0.5 flex-shrink-0">!</span>
+            <span className="text-slate-600">Complexity below threshold on 12% of rows</span>
+          </div>
         </div>
       </div>
     ),
 
-    decision: (
+    gate: (
       <div className="bg-slate-50 rounded-2xl p-6 border border-slate-200 shadow-lg">
         <div className="flex items-center gap-3 mb-5">
           <div className="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center">
@@ -146,12 +158,12 @@ const StepVisual = ({ activeStep }: { activeStep: number }) => {
         </div>
         <div className="space-y-2">
           <div className="flex justify-between text-sm">
-            <span className="text-slate-500">f1</span>
-            <span className="text-slate-800 font-mono">0.728 (+0.013)</span>
+            <span className="text-slate-500">Quality score</span>
+            <span className="text-slate-800 font-mono">0.780</span>
           </div>
           <div className="flex justify-between text-sm">
-            <span className="text-slate-500">Reproducibility</span>
-            <span className="text-emerald-600 font-mono">verified</span>
+            <span className="text-slate-500">Contamination</span>
+            <span className="text-red-600 font-mono font-semibold">FAIL</span>
           </div>
           <div className="flex justify-between text-sm">
             <span className="text-slate-500">Exit code</span>

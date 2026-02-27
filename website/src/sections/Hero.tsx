@@ -1,74 +1,47 @@
 import { useEffect, useRef, useState } from 'react';
 import { ChevronRight, ArrowRight } from 'lucide-react';
 
-// ── Terminal demo showing Verifily pipeline output ──────────────────
-const TerminalDemo = () => (
-  <div className="relative bg-[#0d1117] rounded-2xl border border-slate-700/50 shadow-2xl overflow-hidden">
-    {/* Terminal header */}
-    <div className="flex items-center gap-2 px-4 py-3 bg-[#161b22] border-b border-slate-700/30">
-      <div className="w-3 h-3 rounded-full bg-[#ff5f57]" />
-      <div className="w-3 h-3 rounded-full bg-[#febc2e]" />
-      <div className="w-3 h-3 rounded-full bg-[#28c840]" />
-      <span className="ml-3 text-xs text-slate-500 font-mono">terminal — verifily</span>
-    </div>
+// ── Terminal demo showing Verifily annotate output ──────────────────
+const TerminalDemo = () => {
+  const bars = [
+    { label: 'coherence', value: 0.943, filled: 18 },
+    { label: 'informativeness', value: 0.890, filled: 17 },
+    { label: 'complexity', value: 0.751, filled: 15 },
+    { label: 'safety', value: 0.993, filled: 19 },
+    { label: 'formatting', value: 0.717, filled: 14 },
+    { label: 'uniqueness', value: 0.294, filled: 5 },
+  ];
 
-    {/* Terminal body */}
-    <div className="p-5 md:p-6 font-mono text-[13px] leading-relaxed">
-      <div className="text-slate-500">$ verifily pipeline --ci</div>
+  return (
+    <div className="relative bg-[#0d1117] rounded-2xl border border-slate-700/50 shadow-2xl overflow-hidden">
+      {/* Terminal header */}
+      <div className="flex items-center gap-2 px-4 py-3 bg-[#161b22] border-b border-slate-700/30">
+        <div className="w-3 h-3 rounded-full bg-[#ff5f57]" />
+        <div className="w-3 h-3 rounded-full bg-[#febc2e]" />
+        <div className="w-3 h-3 rounded-full bg-[#28c840]" />
+        <span className="ml-3 text-xs text-slate-500 font-mono">terminal — verifily</span>
+      </div>
 
-      <div className="mt-4 space-y-3">
-        {/* Contract */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-emerald-400">&#10003;</span>
-            <span className="text-slate-300">CONTRACT</span>
-          </div>
-          <span className="text-emerald-400/70 text-xs">PASS</span>
-        </div>
-        <div className="text-slate-600 text-xs pl-5">config.yaml, hashes.json, environment.json, eval_results.json</div>
+      {/* Terminal body */}
+      <div className="p-5 md:p-6 font-mono text-[13px] leading-relaxed">
+        <div className="text-slate-500">$ verifily annotate --in data.jsonl</div>
 
-        {/* Contamination */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-red-400">&#10007;</span>
-            <span className="text-slate-300">CONTAMINATION</span>
-          </div>
-          <span className="text-red-400/70 text-xs">FAIL</span>
-        </div>
-        <div className="text-slate-600 text-xs pl-5">Exact overlaps: 5 (0.333) &middot; Near duplicates: 7 (0.583)</div>
-
-        {/* Regression */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-emerald-400">&#10003;</span>
-            <span className="text-slate-300">REGRESSION</span>
-          </div>
-          <span className="text-emerald-400/70 text-xs">PASS</span>
-        </div>
-        <div className="text-slate-600 text-xs pl-5">f1: 0.728 (+0.013 vs baseline)</div>
-
-        {/* Divider */}
-        <div className="border-t border-slate-700/40 my-1" />
-
-        {/* Decision */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-red-400 font-bold">&#9656;</span>
-            <span className="text-white font-medium">DECISION</span>
-          </div>
-          <span className="text-red-400 font-bold text-xs tracking-wide">DON'T SHIP</span>
-        </div>
-        <div className="text-slate-600 text-xs pl-5">Blocker: dataset leakage detected between train and eval</div>
-
-        {/* Exit code */}
-        <div className="mt-3 pt-2 border-t border-slate-700/40">
-          <span className="text-slate-500">$ echo $?</span>
-          <div className="text-white mt-1">1</div>
+        <div className="mt-4 space-y-2">
+          {bars.map((bar) => (
+            <div key={bar.label} className="flex items-center gap-3">
+              <span className="text-slate-400 w-[140px] text-right text-xs">{bar.label}</span>
+              <span className="text-blue-400">
+                {'█'.repeat(bar.filled)}
+                <span className="text-slate-700">{'░'.repeat(20 - bar.filled)}</span>
+              </span>
+              <span className="text-white text-xs">{bar.value.toFixed(3)}</span>
+            </div>
+          ))}
         </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 // ── Main Hero component ─────────────────────────────────────────────
 const Hero = () => {
@@ -145,16 +118,16 @@ const Hero = () => {
         <div className="relative z-10 py-24 px-4">
           <div className="max-w-5xl mx-auto text-center mb-16">
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-semibold text-white leading-tight mb-6">
-              The release gate<br />
-              for <span className="gradient-text">machine learning.</span>
+              ML data quality<br />
+              <span className="gradient-text">infrastructure.</span>
             </h1>
             <p className="text-white/70 text-lg md:text-xl max-w-2xl mx-auto mb-8">
-              The pipeline between your last training run and production. It checks your data, catches leakage, and tells you whether to ship.
+              Score every row across 6 quality axes with trained DeBERTa models. Select the best subset. Predict training outcomes. Gate your releases.
             </p>
             <div className="flex items-center justify-center gap-4">
-              <button className="cta-gradient text-white font-medium px-8 py-4 rounded-full inline-flex items-center gap-2">
-                Get started <ChevronRight className="w-5 h-5" />
-              </button>
+              <a href="#waitlist" className="cta-gradient text-white font-medium px-8 py-4 rounded-full inline-flex items-center gap-2">
+                Join the waitlist <ChevronRight className="w-5 h-5" />
+              </a>
               <a href="#" className="text-white/70 hover:text-white font-medium px-6 py-4 inline-flex items-center gap-2 transition-colors">
                 Read the docs <ArrowRight className="w-4 h-4" />
               </a>
@@ -185,35 +158,39 @@ const Hero = () => {
       <div className="absolute inset-0 flex flex-col items-center justify-center z-10 px-4">
         <div ref={headlineRef} className="text-center max-w-5xl will-change-transform">
           <h1 className="hero-anim text-4xl md:text-6xl lg:text-7xl font-semibold text-white leading-tight mb-6">
-            The release gate
+            ML data quality
             <br />
-            for <span className="gradient-text">machine learning.</span>
+            <span className="gradient-text">infrastructure.</span>
           </h1>
           <p className="hero-anim text-white/70 text-lg md:text-xl max-w-2xl mx-auto mb-8">
-            The pipeline between your last training run and production.
-            It checks your data, catches leakage, and tells you whether to ship.
+            Score every row across 6 quality axes with trained DeBERTa models.
+            Select the best subset. Predict training outcomes. Gate your releases.
           </p>
           <div className="hero-anim flex flex-col items-start gap-3 max-w-lg mx-auto text-left mb-2">
             <div className="flex items-start gap-3">
               <span className="text-blue-400 mt-0.5 flex-shrink-0">&#10003;</span>
-              <span className="text-white/60 text-sm">Detect contamination between train and eval sets before metrics lie to you</span>
+              <span className="text-white/60 text-sm">6-axis quality scoring — coherence, informativeness, complexity, safety, formatting, uniqueness</span>
             </div>
             <div className="flex items-start gap-3">
               <span className="text-blue-400 mt-0.5 flex-shrink-0">&#10003;</span>
-              <span className="text-white/60 text-sm">Enforce reproducible run contracts — config, hashes, environment, results</span>
+              <span className="text-white/60 text-sm">Quality-aware data selection with deduplication</span>
             </div>
             <div className="flex items-start gap-3">
               <span className="text-blue-400 mt-0.5 flex-shrink-0">&#10003;</span>
-              <span className="text-white/60 text-sm">Get a machine-readable decision: SHIP, INVESTIGATE, or DON'T SHIP</span>
+              <span className="text-white/60 text-sm">Training outcome prediction with risk factors</span>
+            </div>
+            <div className="flex items-start gap-3">
+              <span className="text-blue-400 mt-0.5 flex-shrink-0">&#10003;</span>
+              <span className="text-white/60 text-sm">Pipeline gate: SHIP, INVESTIGATE, or DON'T SHIP — exit code 0 means ship</span>
             </div>
           </div>
         </div>
 
         <div ref={ctaRef} className="mt-8 flex items-center gap-4 will-change-transform">
-          <button className="cta-gradient text-white font-medium px-8 py-4 rounded-full flex items-center gap-2 hover:opacity-90 transition-opacity">
-            Get started
+          <a href="#waitlist" className="cta-gradient text-white font-medium px-8 py-4 rounded-full flex items-center gap-2 hover:opacity-90 transition-opacity">
+            Join the waitlist
             <ChevronRight className="w-5 h-5" />
-          </button>
+          </a>
           <a href="#" className="text-white/70 hover:text-white font-medium px-4 py-4 flex items-center gap-2 transition-colors">
             Read the docs
             <ArrowRight className="w-4 h-4" />

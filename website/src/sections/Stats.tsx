@@ -82,36 +82,36 @@ const Stats = () => {
           Measured, not claimed.
         </h2>
         <p className="text-slate-500 text-lg max-w-2xl mx-auto">
-          Controlled experiments across three training configurations.
-          Human-derived synthetic data, transformed and validated through Verifily's pipeline.
+          Trained on 105,000 human annotations. Tested with 1,725 automated checks.
+          Built for production ML pipelines.
         </p>
       </div>
 
       {/* Stats Cards */}
       <div ref={cardsRef} className="max-w-4xl mx-auto px-4 mb-12">
-        <div className="grid md:grid-cols-2 gap-6">
-          {/* +1.60 F1 Card */}
-          <div className="stat-card bg-gradient-to-br from-blue-500 to-indigo-600 rounded-3xl p-8 text-white">
-            <div className="text-7xl md:text-8xl font-bold mb-4">
-              +1.60
-            </div>
-            <p className="text-lg font-medium mb-2">F1 vs AI-contaminated data</p>
-            <p className="text-white/70 text-sm leading-relaxed">
-              Human-derived synthetic training data outperformed AI-generated training data
-              when both were evaluated on a clean, uncontaminated eval set.
-            </p>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          <div className="stat-card bg-gradient-to-br from-blue-500 to-indigo-600 rounded-3xl p-6 text-white text-center">
+            <div className="text-5xl md:text-6xl font-bold mb-2">6</div>
+            <p className="text-sm font-medium mb-1">Quality axes</p>
+            <p className="text-white/60 text-xs">Scored by trained DeBERTa ensemble</p>
           </div>
 
-          {/* +0.78 F1 Card */}
-          <div className="stat-card bg-gradient-to-br from-violet-500 to-purple-600 rounded-3xl p-8 text-white">
-            <div className="text-7xl md:text-8xl font-bold mb-4">
-              +0.78
-            </div>
-            <p className="text-lg font-medium mb-2">F1 vs raw human baseline</p>
-            <p className="text-white/70 text-sm leading-relaxed">
-              The same synthetic data also surpassed the raw human-only baseline,
-              demonstrating that transformation and validation improve training quality.
-            </p>
+          <div className="stat-card bg-gradient-to-br from-violet-500 to-purple-600 rounded-3xl p-6 text-white text-center">
+            <div className="text-5xl md:text-6xl font-bold mb-2">1,725</div>
+            <p className="text-sm font-medium mb-1">Tests passing</p>
+            <p className="text-white/60 text-xs">1 skipped</p>
+          </div>
+
+          <div className="stat-card bg-gradient-to-br from-slate-700 to-slate-900 rounded-3xl p-6 text-white text-center">
+            <div className="text-5xl md:text-6xl font-bold mb-2">60+</div>
+            <p className="text-sm font-medium mb-1">API endpoints</p>
+            <p className="text-white/60 text-xs">Auth, billing, teams</p>
+          </div>
+
+          <div className="stat-card bg-gradient-to-br from-emerald-500 to-teal-600 rounded-3xl p-6 text-white text-center">
+            <div className="text-5xl md:text-6xl font-bold mb-2">105k</div>
+            <p className="text-sm font-medium mb-1">Human annotations</p>
+            <p className="text-white/60 text-xs">Used to train quality models</p>
           </div>
         </div>
       </div>
@@ -120,7 +120,7 @@ const Stats = () => {
       <div ref={bottomRef} className="max-w-4xl mx-auto px-4">
         <div className="bg-slate-50 rounded-2xl p-6 border border-slate-200 text-center">
           <p className="text-slate-600 font-mono text-sm">
-            217 tests &middot; No network &middot; No GPU &middot; Deterministic &middot; Runs in under a second
+            1,725 tests &middot; 6 quality axes &middot; 60+ API endpoints &middot; Trained DeBERTa-v3-large ensemble
           </p>
         </div>
       </div>

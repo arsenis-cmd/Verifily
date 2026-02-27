@@ -116,15 +116,18 @@ const ProblemStatement = () => {
         <div className="floating-card absolute bottom-48 left-12 md:left-24">
           <div className="bg-slate-800/80 backdrop-blur rounded-xl p-4 border border-slate-700/50 w-64 shadow-xl">
             <div className="flex items-center gap-2 mb-2">
-              <span className="text-slate-400 text-xs font-mono">CONTRACT</span>
+              <span className="text-slate-400 text-xs font-mono">LOW QUALITY</span>
             </div>
-            <p className="text-slate-400/80 text-sm font-mono">missing: config.yaml, hashes.json</p>
+            <p className="text-slate-400/80 text-sm font-mono">43% of rows below quality threshold</p>
           </div>
         </div>
 
         <div className="floating-card absolute top-1/3 left-1/4 hidden md:block">
-          <div className="w-14 h-14 rounded-xl bg-slate-800/60 border border-slate-700/30 flex items-center justify-center">
-            <span className="text-slate-500 text-2xl">?</span>
+          <div className="bg-purple-950/80 backdrop-blur rounded-xl p-4 border border-purple-800/30 w-64 shadow-xl">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-purple-400 text-xs font-mono">LOW DIVERSITY</span>
+            </div>
+            <p className="text-purple-300/80 text-sm font-mono">uniqueness score: 0.29 — near-duplicate cluster detected</p>
           </div>
         </div>
 
@@ -140,16 +143,16 @@ const ProblemStatement = () => {
         <h2 className="text-3xl md:text-5xl lg:text-6xl font-semibold text-white leading-tight">
           Your eval metrics look great.
           <br />
-          <span className="text-white/50">But did you check for leakage?</span>
+          <span className="text-white/50">But is your training data good enough?</span>
         </h2>
       </div>
 
       {/* Bottom text */}
       <div ref={bottomRef} className="relative z-10 max-w-2xl mx-auto px-4 mt-24 text-center">
         <p className="text-white/50 text-lg md:text-xl leading-relaxed">
-          Most ML teams ship models by checking a spreadsheet, eyeballing metrics,
-          and hoping nothing regressed. There is no structured gate between
-          "training finished" and "model is in production."
+          Most ML teams have no way to measure data quality before training.
+          They eyeball samples, hope the metrics hold, and find out too late
+          that their data was noisy, duplicated, or contaminated.
         </p>
       </div>
     </section>

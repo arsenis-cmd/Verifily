@@ -76,16 +76,16 @@ const Footer = () => {
           {/* Left — tagline */}
           <div ref={leftRef}>
             <h2 className="text-3xl md:text-5xl font-semibold text-white leading-tight mb-6">
-              The missing step
+              The quality layer
               <br />
-              between training
+              between your data
               <br />
-              and <span className="gradient-text">production.</span>
+              and your <span className="gradient-text">models.</span>
             </h2>
             <p className="text-white/40 text-sm leading-relaxed max-w-md">
               Verifily is not a training framework, not a model registry, and not
-              a compliance product. It is infrastructure for deciding whether a
-              model should ship.
+              a monitoring dashboard. It is infrastructure for measuring data quality
+              and deciding whether to ship.
             </p>
           </div>
 
@@ -103,12 +103,14 @@ const Footer = () => {
             <div>
               <p className="text-white/50 font-medium mb-4 text-sm">Integrations</p>
               <nav className="space-y-3">
+                <span className="block text-white/70 text-sm">HuggingFace Datasets</span>
+                <span className="block text-white/70 text-sm">Weights & Biases</span>
+                <span className="block text-white/70 text-sm">MLflow</span>
                 <span className="block text-white/70 text-sm">GitHub Actions</span>
                 <span className="block text-white/70 text-sm">GitLab CI</span>
-                <span className="block text-white/70 text-sm">Any CI with exit codes</span>
               </nav>
               <p className="text-white/30 text-xs mt-6 leading-relaxed">
-                Reads artifacts from disk.
+                All opt-in. No hard deps.
                 <br />
                 No vendor lock-in.
                 <br />
@@ -129,7 +131,7 @@ const Footer = () => {
             <span className="text-white text-2xl font-semibold">verifily</span>
           </div>
           <p className="text-white/30 text-sm">
-            The release gate for machine learning.
+            ML data quality infrastructure.
           </p>
         </div>
       </div>

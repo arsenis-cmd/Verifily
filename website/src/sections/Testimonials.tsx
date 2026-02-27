@@ -1,7 +1,9 @@
-import { useEffect, useRef } from 'react';
-import { ChevronRight } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import type { FormEvent } from 'react';
 
 const Testimonials = () => {
+  const [email, setEmail] = useState('');
+  const [submitted, setSubmitted] = useState(false);
   const sectionRef = useRef<HTMLDivElement>(null);
   const headlineRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -50,15 +52,17 @@ const Testimonials = () => {
   }, []);
 
   const criteria = [
-    'You ship models on a regular cadence and need a gate that is not a spreadsheet',
-    'You have been burned by eval contamination or silent metric regression',
-    'You want every release decision traceable to a specific dataset version, config, and set of results',
-    'You are building internal ML infrastructure and need a decision layer that runs in CI',
+    'You need to measure data quality before training — not guess',
+    'You want quality-aware data selection, not random sampling',
+    'You\'ve been burned by contamination, silent regression, or bad training data',
+    'You need a REST API for quality scoring in your ML pipeline',
+    'You want one tool for annotation, selection, prediction, and gating',
   ];
 
   return (
     <section
       ref={sectionRef}
+      id="waitlist"
       className="relative bg-black py-24 overflow-hidden"
     >
       {/* Background gradient */}
@@ -99,12 +103,31 @@ const Testimonials = () => {
 
           <div className="mt-10 pt-8 border-t border-slate-700/50">
             <p className="text-white/50 text-sm mb-6">
-              We are working with a small number of design partners. If this sounds like your team, we would like to hear from you.
+              Join the waitlist. We'll reach out when it's your turn.
             </p>
-            <button className="cta-gradient text-white font-medium px-8 py-4 rounded-full flex items-center gap-2 hover:opacity-90 transition-opacity">
-              Request early access
-              <ChevronRight className="w-5 h-5" />
-            </button>
+            {submitted ? (
+              <p className="text-green-400 font-medium text-lg">You're on the list!</p>
+            ) : (
+              <form
+                onSubmit={(e: FormEvent) => { e.preventDefault(); if (email.trim()) setSubmitted(true); }}
+                className="flex items-center gap-3"
+              >
+                <input
+                  type="email"
+                  required
+                  placeholder="you@company.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="bg-slate-800 border border-slate-700 text-white placeholder-white/30 rounded-full px-6 py-4 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-64"
+                />
+                <button
+                  type="submit"
+                  className="cta-gradient text-white font-medium px-8 py-4 rounded-full hover:opacity-90 transition-opacity"
+                >
+                  Join the waitlist
+                </button>
+              </form>
+            )}
           </div>
         </div>
       </div>
