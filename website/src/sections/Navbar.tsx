@@ -43,13 +43,16 @@ const Navbar = () => {
           <a href="#proof" className="text-white/80 hover:text-white text-sm transition-colors">
             Proof
           </a>
+          <a href="#pricing" className="text-white/80 hover:text-white text-sm transition-colors">
+            Pricing
+          </a>
         </div>
 
         {/* CTA Button */}
-        <button className="cta-gradient text-white text-sm font-medium px-4 py-2 rounded-full flex items-center gap-1 hover:opacity-90 transition-opacity">
-          Get started
+        <a href="#pricing" className="cta-gradient text-white text-sm font-medium px-4 py-2 rounded-full flex items-center gap-1 hover:opacity-90 transition-opacity no-underline">
+          Pricing
           <ChevronRight className="w-4 h-4" />
-        </button>
+        </a>
       </div>
     </nav>
   );
