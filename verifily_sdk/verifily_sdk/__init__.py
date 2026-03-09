@@ -13,7 +13,7 @@ from verifily_sdk.errors import (
     ForbiddenError,
 )
 
-__version__ = "1.4.2"
+__version__ = "1.4.3"
 
 __all__ = [
     "VerifilyClient",

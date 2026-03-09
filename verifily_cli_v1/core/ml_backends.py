@@ -56,6 +56,35 @@ def ml_available() -> bool:
 
 
 # ---------------------------------------------------------------------------
+# Quality model auto-download from HuggingFace Hub
+# ---------------------------------------------------------------------------
+
+_HF_REPO_ID = "Areneu/verifily-quality-model-v7"
+
+
+def _ensure_quality_model_dir() -> Optional[str]:
+    """Return path to quality model directory, downloading from HF if needed.
+
+    Priority:
+    1. Local ``quality_model/`` next to this file (dev / bundled mode)
+    2. HuggingFace Hub cache (auto-downloaded on first use)
+
+    Returns None when the model is unavailable (no network, no HF token, etc.).
+    """
+    # 1. Local dev path
+    local = os.path.join(os.path.dirname(__file__), "quality_model")
+    if os.path.exists(os.path.join(local, "quality_meta.json")):
+        return local
+
+    # 2. Download from HuggingFace Hub
+    try:
+        from huggingface_hub import snapshot_download
+        return snapshot_download(_HF_REPO_ID)
+    except Exception:
+        return None
+
+
+# ---------------------------------------------------------------------------
 # Domain exemplars (short representative texts per domain)
 # ---------------------------------------------------------------------------
 
@@ -281,8 +310,10 @@ class MLBackends:
         import torch
         import torch.nn as nn
 
-        # Try fine-tuned model first (v3.1+)
-        model_dir = os.path.join(os.path.dirname(__file__), "quality_model")
+        # Try fine-tuned model first (v3.1+) — local or auto-downloaded
+        model_dir = _ensure_quality_model_dir()
+        if model_dir is None:
+            return self._score_quality_head_legacy(texts, batch_size)
         meta_path = os.path.join(model_dir, "quality_meta.json")
 
         if os.path.exists(meta_path):
@@ -318,7 +349,9 @@ class MLBackends:
         import torch
         import torch.nn as nn
 
-        model_dir = os.path.join(os.path.dirname(__file__), "quality_model")
+        model_dir = _ensure_quality_model_dir()
+        if model_dir is None:
+            return None
         meta_path = os.path.join(model_dir, "quality_meta.json")
 
         with self._lock:
@@ -511,10 +544,9 @@ class MLBackends:
 
     def get_quality_meta(self) -> Optional[Dict]:
         """Return quality model metadata (for axis R² thresholds)."""
-        model_dir = os.path.join(os.path.dirname(__file__), "quality_model")
-        meta_path = os.path.join(model_dir, "quality_meta.json")
+        model_dir = _ensure_quality_model_dir()
 
-        if not os.path.exists(meta_path):
+        if model_dir is None:
             # Try legacy
             legacy_path = os.path.join(os.path.dirname(__file__), "quality_head_meta.json")
             if os.path.exists(legacy_path):
@@ -524,7 +556,7 @@ class MLBackends:
             return None
 
         import json
-        with open(meta_path) as f:
+        with open(os.path.join(model_dir, "quality_meta.json")) as f:
             return json.load(f)
 
     # ── Zero-shot domain classification (BART-large-MNLI) ─────

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "verifily"
-version = "1.4.2"
+version = "1.4.3"
 description = "ML data quality gate — ingest, validate, and ship datasets with confidence."
 readme = "README.md"
 license = {text = "BSL-1.1"}
@@ -74,6 +74,7 @@ ml = [
     "transformers>=4.30.0",
     "safetensors>=0.3.0",
     "sentence-transformers>=2.2.0",
+    "huggingface-hub>=0.20.0",
 ]
 dev = [
     "pytest>=7.0",
@@ -96,6 +97,7 @@ all = [
     "transformers>=4.30.0",
     "safetensors>=0.3.0",
     "sentence-transformers>=2.2.0",
+    "huggingface-hub>=0.20.0",
 ]
 
 [project.scripts]
