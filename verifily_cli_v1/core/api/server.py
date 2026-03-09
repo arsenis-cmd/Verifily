@@ -102,6 +102,10 @@ from verifily_cli_v1.core.api.models import (
     RetrainResponse,
     RiskScoreResponse,
     UsageResponse,
+    AnnotateRequest,
+    SelectRequest,
+    PredictRequest,
+    DiffRequest,
 )
 from verifily_cli_v1.core.api.monitor_store import MonitorConfig, monitor_store
 from verifily_cli_v1.core.api.identity import Role
@@ -594,6 +598,12 @@ def create_app(settings: Optional[Settings] = None) -> FastAPI:
         except ValueError:
             return None
 
+    def _bool_env(key: str, default: bool) -> bool:
+        val = os.environ.get(key)
+        if val is None:
+            return default
+        return val.strip() in ("1", "true", "yes", "True", "TRUE")
+
     @app.post("/v1/pipeline", response_model=PipelineResponse)
     def pipeline(req: PipelineRequest, request: Request) -> Dict[str, Any]:
         _check_enterprise_permission(request, "run_pipeline")
@@ -760,6 +770,7 @@ def create_app(settings: Optional[Settings] = None) -> FastAPI:
                 schema=req.schema_type,
                 sample=req.sample,
                 out_dir=req.out_dir,
+                fast=req.fast,
             )
         except FileNotFoundError as e:
             raise HTTPException(status_code=404, detail=str(e))
@@ -2300,6 +2311,68 @@ def create_app(settings: Optional[Settings] = None) -> FastAPI:
                 media_type="application/x-ndjson",
             )
         return {"events": events, "total": len(events)}
+
+    # ── v2 ML Infrastructure endpoints ────────────────────────────
+
+    @app.post("/v1/annotate")
+    async def annotate_endpoint(body: AnnotateRequest) -> Any:
+        """Multi-axis quality annotation."""
+        from verifily_cli_v1.core.annotator import Annotator
+        _CONTENT_KEYS = {"input", "output", "instruction", "response", "question", "answer", "text", "content", "prompt", "completion"}
+        def _extract(row):
+            parts = [row[k] for k in _CONTENT_KEYS if k in row and isinstance(row.get(k), str)]
+            return " ".join(parts) if parts else str(row)
+        texts = [_extract(r) for r in body.rows]
+        annotator = Annotator(axes=body.axes)
+        annotation = annotator.annotate_dataset(texts)
+        rows_out = [ann.to_dict() for ann in annotation.rows]
+        if body.min_score > 0:
+            rows_out = [r for r in rows_out if sum(r.values()) / len(r) >= body.min_score]
+        return {"rows": rows_out, "overall_profile": annotation.overall_profile, "axis_summaries": {k: v.to_dict() for k, v in annotation.axis_summaries.items()}}
+
+    @app.post("/v1/select")
+    async def select_endpoint(body: SelectRequest) -> Any:
+        """Optimal data selection."""
+        from verifily_cli_v1.core.selector import DataSelector, SelectionConfig
+        _CONTENT_KEYS = {"input", "output", "instruction", "response", "question", "answer", "text", "content", "prompt", "completion"}
+        def _extract(row):
+            parts = [row[k] for k in _CONTENT_KEYS if k in row and isinstance(row.get(k), str)]
+            return " ".join(parts) if parts else str(row)
+        texts = [_extract(r) for r in body.rows]
+        config = SelectionConfig(budget=body.budget, strategy=body.strategy, diversity_weight=body.diversity_weight, quality_threshold=body.quality_threshold, dedup_threshold=body.dedup_threshold, seed=body.seed)
+        selector = DataSelector(config)
+        result = selector.select(body.rows, texts)
+        return {"selected_rows": result.selected_rows, **result.to_dict()}
+
+    @app.post("/v1/predict")
+    async def predict_endpoint(body: PredictRequest) -> Any:
+        """Quality prediction."""
+        from verifily_cli_v1.core.annotator import Annotator
+        from verifily_cli_v1.core.predictor import QualityPredictor
+        from verifily_cli_v1.core.quality import analyze_quality
+        _CONTENT_KEYS = {"input", "output", "instruction", "response", "question", "answer", "text", "content", "prompt", "completion"}
+        def _extract(row):
+            parts = [row[k] for k in _CONTENT_KEYS if k in row and isinstance(row.get(k), str)]
+            return " ".join(parts) if parts else str(row)
+        texts = [_extract(r) for r in body.rows]
+        report = analyze_quality(body.rows)
+        annotator = Annotator()
+        annotation = annotator.annotate_dataset(texts)
+        predictor = QualityPredictor()
+        prediction = predictor.predict(report, annotation, len(body.rows))
+        result = prediction.to_dict()
+        if body.what_if:
+            for axis, threshold in body.what_if.items():
+                what_if_pred = predictor.what_if_remove(body.rows, texts, axis, threshold)
+                result.setdefault("what_if", {})[f"remove_{axis}_below_{threshold}"] = what_if_pred.to_dict()
+        return result
+
+    @app.post("/v1/diff")
+    async def diff_endpoint(body: DiffRequest) -> Any:
+        """Dataset diff."""
+        from verifily_cli_v1.core.dataset_diff import diff_datasets
+        diff = diff_datasets(body.dataset_a, body.dataset_b, deep_compare=body.deep)
+        return diff.to_dict()
 
     return app
 

@@ -1,10 +1,12 @@
-"""ML-based quality judge using embeddings.
+"""ML-based quality judge using the trained quality model.
 
-Uses a simple linear classifier head on top of text embeddings
-to produce per-row and aggregate quality scores.
+Uses the fine-tuned deberta quality model to produce per-row
+and aggregate quality scores via the "overall" axis.
 
-Optional dependency: requires ``torch`` + ``transformers`` for
-transformer-based embeddings. Falls back to TF-IDF if unavailable.
+Falls back to embedding-based heuristics if the quality model
+is unavailable.
+
+Optional dependency: requires ``torch`` + ``transformers``.
 
 Usage::
 
@@ -36,14 +38,13 @@ def _has_model_judge() -> bool:
 # ---------------------------------------------------------------------------
 
 class QualityJudge:
-    """Quality classifier using embeddings + linear head.
+    """Quality judge using the trained deberta quality model.
 
-    Architecture:
-        text -> embedder -> embedding (dim-D) -> linear (D -> 1) -> sigmoid -> score
+    Primary mode: uses ml_backends.score_quality_axes() to get the
+    "overall" quality score from the fine-tuned deberta model.
 
-    The linear head weights can be:
-    - Loaded from a file (trained via scripts/train_judge.py)
-    - Auto-initialized with heuristic weights (feature-based)
+    Fallback mode: uses embedding-based scoring if the quality model
+    is unavailable.
     """
 
     def __init__(
@@ -56,23 +57,31 @@ class QualityJudge:
         self._embedder_name = embedder_name
         self._prefer_backend = prefer_backend
         self._embedder = None
+        self._ml = None  # ML backends for quality model
         self._head_weights: Optional[List[float]] = None
         self._head_bias: float = 0.0
 
     def _load(self) -> None:
-        """Load embedder and classifier head."""
-        from verifily_cli_v1.core.embeddings import get_embedder
+        """Load quality model backend (preferred) or embedding fallback."""
+        # Try to get ML backends for quality model scoring
+        # Only use quality model when backend preference is "auto" (default)
+        if self._prefer_backend == "auto":
+            try:
+                from verifily_cli_v1.core.ml_backends import get_ml_backends, ml_available
+                if ml_available():
+                    self._ml = get_ml_backends()
+            except Exception:
+                pass
 
-        self._embedder = get_embedder(
-            prefer=self._prefer_backend,
-            model_name=self._embedder_name,
-        )
-
-        if self._model_path:
-            self._load_head(self._model_path)
-        else:
-            # Heuristic head: use embedding norm variance as quality proxy
-            self._head_weights = None  # Will use heuristic scoring
+        # Load embedder as fallback (or when explicit backend requested)
+        if self._ml is None:
+            from verifily_cli_v1.core.embeddings import get_embedder
+            self._embedder = get_embedder(
+                prefer=self._prefer_backend,
+                model_name=self._embedder_name,
+            )
+            if self._model_path:
+                self._load_head(self._model_path)
 
     def _load_head(self, path: str) -> None:
         """Load trained linear head weights from a file."""
@@ -83,42 +92,32 @@ class QualityJudge:
         self._head_bias = data.get("bias", 0.0)
 
     def _heuristic_score(self, embedding: List[float]) -> float:
-        """Score a row based on embedding properties.
-
-        Uses the magnitude and entropy of the embedding vector as
-        a proxy for text quality. Well-formed, diverse text tends to
-        produce embeddings with moderate norm and higher entropy.
-        """
+        """Fallback: score based on embedding entropy (used only when quality model unavailable)."""
         if not embedding:
             return 0.0
 
-        # Embedding norm (already L2 normalized, but check)
         norm = math.sqrt(sum(x * x for x in embedding))
         if norm < 0.01:
-            return 0.1  # Very low quality signal
+            return 0.1
 
-        # Entropy of absolute values (diversity of features)
         abs_vals = [abs(x) for x in embedding]
         total = sum(abs_vals) or 1.0
         probs = [v / total for v in abs_vals if v > 0]
         entropy = -sum(p * math.log(p) for p in probs if p > 0)
 
-        # Normalize entropy to 0-1 range (max entropy = log(dim))
         max_entropy = math.log(max(len(embedding), 1))
         normalized_entropy = entropy / max_entropy if max_entropy > 0 else 0.0
 
-        # Combine: higher entropy = more diverse = generally better quality
         return max(0.0, min(1.0, normalized_entropy))
 
     def _linear_score(self, embedding: List[float]) -> float:
-        """Score using trained linear head."""
+        """Fallback: score using trained linear head or heuristic."""
         if self._head_weights is None:
             return self._heuristic_score(embedding)
 
         z = sum(w * x for w, x in zip(self._head_weights, embedding))
         z += self._head_bias
 
-        # Sigmoid
         if z >= 0:
             return 1.0 / (1.0 + math.exp(-z))
         else:
@@ -132,20 +131,31 @@ class QualityJudge:
     ) -> List[float]:
         """Score individual rows for quality (0.0-1.0).
 
-        Returns:
-            List of quality scores, one per text.
+        Uses the trained deberta quality model's "overall" axis when
+        available. Falls back to embedding-based scoring otherwise.
         """
-        if self._embedder is None:
+        if self._ml is None and self._embedder is None:
             self._load()
 
+        # Primary: use trained quality model
+        if self._ml is not None:
+            try:
+                quality_axes = self._ml.score_quality_axes(texts)
+                if quality_axes is not None and "overall" in quality_axes:
+                    return [round(s, 4) for s in quality_axes["overall"]]
+            except Exception:
+                pass
+
+        # Fallback: embedding-based scoring
+        if self._embedder is None:
+            from verifily_cli_v1.core.embeddings import get_embedder
+            self._embedder = get_embedder(
+                prefer=self._prefer_backend,
+                model_name=self._embedder_name,
+            )
+
         embeddings = self._embedder.embed(texts, batch_size=batch_size)
-
-        scores = []
-        for emb in embeddings:
-            score = self._linear_score(emb)
-            scores.append(round(score, 4))
-
-        return scores
+        return [round(self._linear_score(emb), 4) for emb in embeddings]
 
     def judge_dataset(
         self,
@@ -159,12 +169,16 @@ class QualityJudge:
             - per_row_mean: mean per-row score
             - low_quality_count: rows scoring < 0.3
             - high_quality_fraction: fraction scoring >= 0.7
-            - model_backend: embedder backend used
+            - model_backend: backend used for scoring
         """
-        if self._embedder is None:
+        if self._ml is None and self._embedder is None:
             self._load()
 
         per_row = self.judge_rows(texts, batch_size=batch_size)
+
+        backend = "quality_model" if self._ml is not None else (
+            self._embedder.backend if self._embedder else "unknown"
+        )
 
         if not per_row:
             return {
@@ -172,7 +186,7 @@ class QualityJudge:
                 "per_row_mean": 0.0,
                 "low_quality_count": 0,
                 "high_quality_fraction": 0.0,
-                "model_backend": self._embedder.backend,
+                "model_backend": backend,
             }
 
         mean_score = sum(per_row) / len(per_row)
@@ -184,7 +198,7 @@ class QualityJudge:
             "per_row_mean": round(mean_score, 4),
             "low_quality_count": len(low_quality),
             "high_quality_fraction": round(high_quality / len(per_row), 4),
-            "model_backend": self._embedder.backend,
+            "model_backend": backend,
         }
 
 

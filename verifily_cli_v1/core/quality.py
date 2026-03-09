@@ -412,12 +412,15 @@ def _compute_score(issues: List[QualityIssue], total_rows: int) -> int:
 def analyze_quality(
     rows: List[Dict[str, Any]],
     schema: str = "auto",
+    domain: str = "auto",
+    fast: bool = True,
 ) -> QualityReport:
     """Run all quality checks on a dataset.
 
     Args:
         rows: List of row dicts (raw or canonicalized).
         schema: Schema hint (unused currently, reserved for future).
+        domain: Domain profile ("auto", "code", "medical", etc.).
 
     Returns:
         QualityReport with score, issues, and stats.
@@ -458,7 +461,8 @@ def analyze_quality(
     if imbalance:
         issues.append(imbalance)
 
-    # Semantic duplicate check (TF-IDF cosine similarity)
+    # Semantic duplicate check (TF-IDF cosine similarity) — pure Python, always-on
+    sem_stats: Dict[str, Any] = {}
     sem_dup, sem_stats = _check_semantic_duplicates(texts)
     if sem_dup:
         issues.append(sem_dup)
@@ -472,9 +476,38 @@ def analyze_quality(
     stats["near_duplicate_count"] = near_dup_count
     stats.update(sem_stats)
 
-    # Topic diversity
+    # Topic diversity (TF-IDF + K-means) — pure Python, always-on
     topic_stats = _compute_topic_stats(texts)
     stats.update(topic_stats)
+
+    # Multi-axis quality annotation (v2) — slow, skip in fast mode
+    if not fast:
+        try:
+            from verifily_cli_v1.core.annotator import Annotator
+            annotator = Annotator()
+            annotation = annotator.annotate_dataset(texts)
+            stats["axis_profile"] = annotation.overall_profile
+        except Exception:
+            pass  # graceful degradation
+
+    # Domain-specific quality checks (v2) — slow, skip in fast mode
+    if not fast:
+        try:
+            from verifily_cli_v1.core.domain_profiles import detect_domain, get_profile
+            if domain == "auto":
+                detection = detect_domain(texts)
+                domain = detection.detected_domain
+                stats["detected_domain"] = detection.detected_domain
+                stats["domain_confidence"] = detection.confidence
+            if domain != "general":
+                profile = get_profile(domain)
+                for check in profile.custom_checks:
+                    issue = check.check_fn(texts)
+                    if issue:
+                        issues.append(issue)
+                stats["domain_profile"] = domain
+        except Exception:
+            pass  # graceful degradation
 
     try:
         from verifily_cli_v1.core.learned_scorer import learned_score
@@ -482,16 +515,17 @@ def analyze_quality(
     except Exception:
         score = _compute_score(issues, len(rows))
 
-    # Optional: ML model judge (Level 3 — requires torch + transformers)
-    try:
-        from verifily_cli_v1.core.model_judge import judge_quality
-        model_result = judge_quality(texts)
-        if model_result:
-            stats["model_quality"] = model_result
-            model_score = model_result["model_quality_score"]
-            score = int(0.7 * score + 0.3 * model_score)
-    except Exception:
-        pass  # graceful degradation
+    # Optional: ML model judge (Level 3) — slow, skip in fast mode
+    if not fast:
+        try:
+            from verifily_cli_v1.core.model_judge import judge_quality
+            model_result = judge_quality(texts)
+            if model_result:
+                stats["model_quality"] = model_result
+                model_score = model_result["model_quality_score"]
+                score = int(0.7 * score + 0.3 * model_score)
+        except Exception:
+            pass  # graceful degradation
 
     return QualityReport(
         total_rows=len(rows),

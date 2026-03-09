@@ -128,12 +128,12 @@ def write_csv(path, rows):
 
 # ── 1. Schema Registry ──────────────────────────────────────────
 
-@test("Schema registry: all 7 schemas registered")
+@test("Schema registry: all 8 schemas registered")
 def _():
     from verifily_cli_v1.core.schemas import SCHEMA_REGISTRY, schema_names
     names = schema_names()
-    assert len(names) == 7, f"Expected 7 schemas, got {len(names)}: {names}"
-    for expected in ["sft", "qa", "classification", "chat", "summarization", "translation", "rm_pairwise"]:
+    assert len(names) == 8, f"Expected 8 schemas, got {len(names)}: {names}"
+    for expected in ["sft", "qa", "classification", "chat", "summarization", "translation", "rm_pairwise", "nl2sql"]:
         assert expected in SCHEMA_REGISTRY, f"Missing schema: {expected}"
 
 @test("Schema detection: all 7 schemas auto-detected correctly")

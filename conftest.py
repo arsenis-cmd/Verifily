@@ -10,6 +10,9 @@ import os
 
 import pytest
 
+# Bypass license checks in all tests by default.
+os.environ.setdefault("VERIFILY_TEST_MODE", "1")
+
 _SENSITIVE_ENV_VARS = [
     "VERIFILY_ORG_MODE",
     "VERIFILY_API_KEY",
@@ -30,6 +33,7 @@ _SENSITIVE_ENV_VARS = [
     "VERIFILY_KEY_SALT",
     "VERIFILY_TEAMS_ENABLED",
     "VERIFILY_ENTERPRISE_TOKEN",
+    "VERIFILY_TEST_MODE",
 ]
 
 

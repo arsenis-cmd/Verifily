@@ -30,9 +30,9 @@ class TestReportErrors:
 
 
 class TestNoArgsHelp:
-    def test_no_args_shows_help(self):
+    def test_no_args_launches_shell(self):
         result = runner.invoke(app, [])
         assert result.exit_code == 0
         assert "verifily" in result.output.lower()
-        # Should show quick start or commands
-        assert "pipeline" in result.output or "quickstart" in result.output
+        # Should show the interactive shell banner
+        assert "Interactive Shell" in result.output or "verifily>" in result.output

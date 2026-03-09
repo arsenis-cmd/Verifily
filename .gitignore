@@ -39,6 +39,7 @@ htmlcov/
 credentials.json
 *.pem
 *.key
+scripts/.keys/
 
 # Data / persistence
 *.jsonl
@@ -58,6 +59,10 @@ package-lock.json
 # Next.js (website/)
 website/.next/
 website/out/
+
+# ML model weights (too large for git — download on first use)
+*.pt
+verifily_cli_v1/core/quality_model/
 
 # Temp
 tmp/

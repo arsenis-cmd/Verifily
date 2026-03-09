@@ -190,12 +190,13 @@ def run_report_api(
     out_dir: Optional[str] = None,
     use_ner: bool = False,
     min_confidence: float = 0.0,
+    fast: bool = True,
 ) -> Dict[str, Any]:
     """Run dataset report and return result dict."""
     from verifily_cli_v1.commands.report import dataset_report
 
     t0 = time.monotonic()
-    report = dataset_report(dataset_path, schema=schema, use_ner=use_ner, min_confidence=min_confidence)
+    report = dataset_report(dataset_path, schema=schema, use_ner=use_ner, min_confidence=min_confidence, fast=fast)
     elapsed_ms = int((time.monotonic() - t0) * 1000)
 
     # PII summary: counts only, never raw PII

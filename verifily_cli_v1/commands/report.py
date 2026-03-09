@@ -24,6 +24,7 @@ def dataset_report(
     *,
     use_ner: bool = False,
     min_confidence: float = 0.0,
+    fast: bool = True,
 ) -> Dict[str, Any]:
     """Generate a report for a JSONL dataset.
 
@@ -74,7 +75,7 @@ def dataset_report(
 
     # Quality analysis
     from verifily_cli_v1.core.quality import analyze_quality
-    quality = analyze_quality(rows, schema=schema)
+    quality = analyze_quality(rows, schema=schema, fast=fast)
 
     return {
         "path": str(dataset_path),
@@ -99,11 +100,16 @@ def run(
     verbose: bool = False,
     use_ner: bool = False,
     min_confidence: float = 0.0,
+    fast: bool = True,
 ) -> Dict[str, Any]:
     """Generate and display dataset report. Returns report dict."""
-    report = dataset_report(dataset, schema=schema, use_ner=use_ner, min_confidence=min_confidence)
+    import time as _time
+    t0 = _time.monotonic()
+    report = dataset_report(dataset, schema=schema, use_ner=use_ner, min_confidence=min_confidence, fast=fast)
+    elapsed = _time.monotonic() - t0
+    mode_label = "FAST" if fast else "DEEP"
 
-    console.print(f"\n[bold]Dataset Report:[/bold] {dataset}\n")
+    console.print(f"\n[bold]Dataset Report:[/bold] {dataset} [dim][{mode_label} — {elapsed:.1f}s][/dim]\n")
 
     # Summary
     console.print(f"  Rows: [cyan]{report['row_count']}[/cyan]")

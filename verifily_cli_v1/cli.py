@@ -18,9 +18,50 @@ console = Console(stderr=True)
 
 
 # ── License gating ────────────────────────────────────────────
+def _prompt_for_license_key() -> None:
+    """Prompt user for a license key on first run (no license, no trial)."""
+    from verifily_cli_v1.core.licensing import (
+        LICENSE_FILE, TRIAL_FILE, save_license_key, start_trial, LicenseError,
+    )
+    # Only prompt if there's no existing license and no trial
+    if LICENSE_FILE.exists() or TRIAL_FILE.exists():
+        return
+    if os.environ.get("VERIFILY_LICENSE_KEY", "").strip():
+        return
+    if os.environ.get("VERIFILY_TEST_MODE", "") == "1":
+        return
+
+    console.print("\n[bold]Welcome to Verifily![/bold]\n")
+    console.print("Enter your license key to activate, or press Enter to start a 14-day free trial.\n")
+    console.print("[dim]Purchase a license at https://verifily.io/#pricing[/dim]\n")
+
+    try:
+        key = input("License key (or Enter for trial): ").strip()
+    except (EOFError, KeyboardInterrupt):
+        console.print()
+        raise SystemExit(0)
+
+    if key:
+        try:
+            info = save_license_key(key)
+            console.print(f"\n[green bold]License activated![/green bold]")
+            console.print(f"  Tier:           {info.tier.value}")
+            console.print(f"  Days remaining: {info.days_remaining}\n")
+        except LicenseError as exc:
+            console.print(f"\n[red bold]Invalid license key[/red bold]: {exc}")
+            console.print("[dim]Starting 14-day trial instead...[/dim]\n")
+            trial = start_trial()
+            console.print(f"[green]Trial started — {trial.days_remaining} days remaining.[/green]\n")
+    else:
+        trial = start_trial()
+        console.print(f"\n[green]Trial started — {trial.days_remaining} days of PRO access.[/green]")
+        console.print("[dim]Activate anytime: verifily login --key VFY-...[/dim]\n")
+
+
 def _require_license(command_name: str) -> None:
     """Check license for a paid command.  Raises SystemExit on failure."""
     from verifily_cli_v1.core.licensing import check_license, LicenseError, Tier
+    _prompt_for_license_key()
     try:
         info = check_license(command_name)
         if info.is_trial:
@@ -40,7 +81,7 @@ app = typer.Typer(
         "Exit codes: 0=SHIP, 1=DONT_SHIP, 2=INVESTIGATE, 3=CONTRACT_FAIL, 4=TOOL_ERROR."
     ),
     add_completion=False,
-    no_args_is_help=True,
+    no_args_is_help=False,
     rich_markup_mode="rich",
     epilog=(
         "Quick start:\n"
@@ -92,6 +133,10 @@ def main(
     cmd = ctx.invoked_subcommand
     if cmd is not None:
         _require_license(cmd)
+    elif not os.environ.get("_VERIFILY_SHELL_ACTIVE"):
+        from verifily_cli_v1.shell import run_shell
+        run_shell(app)
+        raise typer.Exit()
 
 
 # ── init ─────────────────────────────────────────────────────────
@@ -476,14 +521,18 @@ def report(
         None, "--api-key", help="API key for remote server auth."
     ),
     verbose: bool = typer.Option(False, "--verbose", help="Show detailed output."),
+    deep: bool = typer.Option(False, "--deep", help="Full ML analysis with quality models (~5-10 min)."),
+    html: bool = typer.Option(False, "--html", help="Generate HTML report and open in browser."),
 ) -> None:
     """Generate a dataset report with field statistics and PII scan.
 
-    Use --server to run via a remote API instead of locally.
+    By default runs in fast mode (heuristic checks, ~1-3s).
+    Use --deep for full ML analysis with quality models.
 
     Example:
       verifily report --dataset data/train.jsonl
-      verifily report --dataset data/train.jsonl --ner
+      verifily report --dataset data/train.jsonl --deep
+      verifily report --dataset data/train.jsonl --html
       verifily report --dataset data/train.jsonl --server https://api.verifily.io
     """
     def _impl():
@@ -501,7 +550,8 @@ def report(
             import json as _json
             console.print(_json.dumps(result, indent=2))
             return
-        _report_impl(dataset, schema, output, verbose, use_ner, pii_confidence)
+        _report_impl(dataset, schema, output, verbose, use_ner, pii_confidence,
+                      fast=not deep, html=html)
 
     _run_safe(_impl, verbose=verbose)
 
@@ -509,6 +559,7 @@ def report(
 def _report_impl(
     dataset: str, schema: str, output: Optional[str], verbose: bool,
     use_ner: bool = False, pii_confidence: float = 0.0,
+    fast: bool = True, html: bool = False,
 ) -> None:
     ds_path = Path(dataset)
     if not ds_path.exists():
@@ -517,8 +568,13 @@ def _report_impl(
         console.print("      or check the path and try again.")
         raise SystemExit(1)
     from verifily_cli_v1.commands.report import run
-    run(dataset=dataset, schema=schema, output=output, verbose=verbose,
-        use_ner=use_ner, min_confidence=pii_confidence)
+    report = run(dataset=dataset, schema=schema, output=output, verbose=verbose,
+                 use_ner=use_ner, min_confidence=pii_confidence, fast=fast)
+    if html:
+        from verifily_cli_v1.core.html_report import write_html_report
+        html_path = ds_path.parent / "verifily_report.html"
+        write_html_report({"report": report}, html_path, command=f"verifily report --dataset {dataset}")
+        console.print(f"  HTML report: [bold]{html_path}[/bold]")
 
 
 # ── contamination ───────────────────────────────────────────────
@@ -633,17 +689,19 @@ def pipeline(
     server_api_key: Optional[str] = typer.Option(
         None, "--api-key", help="API key for remote server auth."
     ),
+    deep: bool = typer.Option(False, "--deep", help="Full ML analysis with quality models (~5-10 min)."),
+    html: bool = typer.Option(False, "--html", help="Generate HTML report and open in browser."),
 ) -> None:
     """Run end-to-end pipeline: contract → report → contamination → decision.
 
     Exit codes: 0=SHIP, 1=DONT_SHIP, 2=INVESTIGATE, 3=CONTRACT_FAIL, 4=TOOL_ERROR.
 
-    Use --server to run via a remote API instead of locally.
+    By default runs in fast mode. Use --deep for full ML analysis.
 
     Example:
       verifily pipeline --config verifily.yaml
-      verifily pipeline --config verifily.yaml --ci
-      verifily pipeline --config verifily.yaml --wandb --wandb-project my-project
+      verifily pipeline --config verifily.yaml --deep
+      verifily pipeline --config verifily.yaml --html
       verifily pipeline --config verifily.yaml --server https://api.verifily.io
     """
     def _impl():
@@ -690,6 +748,7 @@ def pipeline(
             result = run(
                 config=config, ci=ci, output=output, verbose=verbose,
                 integration_overrides=_integration_overrides if _integration_overrides else None,
+                fast=not deep, html=html,
             )
             exit_code = result.get("decision", {}).get("exit_code", EXIT_TOOL_ERROR)
             raise SystemExit(exit_code)
@@ -1382,20 +1441,24 @@ def check(
         None, "--schema", "-s", help="Override auto-detected schema."
     ),
     json_output: bool = typer.Option(False, "--json", help="Output as JSON."),
+    deep: bool = typer.Option(False, "--deep", help="Full ML analysis with quality models (~5-10 min)."),
+    html: bool = typer.Option(False, "--html", help="Generate HTML report and open in browser."),
 ) -> None:
     """Quick quality check on any dataset file.
 
     Auto-detects schema, scans for PII, checks for duplicates and empty fields.
+    By default runs in fast mode. Use --deep for full ML analysis.
 
     Example:
       verifily check data.csv
-      verifily check train.jsonl
-      verifily check data.parquet --schema sft
+      verifily check train.jsonl --deep
+      verifily check data.parquet --schema sft --html
     """
-    _run_safe(lambda: _check_impl(file, schema, json_output))
+    _run_safe(lambda: _check_impl(file, schema, json_output, fast=not deep, html=html))
 
 
-def _check_impl(file: str, schema_override: Optional[str], json_output: bool) -> None:
+def _check_impl(file: str, schema_override: Optional[str], json_output: bool,
+                 fast: bool = True, html: bool = False) -> None:
     import csv
     import hashlib
     from rich.table import Table
@@ -1463,7 +1526,7 @@ def _check_impl(file: str, schema_override: Optional[str], json_output: bool) ->
 
     # Quality analysis
     from verifily_cli_v1.core.quality import analyze_quality
-    quality = analyze_quality(rows)
+    quality = analyze_quality(rows, fast=fast)
     near_dup_count = quality.stats.get("near_duplicate_count", 0)
 
     # Status
@@ -1522,6 +1585,82 @@ def _check_impl(file: str, schema_override: Optional[str], json_output: bool) ->
     for qi in quality.issues:
         icon = "!" if qi.severity == "warning" else "X" if qi.severity == "error" else "*"
         c.print(f"  {icon} {qi.description}")
+
+    if html:
+        from verifily_cli_v1.core.html_report import write_html_report
+        report_data = {
+            "report": {
+                "path": str(p),
+                "row_count": len(rows),
+                "schema": detected,
+                "field_stats": {f: {"present": sum(1 for r in rows if f in r), "empty": 0, "avg_len": 0} for f in sorted(fields)},
+                "pii_scan": pii_result.get("pii_scan", {}),
+                "pii_total_hits": pii_hits,
+                "pii_clean": pii_hits == 0,
+                "quality": quality.to_dict(),
+            }
+        }
+        html_path = p.parent / "verifily_report.html"
+        write_html_report(report_data, html_path, command=f"verifily check {file}")
+        c.print(f"\n  HTML report: [bold]{html_path}[/bold]")
+
+
+# ── watch ────────────────────────────────────────────────────────
+
+@app.command()
+def watch(
+    dataset: str = typer.Option(
+        ..., "--dataset", "-d", help="Path to JSONL/CSV file to watch.",
+    ),
+    schema: str = typer.Option(
+        "sft", "--schema", "-s", help="Dataset schema.",
+    ),
+    interval: float = typer.Option(
+        1.0, "--interval", "-i", help="Polling interval in seconds.",
+    ),
+    html: bool = typer.Option(
+        False, "--html", help="Regenerate HTML report on each change.",
+    ),
+) -> None:
+    """Watch a dataset file and re-run fast quality checks on modification.
+
+    Provides instant feedback during data cleaning workflows.
+    Only runs fast-mode heuristic checks (no ML models).
+
+    Example:
+      verifily watch --dataset data.jsonl
+      verifily watch --dataset data.csv --interval 2 --html
+    """
+    _run_safe(lambda: _watch_impl(dataset, schema, interval, html))
+
+
+def _watch_impl(dataset: str, schema: str, interval: float, html: bool) -> None:
+    from verifily_cli_v1.commands.watch import run
+    run(dataset=dataset, schema=schema, interval=interval, html=html)
+
+
+# ── share ────────────────────────────────────────────────────────
+
+@app.command(short_help="Serve a report for team sharing.")
+def share(
+    report: str = typer.Option(
+        ..., "--report", "-r", help="Path to HTML report file.",
+    ),
+    port: int = typer.Option(
+        8765, "--port", "-p", help="Port to serve on.",
+    ),
+) -> None:
+    """Serve an HTML report via local HTTP server for team sharing.
+
+    Starts a local web server and prints a shareable URL for anyone
+    on the same network.
+
+    Example:
+      verifily share --report verifily_report.html
+      verifily share --report pipeline_report.html --port 9000
+    """
+    from verifily_cli_v1.commands.share import run
+    run(report=report, port=port)
 
 
 # ── ci-init ──────────────────────────────────────────────────────
@@ -4273,6 +4412,135 @@ def _benchmark_impl(
         
         console.print("\n[dim]Note: Verifily prioritizes determinism and accuracy over raw speed.[/dim]")
         console.print()
+
+
+# ── annotate ──────────────────────────────────────────────────────
+
+@app.command()
+def annotate(
+    input_path: str = typer.Option(..., "--in", "-i", help="Path to dataset (CSV/JSONL)."),
+    output: Optional[str] = typer.Option(None, "--output", "-o", help="Write annotated JSONL to file."),
+    axes: Optional[str] = typer.Option(None, "--axes", help="Comma-separated axes (default: all)."),
+    min_score: float = typer.Option(0.0, "--min-score", help="Filter rows below mean score threshold."),
+    json_output: bool = typer.Option(False, "--json", help="Output as JSON."),
+    verbose: bool = typer.Option(False, "--verbose", help="Show detailed output."),
+) -> None:
+    """Multi-axis quality annotation.
+
+    Scores every row on 6 dimensions: coherence, informativeness,
+    complexity, safety, formatting, uniqueness.
+
+    Example:
+      verifily annotate --in data.jsonl --output annotated.jsonl
+      verifily annotate --in data.csv --axes coherence,safety --min-score 0.5
+    """
+    def _impl():
+        from verifily_cli_v1.commands.annotate import run_annotate
+        result = run_annotate(input_path, output, axes, min_score, json_output)
+        if json_output:
+            print(json.dumps(result, indent=2))
+        else:
+            console.print(f"\n[bold]Annotation Results[/bold]")
+            console.print(f"  Total rows: {result['total_rows']}")
+            console.print(f"  Annotated:  {result['annotated']}")
+            if result['filtered'] > 0:
+                console.print(f"  Filtered:   {result['filtered']}")
+            console.print(f"\n  [bold]Quality Profile:[/bold]")
+            for axis, score in result['overall_profile'].items():
+                bar = "█" * int(score * 20) + "░" * (20 - int(score * 20))
+                console.print(f"    {axis:18s} {bar} {score:.3f}")
+            if output:
+                console.print(f"\n  Written to: {output}")
+    _run_safe(_impl, verbose=verbose)
+
+
+# ── select ────────────────────────────────────────────────────────
+
+@app.command()
+def select(
+    input_path: str = typer.Option(..., "--in", "-i", help="Path to dataset (CSV/JSONL)."),
+    budget: int = typer.Option(..., "--budget", "-b", help="Target number of rows to select."),
+    output: Optional[str] = typer.Option(None, "--output", "-o", help="Write selected rows to JSONL."),
+    strategy: str = typer.Option("quality_diverse", "--strategy", "-s", help="Selection strategy."),
+    diversity_weight: float = typer.Option(0.3, "--diversity-weight", help="0=quality, 1=diversity."),
+    quality_threshold: float = typer.Option(0.0, "--quality-threshold", help="Min quality floor."),
+    dedup_threshold: float = typer.Option(0.85, "--dedup-threshold", help="Cosine sim dedup cutoff."),
+    seed: int = typer.Option(42, "--seed", help="Random seed."),
+    json_output: bool = typer.Option(False, "--json", help="Output as JSON."),
+    verbose: bool = typer.Option(False, "--verbose", help="Show detailed output."),
+) -> None:
+    """Optimal data selection for training.
+
+    Strategies: quality_diverse (default), quality_top, diverse, random.
+
+    Example:
+      verifily select --in data.jsonl --budget 1000 --output selected.jsonl
+      verifily select --in data.jsonl --budget 500 --strategy quality_top
+    """
+    def _impl():
+        from verifily_cli_v1.commands.select import run_select
+        result = run_select(input_path, budget, output, strategy, diversity_weight,
+                           quality_threshold, dedup_threshold, seed)
+        if json_output:
+            print(json.dumps(result, indent=2))
+        else:
+            stats = result.get("selection_stats", {})
+            console.print(f"\n[bold]Data Selection Results[/bold]")
+            console.print(f"  Total rows:    {stats.get('total_rows', '?')}")
+            console.print(f"  After dedup:   {stats.get('after_dedup', '?')}")
+            console.print(f"  Selected:      {stats.get('selected', '?')}")
+            console.print(f"  Strategy:      {stats.get('strategy', '?')}")
+            console.print(f"  Avg quality before: {stats.get('avg_quality_before', 0):.3f}")
+            console.print(f"  Avg quality after:  {stats.get('avg_quality_after', 0):.3f}")
+            console.print(f"  Diversity score:    {result.get('diversity_score', 0):.3f}")
+            if output:
+                console.print(f"\n  Written to: {output}")
+    _run_safe(_impl, verbose=verbose)
+
+
+# ── predict ───────────────────────────────────────────────────────
+
+@app.command()
+def predict(
+    input_path: str = typer.Option(..., "--in", "-i", help="Path to dataset (CSV/JSONL)."),
+    output: Optional[str] = typer.Option(None, "--output", "-o", help="Write prediction to JSON."),
+    what_if_remove: Optional[str] = typer.Option(None, "--what-if-remove", help="axis:threshold (e.g. complexity:0.3)."),
+    json_output: bool = typer.Option(False, "--json", help="Output as JSON."),
+    verbose: bool = typer.Option(False, "--verbose", help="Show detailed output."),
+) -> None:
+    """Predict training outcomes from data quality.
+
+    Estimates quality tier, loss multiplier, and risk factors.
+
+    Example:
+      verifily predict --in data.jsonl
+      verifily predict --in data.jsonl --what-if-remove complexity:0.3
+    """
+    def _impl():
+        from verifily_cli_v1.commands.predict import run_predict
+        result = run_predict(input_path, output, what_if_remove)
+        if json_output:
+            print(json.dumps(result, indent=2))
+        else:
+            tier = result['predicted_quality_tier']
+            tier_colors = {"excellent": "green", "good": "green", "fair": "yellow", "poor": "red", "unusable": "red bold"}
+            color = tier_colors.get(tier, "white")
+            console.print(f"\n[bold]Quality Prediction[/bold]")
+            console.print(f"  Tier:            [{color}]{tier}[/{color}]")
+            console.print(f"  Confidence:      {result['confidence']:.1%}")
+            console.print(f"  Loss multiplier: {result['estimated_loss_multiplier']:.2f}x")
+            if result['risk_factors']:
+                console.print(f"\n  [bold]Risk Factors:[/bold]")
+                for rf in result['risk_factors']:
+                    console.print(f"    - {rf['name']} (impact: {rf['impact']:.1%})")
+                    console.print(f"      {rf['mitigation']}")
+            if result['recommendations']:
+                console.print(f"\n  [bold]Recommendations:[/bold]")
+                for rec in result['recommendations']:
+                    console.print(f"    - {rec}")
+            if output:
+                console.print(f"\n  Written to: {output}")
+    _run_safe(_impl, verbose=verbose)
 
 
 # ── nl2sql ────────────────────────────────────────────────────────

@@ -51,6 +51,10 @@ class PipelineRequest(BaseModel):
         None,
         description="Project identifier for usage accounting.",
     )
+    fast: bool = Field(
+        True,
+        description="Fast mode: skip ML models for faster results (~1-3s instead of ~7min).",
+    )
 
 
 class ContaminationSummary(BaseModel):
@@ -120,6 +124,10 @@ class ReportRequest(BaseModel):
     project_id: Optional[str] = Field(
         None,
         description="Project identifier for usage accounting.",
+    )
+    fast: bool = Field(
+        True,
+        description="Fast mode: skip ML models for faster results.",
     )
 
 
@@ -774,3 +782,29 @@ class SubscriptionResponse(BaseModel):
     status: str = "incomplete"
     created_at: float = 0.0
     updated_at: float = 0.0
+
+
+# ── v2 ML Infrastructure ────────────────────────────────────────
+
+class AnnotateRequest(BaseModel):
+    rows: List[Dict[str, Any]]
+    axes: Optional[List[str]] = None
+    min_score: float = 0.0
+
+class SelectRequest(BaseModel):
+    rows: List[Dict[str, Any]]
+    budget: int
+    strategy: str = "quality_diverse"
+    diversity_weight: float = 0.3
+    quality_threshold: float = 0.0
+    dedup_threshold: float = 0.85
+    seed: int = 42
+
+class PredictRequest(BaseModel):
+    rows: List[Dict[str, Any]]
+    what_if: Optional[Dict[str, float]] = None
+
+class DiffRequest(BaseModel):
+    dataset_a: List[Dict[str, Any]]
+    dataset_b: List[Dict[str, Any]]
+    deep: bool = False

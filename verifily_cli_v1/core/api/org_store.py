@@ -8,6 +8,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import tempfile
 import threading
 import uuid
 from pathlib import Path
@@ -78,7 +79,7 @@ class OrgStore:
         elif path_env:
             self._persist_path = path_env
         else:
-            self._persist_path = str(Path("/tmp") / "verifily_org_events.jsonl")
+            self._persist_path = str(Path(tempfile.gettempdir()) / "verifily_org_events.jsonl")
         
         if self._persist_enabled:
             self._replay()

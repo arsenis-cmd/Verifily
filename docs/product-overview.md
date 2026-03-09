@@ -1,140 +1,160 @@
 # Verifily — Product Overview
 
-**The release gate for machine learning.**
+**ML data quality infrastructure. Evaluate, score, clean, and monitor datasets — from ingestion to production.**
 
-Verifily is infrastructure for deciding whether a model should ship. It sits between training and production — transforming raw data into versioned datasets, validating run contracts, detecting eval contamination, and producing a machine-readable ship/don't-ship decision. One command. Runs in CI. Exit code 0 means ship.
+Verifily is a complete platform for ML data quality. It scores every row in your dataset on six quality axes using trained transformer models, detects contamination and drift, produces ship/don't-ship decisions, and runs as a CLI, API server, or Python SDK. One command gates your pipeline. Sixty endpoints power your infrastructure.
 
 ---
 
 ## The Problem
 
-ML teams ship models without a structured gate between training and production. Eval metrics look good on paper, but nobody checks whether the eval set leaked into training data. Config files go missing between runs. Metric regressions go unnoticed because there is no enforced baseline comparison. The decision to ship lives in a Slack thread or a spreadsheet — not in the pipeline.
-
-**Common failure modes Verifily catches:**
+ML teams don't have infrastructure for data quality. They have model evaluation (loss curves, benchmarks) but nothing that answers: *is the data itself good enough to train on?*
 
 | Failure | What happens | What Verifily does |
 |---------|-------------|-------------------|
-| Eval contamination | Training data overlaps with eval set; metrics are inflated | SHA-256 exact matching + n-gram Jaccard similarity with configurable thresholds |
-| Silent regression | F1 drops 0.08 between runs; nobody notices | Automated delta computation against a pinned baseline with hard thresholds |
-| Missing artifacts | config.yaml or hashes.json absent from run directory | Contract validation before any evaluation begins |
+| Low-quality training data | Model learns noise, poor generalization | Scores every row on coherence, informativeness, complexity, safety, formatting, uniqueness |
+| Eval contamination | Training data overlaps with eval set; metrics are inflated | SHA-256 exact matching + n-gram Jaccard similarity detection |
+| Distribution drift | Production data diverges from training distribution | 8 statistical tests including Classifier Two-Sample Test (C2ST) |
+| No quality signal | "The data looks fine" — no quantitative measure | Trained DeBERTa-v3-large ensemble (117k human annotations, R²=0.32) |
+| Silent regression | Quality drops between dataset versions; nobody notices | Dataset diff with structural, distributional, and semantic comparison |
+| PII in training data | Names, emails, phone numbers in dataset rows | Regex-based PII scanner with configurable thresholds and redaction |
 | Irreproducible runs | "It worked on my machine" | SHA-256 hash chain over config, data, environment, and seed |
 | No audit trail | Cannot explain why a model was shipped or held | Decision summary (JSON + plaintext) persisted alongside run artifacts |
 
 ---
 
-## How It Works
-
-Verifily runs as a single pipeline — four checks, one decision:
-
-```
-Raw Data
-  │
-  ▼
-┌─────────────┐
-│  Transform   │  Ingest → Normalize → Deduplicate → Label → Synthesize
-│              │  Output: versioned dataset with lineage + content-addressed ID
-└──────┬──────┘
-       │
-       ▼
-┌─────────────┐
-│  Contract    │  Validate run directory: config.yaml, hashes.json,
-│              │  environment.json, eval_results.json all present and valid
-└──────┬──────┘
-       │
-       ▼
-┌─────────────┐
-│Contamination │  SHA-256 exact match + n-gram Jaccard similarity
-│              │  between training data and eval set
-└──────┬──────┘
-       │
-       ▼
-┌─────────────┐
-│  Decision    │  Compare metrics against baseline, apply ship_if criteria,
-│              │  produce SHIP / DON'T SHIP / INVESTIGATE + exit code
-└─────────────┘
-```
-
-Every step reads artifacts from disk and writes artifacts to disk. No hosted service. No vendor lock-in.
-
----
-
 ## Core Capabilities
 
-### 1. Dataset Transformation
+### 1. Multi-Axis Quality Annotation
 
-Clean data in, versioned artifacts out. A single reproducible pipeline that ingests raw data (JSONL, CSV, or plaintext), normalizes formats, removes duplicates via exact hash and MinHash LSH fuzzy matching, applies labels, optionally synthesizes additional training rows, and redacts PII.
-
-Every dataset gets a **content-addressed version ID** and a **lineage record**:
-
-```
-datasets/<name>/<version_id>/
-  dataset.jsonl        # training-ready rows
-  manifest.json        # metadata, schema, row count, file hashes, chain hash
-  hashes.json          # SHA-256 for every file
-  lineage.json         # parent datasets, transform config hash, tag distribution
-```
-
-The version ID is deterministic: `sha256(content_hash | schema | sorted_parent_hashes)[:12]`. Same input always produces the same version.
-
-**Pipeline steps:**
-
-| Step | What it does |
-|------|-------------|
-| Ingest | Load JSONL, CSV, or TXT with encoding detection |
-| Normalize | Map to canonical schema (SFT or classification) via field auto-detection |
-| Deduplicate | Exact (SHA-256) + fuzzy (MinHash LSH, default Jaccard threshold 0.85) |
-| Label | Heuristic or LLM-based labeling |
-| Synthesize | LLM-based expansion (configurable model, temperature, expansion factor) |
-| Filter | Length bounds, repetition detection, leakage check against seed data |
-| Package | Write manifest, compute file hashes, generate chain hash |
-
-### 2. Run Contract Validation
-
-Before evaluation begins, Verifily validates that a run directory contains everything needed for a reproducible, auditable decision:
-
-- `config.yaml` — the exact training configuration
-- `hashes.json` — SHA-256 integrity chain
-- `environment.json` — Python, torch, transformers, device info
-- `eval_results.json` — metrics from evaluation
-
-Schema-level validation for dataset rows is also available:
+Score every row in your dataset on six quality axes using trained ML models. No heuristics in the main path — real transformer inference with graceful fallbacks.
 
 ```bash
-verifily contract-check --dataset data/train.jsonl --schema sft
+verifily annotate --in data/train.jsonl --out annotations/
 ```
 
-SFT requires `{instruction, output}`. Classification requires `{text, label}`. QA-style `{question, answer, context}` is accepted and mapped automatically.
+| Axis | Model | What It Measures |
+|------|-------|-----------------|
+| Coherence | Fine-tuned DeBERTa-v3-large ensemble | Logical structure and flow |
+| Informativeness | Fine-tuned DeBERTa-v3-large ensemble | Useful information density |
+| Complexity | Fine-tuned DeBERTa-v3-large ensemble | Linguistic and conceptual depth |
+| Safety | toxic-bert (unitary/toxic-bert) | Toxicity and harmful content |
+| Formatting | distilgpt2 perplexity scoring | Text fluency and formatting quality |
+| Uniqueness | Sentence-transformer dense embeddings | Novelty relative to the dataset |
 
-### 3. Contamination Detection
+**Quality model**: 3-model ensemble of DeBERTa-v3-large (435M params each), trained end-to-end on 105k cleaned human annotations from HelpSteer2, UltraFeedback, and oasst2. Huber loss, layer-wise learning rate decay, missing-label masking. Each row gets four continuous scores (0-1) that aggregate into dataset-level quality profiles.
 
-Verifily detects when eval set rows have leaked into training data — the most common source of inflated metrics in production ML.
+**Fallback chain**: Every axis degrades gracefully. If torch is unavailable, sentence-transformers provides embeddings. If no ML at all, pure-Python heuristics (Flesch-Kincaid, Jaccard, regex) take over. The pipeline never crashes — it adapts.
 
-**Two detection methods:**
+### 2. Intelligent Data Selection
+
+Select the best subset of your data for training using quality-aware strategies.
+
+```bash
+verifily select --in data/train.jsonl --budget 5000 --strategy quality_diverse
+```
+
+| Strategy | How It Works |
+|----------|-------------|
+| `quality_diverse` (default) | MMR-variant balancing quality scores and embedding diversity |
+| `quality_top` | Top-K by aggregate quality score |
+| `diverse` | Farthest-point sampling for maximum coverage |
+| `random` | Random sampling with deterministic seed |
+
+Deduplication filter runs before selection (configurable similarity threshold). Both dense (sentence-transformer) and sparse (TF-IDF) similarity paths.
+
+### 3. Quality Prediction
+
+Predict the overall quality score of a dataset before running the full pipeline.
+
+```bash
+verifily predict --in data/train.jsonl
+```
+
+30-feature Ridge regression model trained on quality report metrics. Produces a predicted score, risk factors, and actionable recommendations. `what_if_remove` simulates removing low-quality rows and re-predicts the score.
+
+### 4. Model Quality Judge
+
+Aggregate quality assessment using the trained DeBERTa ensemble.
+
+Returns a 0-100 dataset quality score, per-row scores, low-quality count, and high-quality fraction. Primary backend is the fine-tuned quality model's "overall" axis. Falls back to embedding-based scoring, then heuristics.
+
+### 5. Contamination Detection
+
+Detect when eval set rows have leaked into training data.
+
+```bash
+verifily contamination --train data/train.jsonl --eval data/eval.jsonl
+```
 
 - **Exact overlap**: SHA-256 hash of each row; any collision is a verbatim leak
-- **Near-duplicate**: N-gram Jaccard similarity catches paraphrased or lightly edited copies
+- **Near-duplicate**: N-gram Jaccard similarity via MinHash LSH catches paraphrased copies
+- **NL2SQL three-tier gate**: Exact SQL, template fingerprint, question near-duplicate
 
-Thresholds are configurable per project. Both methods run in linear time over the dataset.
+### 6. Distribution Drift Detection
 
-### 4. Decision Surface
+Eight statistical tests to detect when data distributions shift.
 
-Every pipeline run produces a single, machine-readable decision:
+```bash
+verifily drift --baseline data/v1.jsonl --current data/v2.jsonl
+```
 
-```json
-{
-  "dataset_version": "a3f8c1d20b47",
-  "recommendation": "DONT_SHIP",
-  "exit_code": 1,
-  "metrics": { "f1": 0.6841, "exact_match": 0.5600 },
-  "baseline_metrics": { "f1": 0.7139, "exact_match": 0.5945 },
-  "deltas": { "f1": -0.0298, "exact_match": -0.0345 },
-  "risk_flags": ["f1_below_threshold", "contamination_detected"],
-  "reproducibility_verified": true,
-  "reasoning": [
-    "F1 (0.6841) is below minimum threshold (0.70)",
-    "5 exact overlaps detected between train and eval sets"
-  ]
-}
+| Test | Type | ML Required |
+|------|------|------------|
+| Kolmogorov-Smirnov | Continuous distribution comparison | No |
+| Chi-squared | Categorical distribution comparison | No |
+| Population Stability Index | Binned distribution shift | No |
+| Vocabulary drift (sparse) | Jaccard on top-K terms | No |
+| Vocabulary drift (dense) | Embedded term centroids | Yes |
+| Centroid shift (sparse) | TF-IDF centroid cosine distance | No |
+| Centroid shift (dense) | Sentence-transformer centroid distance | Yes |
+| C2ST | Train classifier to distinguish datasets | Yes |
+
+Severity levels: none, minor, major, severe. Each test produces a p-value, statistic, and human-readable detail.
+
+### 7. Dataset Diff
+
+Comprehensive comparison between two dataset versions.
+
+```bash
+verifily diff-datasets --a data/v1.jsonl --b data/v2.jsonl
+```
+
+- **Structural**: SHA-256 fingerprint matching for added/removed/unchanged rows
+- **Quality**: Full annotation comparison with per-axis deltas
+- **Distribution**: All 8 drift tests applied automatically
+- **Semantic**: Dense embedding centroid similarity
+- **Topics**: K-means topic cluster comparison
+
+### 8. Domain Detection
+
+Automatic domain classification with 3-tier detection and 6 domain profiles.
+
+| Tier | Method | Accuracy |
+|------|--------|----------|
+| 1 | BART-large-MNLI zero-shot NLI | Highest |
+| 2 | Sentence-transformer centroid matching | Medium |
+| 3 | Keyword/regex heuristics | Fallback |
+
+**Domains**: code, medical, legal, conversational, instruction, general. Each domain profile has custom quality checks, axis weight adjustments, and calibrated thresholds.
+
+### 9. Dataset Classification
+
+Automatic schema detection, bucketing, PII detection, and duplicate flagging.
+
+```bash
+# Via API async job
+POST /v1/jobs/classify
+```
+
+Detects dataset structure, groups rows into buckets by schema similarity, tags PII and duplicates, and optionally exports per-bucket JSONL files with suggested next steps.
+
+### 10. Pipeline Decision Gate
+
+End-to-end: validate, score, check contamination, compare against baseline, produce a ship/don't-ship decision.
+
+```bash
+verifily pipeline --config pipeline.yaml --ci
 ```
 
 Three possible outcomes:
@@ -145,276 +165,344 @@ Three possible outcomes:
 | **DONT_SHIP** | At least one hard blocker | 1 |
 | **INVESTIGATE** | Ambiguous — metrics pass but risk flags present | 2 |
 
-A human-readable `.txt` summary is written alongside the JSON. Both are persisted in the run's `eval/` directory.
+---
+
+## API Server
+
+Full REST API with 60+ endpoints. Runs locally or deployed.
+
+```bash
+verifily serve --host 0.0.0.0 --port 8000
+```
+
+**Middleware stack** (outer to inner): Request ID → Auth → Rate Limit → Billing Enforcement → Budget → Handler
+
+### Core Endpoints
+
+| Category | Endpoints |
+|----------|-----------|
+| Health | `GET /health`, `GET /ready` |
+| Pipeline | `POST /v1/pipeline`, `/v1/contamination`, `/v1/report` |
+| ML v2 | `POST /v1/annotate`, `/v1/select`, `/v1/predict`, `/v1/diff` |
+| Async Jobs | `POST /v1/jobs/{pipeline,contamination,report,classify}`, `GET /v1/jobs/{id}`, `/v1/jobs/{id}/result` |
+| Drift | Included in `/v1/diff` |
+| Billing | `GET /v1/billing/{events,invoice-preview,plans,usage}`, `POST /v1/billing/{checkout,webhook}` |
+| Admin | `POST /v1/admin/{orgs,users,memberships,team-projects,api-keys}` |
+| Monitor | `POST /v1/monitor/{start,stop}`, `GET /v1/monitor/{status,history}` |
+| Audit | `GET /v1/audit/export` |
+
+### Authentication Modes
+
+| Mode | Use Case |
+|------|----------|
+| **None** | Local development, no auth required |
+| **Simple** | Single API key via `VERIFILY_API_KEY` env var |
+| **Advanced** | Scoped key registry with per-key project and scope restrictions |
+| **Teams** | Full multi-tenant: orgs, users, memberships, project-scoped keys |
+| **Enterprise** | HMAC-signed tokens, RBAC (Owner/Admin/Member/Viewer), policy enforcement, audit export |
+
+### Async Jobs
+
+Long-running operations execute as background jobs with polling.
+
+```python
+job = client.submit_pipeline_job(data=rows, config=config)
+result = client.wait_for_job(job["job_id"], timeout=300)
+```
+
+Job types: PIPELINE, REPORT, CONTAMINATION, CLASSIFY. JSONL persistence for crash recovery.
+
+### Billing
+
+Four plans with metered usage and enforcement.
+
+| Plan | Base Price | Row Cap/Month |
+|------|-----------|---------------|
+| FREE | $0 | 50,000 |
+| STARTER | $99 | 1,000,000 |
+| PRO | $499 | 5,000,000 |
+| ENTERPRISE | Custom | Unlimited |
+
+Usage metering, invoice generation (JSON + CSV), Stripe integration (checkout sessions, webhooks, subscription management). Opt-in enforcement returns 402 when cap exceeded.
 
 ---
 
-## Reproducibility Infrastructure
-
-Every artifact Verifily produces is backed by a SHA-256 hash chain:
-
-```
-config.yaml ──→ sha256(config)
-                    │
-dataset.jsonl ──→ sha256(data)
-                    │
-environment ────→ sha256(env)
-                    │
-seed ───────────────┤
-                    ▼
-        reproducibility_hash = sha256(config | data | env | seed)
-```
-
-Verification is one command:
+## Python SDK
 
 ```bash
-verifily reproduce --run runs/my_run
+pip install verifily[sdk]
 ```
 
-This recomputes every file hash, compares against recorded values, and reports VERIFIED or BROKEN. No network, no GPU, runs in under a second.
+```python
+from verifily_sdk import VerifilyClient
+
+client = VerifilyClient(base_url="http://localhost:8000", api_key="vfy-...")
+
+# Annotate a dataset
+result = client.annotate(texts=["Hello world", "How are you?"])
+
+# Select best rows
+selected = client.select(texts=texts, budget=1000, strategy="quality_diverse")
+
+# Predict quality
+prediction = client.predict(texts=texts)
+
+# Compare datasets
+diff = client.diff(texts_a=old_texts, texts_b=new_texts)
+
+# Submit async job
+job = client.submit_pipeline_job(data=rows, config=config)
+result = client.wait_for_job(job["job_id"])
+
+# Billing
+usage = client.billing_usage(period="2026-02")
+```
+
+50+ methods covering all API endpoints. Typed exceptions, retry with backoff, context manager support.
 
 ---
 
 ## CLI Reference
 
 ```
-verifily init              Generate a config template (transform or train)
-verifily doctor            Environment health check (Python, CUDA, MPS, disk, deps)
-verifily transform         Run the data transformation pipeline
-verifily train             Launch a training run
-verifily eval              Evaluate a run and compute metrics
-verifily compare           Compare metrics across multiple runs
-verifily reproduce         Verify reproducibility via hash chain
-verifily pipeline          End-to-end: transform → train → eval → decision
-verifily contract-check    Validate dataset schema and run artifacts
+Core
+  verifily pipeline          End-to-end: validate → score → contamination → decision
+  verifily annotate          Score dataset on 6 quality axes (ML-powered)
+  verifily select            Select best subset using quality-aware strategies
+  verifily predict           Predict dataset quality score with risk factors
+  verifily report            Dataset quality report with PII scan
+  verifily contamination     Detect train/eval overlap
+  verifily diff-datasets     Compare two dataset versions
+  verifily drift             Detect distribution drift (8 statistical tests)
+
+Data
+  verifily ingest            Normalize raw data (JSONL, CSV, Parquet, hf://)
+  verifily contract-check    Validate dataset schema and run artifacts
+  verifily fingerprint       Privacy-safe dataset summary
+
+NL2SQL
+  verifily nl2sql validate      Validate NL2SQL dataset structure
+  verifily nl2sql fingerprint   SQL normalization + template fingerprinting
+  verifily nl2sql split         Leakage-resistant train/eval splitting
+  verifily nl2sql gate          Three-tier contamination gate
+
+Infrastructure
+  verifily serve             Start API server (60+ endpoints)
+  verifily login             Authenticate with license key
+  verifily account           Show license status and tier
+  verifily doctor            Environment health check
+  verifily quickstart        Scaffold a complete project
+  verifily version           Show version, Python, platform
+
+Admin (API)
+  verifily admin org-create           Create organization
+  verifily admin user-create          Create user
+  verifily admin member-add           Add member to org
+  verifily admin team-project-create  Create team project
+  verifily admin key-issue            Issue scoped API key
+  verifily whoami                     Show current identity
+
+Billing (API)
+  verifily billing-events    View billing events
+  verifily billing-preview   Preview next invoice
+  verifily billing-usage     Current period usage
 ```
 
-Every command supports `--plan` for dry-run mode and `--verbose` for debug output.
+Every command supports `--verbose` for debug output. Pipeline commands support `--ci` for CI mode.
 
 ---
 
-## Evaluation Framework
+## Dataset Transformation
 
-Verifily evaluates models with tag-aware metric slicing — not just aggregate numbers, but per-source, per-domain, and per-difficulty breakdowns.
+Clean data in, versioned artifacts out.
 
-**Supported metrics:**
+**Eight canonical schemas** — auto-detected from field names:
 
-| Task | Metrics |
-|------|---------|
-| SFT (generative) | exact_match, token F1, perplexity, ROUGE-1, ROUGE-L |
-| Classification | accuracy, macro F1, per-class precision/recall, confusion matrix |
+| Schema | Required Fields | Use Case |
+|--------|----------------|----------|
+| `sft` | instruction, output | Supervised fine-tuning |
+| `qa` | question, answer | Question answering |
+| `classification` | text, label | Text classification |
+| `chat` | messages (list of {role, content}) | Multi-turn conversations |
+| `summarization` | document, summary | Summarization tasks |
+| `translation` | source, target, source_lang, target_lang | Translation pairs |
+| `rm_pairwise` | prompt, chosen, rejected | Reward model training |
+| `nl2sql` | question, sql, schema/schema_ref | Natural language to SQL |
 
-**Sliced evaluation example:**
+**Pipeline steps**: Ingest → Normalize → Flatten → Deduplicate (SHA-256 + MinHash LSH) → PII Scan → Label → Synthesize → Filter → Package
 
-```
-Overall:
-  f1: 0.7139  |  exact_match: 0.5945
+Every dataset gets a content-addressed version ID, lineage record, and SHA-256 integrity chain.
 
-By source:
-  human:        f1=0.7312  (n=800)
-  synthetic:    f1=0.7089  (n=700)
-  contaminated: f1=0.6841  (n=500)   ← worst performer
-
-By difficulty:
-  easy:   f1=0.8201  (n=900)
-  medium: f1=0.6832  (n=700)
-  hard:   f1=0.5510  (n=400)
-```
-
-Hard example analysis surfaces the N worst predictions with their tags, scores, and references — so you know exactly where the model fails and which data source is responsible.
+**Input formats**: JSONL, CSV, Parquet, HuggingFace Hub (`hf://` URIs), plaintext.
 
 ---
 
-## Proof
+## Integrations
 
-Controlled experiments across three training configurations. Human-derived synthetic data, transformed and validated through Verifily's pipeline.
+All opt-in with lazy imports — no hard dependencies.
 
-| Comparison | Delta | What it means |
-|-----------|-------|--------------|
-| **+1.60 F1** vs AI-contaminated data | Human-derived synthetic training data outperformed AI-generated training data on a clean, uncontaminated eval set |
-| **+0.78 F1** vs raw human baseline | The same synthetic data surpassed the raw human-only baseline, showing that transformation and validation improve training quality |
+| Integration | What It Does |
+|-------------|-------------|
+| **HuggingFace Hub** | Load datasets via `hf://` URIs |
+| **Weights & Biases** | Log pipeline decisions, metrics, artifacts |
+| **MLflow** | Track runs, log metrics, register models on SHIP |
+| **GitHub Actions** | Pre-built action + CI config generator |
+| **Stripe** | Billing checkout, webhooks, subscription management |
 
-**Experiment details:**
-- Base model: FLAN-T5-base (250M parameters)
-- Fine-tuning: LoRA (r=16, alpha=32)
-- 20,000 training rows per configuration
-- Eval set verified clean via Verifily's contamination gate
-- 217 deterministic tests, no network, no GPU
+---
+
+## CI Integration
+
+```yaml
+# GitHub Actions
+- name: Verifily gate
+  run: verifily pipeline --config pipeline.yaml --ci
+
+# With integrations
+- name: Verifily gate
+  run: |
+    verifily pipeline --config pipeline.yaml --ci \
+      --wandb --wandb-project my-project
+```
+
+Exit code 0 = ship. Exit code 1 = don't ship. Exit code 2 = investigate.
 
 ---
 
 ## Architecture
 
-Verifily is three packages that compose into a single pipeline:
-
 ```
-┌──────────────────────────────────────────────────┐
-│                  verifily_cli_v1                  │
-│                                                  │
-│  commands/    core/                              │
-│  ├─ init      ├─ hashing    (SHA-256 chain)      │
-│  ├─ doctor    ├─ manifest   (dataset manifests)  │
-│  ├─ transform ├─ env        (device detection)   │
-│  ├─ train     ├─ io         (file I/O)           │
-│  ├─ eval      ├─ lineage    (dataset versioning) │
-│  ├─ compare   ├─ decision   (ship/don't ship)    │
-│  ├─ reproduce └─ subprocess (run management)     │
-│  ├─ pipeline                                     │
-│  └─ contract-check                               │
-└─────────┬─────────────────────┬──────────────────┘
-          │                     │
-          ▼                     ▼
-┌─────────────────┐   ┌─────────────────────┐
-│verifily_transform│   │   verifily_train     │
-│                 │   │                     │
-│ ingest          │   │ trainer   (HF/LoRA) │
-│ normalize       │   │ evaluator (metrics) │
-│ deduplicate     │   │ dataset   (loading) │
-│ label           │   │ run       (artifacts)│
-│ synthesize      │   │ compare   (multi-run)│
-│ filter          │   │ reproduce (hashing) │
-│ package         │   │ tuner     (HP search)│
-└─────────────────┘   └─────────────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│                        verifily_cli_v1                          │
+│                                                                 │
+│  CLI (50+ commands)          Core ML                            │
+│  ├─ pipeline                 ├─ ml_backends (6 models)          │
+│  ├─ annotate                 ├─ annotator (6 axes)              │
+│  ├─ select                   ├─ model_judge                     │
+│  ├─ predict                  ├─ learned_scorer                  │
+│  ├─ report                   ├─ predictor                       │
+│  ├─ contamination            ├─ selector (4 strategies)         │
+│  ├─ diff-datasets            ├─ stat_tests (8 tests)            │
+│  ├─ drift                    ├─ dataset_diff                    │
+│  ├─ nl2sql (4 cmds)         ├─ domain_profiles (6 domains)     │
+│  ├─ billing (3 cmds)        ├─ nl2sql                          │
+│  ├─ admin (6 cmds)          └─ classify                        │
+│  └─ serve                                                       │
+│                              API Server (60+ endpoints)         │
+│  Integrations                ├─ Auth (5 modes)                  │
+│  ├─ huggingface              ├─ Billing (4 plans)               │
+│  ├─ wandb                    ├─ Teams (RBAC)                    │
+│  ├─ mlflow                   ├─ Jobs (async, persistent)        │
+│  └─ stripe                   ├─ Monitor                         │
+│                              └─ Audit                           │
+│  Quality Model (v7)                                             │
+│  ├─ 3x DeBERTa-v3-large     Enterprise Security                │
+│  ├─ 105k training samples    ├─ HMAC tokens                     │
+│  └─ 4 quality axes           ├─ 4-role RBAC                     │
+│                              ├─ Policy enforcement              │
+│                              └─ Audit export                    │
+└──────────┬──────────────────────────────┬───────────────────────┘
+           │                              │
+           ▼                              ▼
+┌──────────────────┐           ┌──────────────────────┐
+│  verifily_sdk    │           │  verifily_transform   │
+│                  │           │                      │
+│  50+ methods     │           │  ingest → normalize  │
+│  Typed errors    │           │  → dedup → PII scan  │
+│  Retry/backoff   │           │  → label → package   │
+│  Async jobs      │           │                      │
+└──────────────────┘           └──────────────────────┘
 ```
 
-**Key design decisions:**
-
-- **No hosted service.** Reads artifacts from disk, writes artifacts to disk. Runs anywhere Python runs.
-- **No vendor lock-in.** Works with GitHub Actions, GitLab CI, or any CI system that respects exit codes.
-- **Graceful degradation.** Optional dependencies (openai, datasketch, wandb) are checked at runtime. Missing packages skip the step with a warning — they never crash the pipeline.
-- **LoRA-only storage.** Adapter weights are 10-100 MB, not multi-GB full model checkpoints.
-- **Canonical JSON hashing.** Sorted keys, no whitespace. Identical configs always produce identical hashes.
+**Licensing**: Ed25519 signed keys. FREE (basic), PRO ($99/mo), ENTERPRISE (custom). 14-day PRO trial on first run.
 
 ---
 
-## Training Infrastructure
+## ML Model Stack
 
-Verifily wraps HuggingFace Transformers and PEFT for fine-tuning. It is not a training framework — it is the infrastructure around training that makes runs reproducible and auditable.
+| Model | Purpose | Size | Source |
+|-------|---------|------|--------|
+| DeBERTa-v3-large (x3) | Quality scoring (4 axes) | 1.6 GB each | Trained on HelpSteer2 + UltraFeedback + oasst2 |
+| all-MiniLM-L6-v2 | Sentence embeddings (384-dim) | 80 MB | sentence-transformers |
+| toxic-bert | Safety/toxicity classification | 440 MB | unitary/toxic-bert |
+| distilgpt2 | Perplexity/formatting scoring | 330 MB | HuggingFace |
+| BART-large-MNLI | Zero-shot domain classification | 1.6 GB | facebook/bart-large-mnli |
+| Ridge regression | Quality prediction (30 features) | <1 KB | Trained on UltraFeedback |
 
-**Supported models:**
-
-| Model | Size | Type | QLoRA 4-bit VRAM |
-|-------|------|------|------------------|
-| meta-llama/Llama-3.1-8B | 8B | CausalLM | ~6 GB |
-| mistralai/Mistral-7B-v0.3 | 7B | CausalLM | ~5 GB |
-| microsoft/Phi-3-mini-4k-instruct | 3.8B | CausalLM | ~3 GB |
-| google/flan-t5-base | 250M | Seq2SeqLM | ~1 GB |
-| google/flan-t5-large | 780M | Seq2SeqLM | ~2 GB |
-
-**Training features:**
-- LoRA and QLoRA (4-bit/8-bit) fine-tuning
-- Multi-dataset training with sampling weights
-- Device auto-detection (CUDA > MPS > CPU)
-- Gradient accumulation for large effective batch sizes
-- Optional WandB experiment tracking
-- One-command training: `verifily train --config train.yaml`
+All models are lazy-loaded on first use. Missing models degrade gracefully to heuristics. No model is required — the CLI works without any ML dependencies installed.
 
 ---
 
-## Run Artifacts
+## Testing
 
-Every training run produces a self-contained directory:
+1,725 tests covering all components. All passing.
 
-```
-runs/run_20260208_143022_a1b2c3/
-  run_meta.json              # run ID, status, timestamps, hashes
-  config.yaml                # exact config used
-  environment.json           # Python, torch, GPU snapshot
-  hashes.json                # SHA-256 integrity chain
-  adapter/
-    adapter_config.json      # PEFT config
-    adapter_model.safetensors
-  train_log.jsonl            # per-step loss and metrics
-  eval/
-    eval_results.json        # overall + sliced metrics
-    hard_examples.jsonl      # worst predictions with tags
-    decision_summary.json    # SHIP / DONT_SHIP / INVESTIGATE
-    decision_summary.txt     # human-readable version
-```
-
-Typical run size: 50-400 MB (adapter weights dominate).
-
----
-
-## Who It's For
-
-Verifily is built for ML engineers and platform teams who ship models on a regular cadence and need a gate that is not a spreadsheet.
-
-**You should use Verifily if:**
-
-- You ship models regularly and need a repeatable, auditable release process
-- You have been burned by eval contamination or silent metric regression
-- You want every release decision traceable to a specific dataset version, config, and set of results
-- You are building internal ML infrastructure and need a decision layer that runs in CI
-
-**Verifily is not:**
-
-- A training framework (it wraps HuggingFace, not replaces it)
-- A model registry (artifacts are local, not hosted)
-- A compliance product (it produces auditable artifacts, not compliance reports)
-- A monitoring dashboard (it makes shipping decisions, not observability)
+| Area | Tests |
+|------|-------|
+| ML backends + quality model | ~50 |
+| Annotator (6 axes) | 33 |
+| Selector (4 strategies) | 13 |
+| Statistical tests + C2ST | ~20 |
+| Licensing | 47 |
+| Billing | 123 |
+| Teams RBAC | 36 |
+| Enterprise security | 46 |
+| API endpoints + jobs | ~200 |
+| SDK | ~60 |
+| Core (pipeline, contamination, etc.) | ~1,100 |
 
 ---
 
 ## Quick Start
 
 ```bash
-# 1. Check your environment
-verifily doctor
+# Install
+pip install verifily              # core CLI
+pip install "verifily[ml]"        # + ML models (torch, transformers, sentence-transformers)
+pip install "verifily[api]"       # + API server (FastAPI, uvicorn)
+pip install "verifily[all]"       # everything
 
-# 2. Transform raw data into a versioned dataset
-verifily transform --in data/raw/ --out datasets/ --schema sft
+# Score a dataset
+verifily annotate --in data/train.jsonl --out annotations/
 
-# 3. Validate the dataset contract
-verifily contract-check --dataset datasets/my_data/dataset.jsonl --schema sft
+# Select best 5000 rows
+verifily select --in data/train.jsonl --budget 5000 --strategy quality_diverse
 
-# 4. Train a model
-verifily train --config train.yaml
+# Check for contamination
+verifily contamination --train data/train.jsonl --eval data/eval.jsonl
 
-# 5. Evaluate
-verifily eval --run runs/my_run --slice-by source
+# Detect drift between versions
+verifily drift --baseline data/v1.jsonl --current data/v2.jsonl
 
-# 6. Compare against baseline
-verifily compare --runs runs/baseline,runs/my_run --metric f1
+# Compare two datasets
+verifily diff-datasets --a data/v1.jsonl --b data/v2.jsonl
 
-# 7. Verify reproducibility
-verifily reproduce --run runs/my_run
+# Run the full pipeline
+verifily pipeline --config pipeline.yaml --ci
 
-# 8. Or run the full pipeline end-to-end
-verifily pipeline --config pipeline.yaml
+# Start the API server
+verifily serve --host 0.0.0.0 --port 8000
 ```
 
 ---
 
-## CI Integration
+## Who It's For
 
-Verifily is designed to run in CI. The `pipeline` command exits with code 0 (ship), 1 (don't ship), or 2 (investigate).
+**You should use Verifily if:**
 
-**GitHub Actions:**
+- You need to measure data quality before training, not just model quality after
+- You ship models regularly and need a repeatable, auditable release process
+- You want every row in your dataset scored on coherence, informativeness, complexity, safety, formatting, and uniqueness
+- You need to detect contamination, drift, or quality regression between dataset versions
+- You need an API server with auth, billing, teams, and async jobs for your ML platform
+- You work with NL2SQL datasets and need SQL-aware leakage detection
 
-```yaml
-- name: Verifily gate
-  run: |
-    verifily pipeline --config pipeline.yaml
-```
+**Verifily is not:**
 
-**GitLab CI:**
-
-```yaml
-verifily-gate:
-  script:
-    - verifily pipeline --config pipeline.yaml
-  allow_failure: false
-```
-
-**Any CI with exit codes:**
-
-```bash
-verifily pipeline --config pipeline.yaml || exit 1
-```
-
-No tokens, no API keys, no hosted service. Just a Python package that reads files and returns an exit code.
+- A training framework (it evaluates data, not trains models)
+- A model registry (artifacts are local or API-served, not a hosted registry)
+- A monitoring dashboard (it produces quality scores and decisions, not charts)
 
 ---
 
-*Verifily is the missing step between training and production.*
+*Verifily is the quality layer between your data and your models.*

@@ -1,16 +1,19 @@
 """Learned quality scorer for Verifily.
 
 Extracts a feature vector from quality issues and vocabulary stats,
-then applies a logistic regression with pre-trained weights to produce
+then applies a logistic regression with trained weights to produce
 a quality score 0-100.  Zero external dependencies.
 
-Weights are trained offline by scripts/train_scorer.py and embedded
-as Python constants.
+Weights are trained by scripts/train_scorer.py via logistic regression
+on synthetic datasets of varying quality. Can also load weights from
+verifily_cli_v1/data/scorer_weights.json if available.
 """
 
 from __future__ import annotations
 
+import json
 import math
+import os
 from typing import Any, Dict, List, TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -115,8 +118,9 @@ def extract_features(
 # The model predicts P(good_quality) from the feature vector.
 # Score = sigmoid(dot(features, weights)) * 100, inverted so higher = better.
 #
-# Placeholder weights (hand-calibrated to roughly match _compute_score behavior)
-# until the training script produces real ones.
+# Default weights (hand-calibrated). These are replaced at runtime by trained
+# weights from verifily_cli_v1/data/scorer_weights.json when available.
+# Run `python scripts/train_scorer.py` to produce trained weights.
 _WEIGHTS: List[float] = [
     +0.062330,  # has_empty (0)
     -0.099282,  # empty_frac (1)
@@ -147,6 +151,41 @@ _WEIGHTS: List[float] = [
 
 
 # ---------------------------------------------------------------------------
+# Weight loading (prefer trained weights from JSON)
+# ---------------------------------------------------------------------------
+
+_WEIGHTS_JSON_PATH = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+    "data", "scorer_weights.json",
+)
+
+_loaded_weights: List[float] | None = None
+
+
+def _get_weights() -> List[float]:
+    """Get scoring weights, preferring trained weights from JSON file."""
+    global _loaded_weights
+    if _loaded_weights is not None:
+        return _loaded_weights
+
+    # Try loading from trained weights file
+    if os.path.exists(_WEIGHTS_JSON_PATH):
+        try:
+            with open(_WEIGHTS_JSON_PATH) as f:
+                data = json.load(f)
+            weights = data.get("weights", [])
+            if len(weights) == len(_WEIGHTS):
+                _loaded_weights = weights
+                return _loaded_weights
+        except Exception:
+            pass
+
+    # Fall back to embedded weights
+    _loaded_weights = _WEIGHTS
+    return _loaded_weights
+
+
+# ---------------------------------------------------------------------------
 # Scoring
 # ---------------------------------------------------------------------------
 
@@ -171,7 +210,8 @@ def learned_score(
 ) -> int:
     """Compute quality score 0-100 using learned logistic regression.
 
-    Falls back to a simple heuristic if weights are misconfigured.
+    Uses trained weights from scorer_weights.json if available,
+    otherwise falls back to embedded weights.
 
     Args:
         issues: List of QualityIssue from quality checks.
@@ -185,14 +225,15 @@ def learned_score(
         return 0
 
     features = extract_features(issues, stats, total_rows)
+    weights = _get_weights()
 
     # Validate weights length matches features
-    if len(_WEIGHTS) != len(features):
+    if len(weights) != len(features):
         raise ValueError(
-            f"Weight vector length ({len(_WEIGHTS)}) != "
+            f"Weight vector length ({len(weights)}) != "
             f"feature vector length ({len(features)})"
         )
 
-    z = _dot(features, _WEIGHTS)
+    z = _dot(features, weights)
     prob = _sigmoid(z)
     return max(0, min(100, int(prob * 100)))

@@ -1,0 +1,16 @@
+exclude scripts/keygen.py
+prune scripts/.keys
+prune verifily_cli_v1/tests
+prune verifily_sdk/tests
+prune verifily_cli_v1/data
+prune examples
+prune docs
+prune website
+prune docker
+prune scripts
+prune runs
+prune data
+exclude .env*
+# Exclude large model weights from pip package (downloaded on first use)
+exclude verifily_cli_v1/core/quality_model/*.pt
+exclude verifily_cli_v1/core/quality_head.pt

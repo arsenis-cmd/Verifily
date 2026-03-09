@@ -1,0 +1,23 @@
+{
+  "version": 2,
+  "architecture": "Linear(384,128) \u2192 ReLU \u2192 Dropout(0.05) \u2192 Linear(128,4) \u2192 Sigmoid",
+  "input_dim": 384,
+  "hidden_dim": 128,
+  "output_dim": 4,
+  "output_axes": [
+    "coherence",
+    "informativeness",
+    "complexity",
+    "overall"
+  ],
+  "training_data": "nvidia/HelpSteer2",
+  "n_train": 16904,
+  "n_val": 2982,
+  "val_r2": {
+    "coherence": 0.0274,
+    "informativeness": 0.055,
+    "complexity": 0.2695,
+    "overall": 0.06
+  },
+  "avg_r2": 0.103
+}

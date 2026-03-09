@@ -75,7 +75,7 @@ class BudgetMiddleware(BaseHTTPMiddleware):
         if project_id:
             return project_id
         
-        project_id = request.headers.get("X-Project-ID")
+        project_id = request.headers.get("x-project-id")
         if project_id:
             return project_id
         

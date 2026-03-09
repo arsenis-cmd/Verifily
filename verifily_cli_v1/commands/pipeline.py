@@ -304,6 +304,7 @@ def run_pipeline(
     mode: str = "cli",
     project_id: str | None = None,
     integration_overrides: Dict[str, Any] | None = None,
+    fast: bool = True,
 ) -> Dict[str, Any]:
     """Run the full Verifily pipeline from a config file.
 
@@ -420,7 +421,7 @@ def run_pipeline(
         console.print(Panel("[bold]Step 2/4: Dataset Report[/bold]", border_style="blue"))
     audit.start("REPORT", inputs={"train_data": str(train_data)})
     t0 = time.monotonic()
-    report = dataset_report(train_data)
+    report = dataset_report(train_data, fast=fast)
     report_ms = int((time.monotonic() - t0) * 1000)
     results["report"] = report
     train_bytes = train_data.stat().st_size if train_data.exists() else 0
@@ -667,11 +668,21 @@ def run(
     mode: str = "cli",
     project_id: str | None = None,
     integration_overrides: Dict[str, Any] | None = None,
+    fast: bool = True,
+    html: bool = False,
 ) -> Dict[str, Any]:
     """Run the pipeline and return results."""
     result = run_pipeline(
         config, ci=ci, output_dir=output, verbose=verbose,
         request_id=request_id, mode=mode, project_id=project_id,
         integration_overrides=integration_overrides,
+        fast=fast,
     )
+    if html and output:
+        from verifily_cli_v1.core.html_report import write_html_report
+        html_path = Path(output) / "pipeline_report.html"
+        write_html_report(result, html_path, command=f"verifily pipeline --config {config}")
+        if not ci:
+            from rich.console import Console
+            Console(stderr=True).print(f"  HTML report: [bold]{html_path}[/bold]")
     return result

@@ -1122,6 +1122,70 @@ class VerifilyClient:
         resp = self._get("/v1/billing/subscription", params={"project_id": project_id})
         return SubscriptionResponse(**resp.json())
 
+    # ── V2 Analysis Endpoints ──────────────────────────────────
+
+    def annotate(
+        self,
+        *,
+        rows: list,
+        axes: Optional[list] = None,
+    ) -> Dict[str, Any]:
+        """POST /v1/annotate — run multi-axis quality annotation."""
+        body: Dict[str, Any] = {"rows": rows}
+        if axes:
+            body["axes"] = axes
+        resp = self._post("/v1/annotate", json=body)
+        return resp.json()
+
+    def select(
+        self,
+        *,
+        rows: list,
+        budget: int,
+        strategy: str = "quality_diverse",
+        diversity_weight: float = 0.3,
+        quality_threshold: float = 0.0,
+    ) -> Dict[str, Any]:
+        """POST /v1/select — run data selection engine."""
+        body: Dict[str, Any] = {
+            "rows": rows,
+            "budget": budget,
+            "strategy": strategy,
+            "diversity_weight": diversity_weight,
+            "quality_threshold": quality_threshold,
+        }
+        resp = self._post("/v1/select", json=body)
+        return resp.json()
+
+    def predict(
+        self,
+        *,
+        rows: list,
+        what_if: Optional[Dict[str, float]] = None,
+    ) -> Dict[str, Any]:
+        """POST /v1/predict — run data quality predictor."""
+        body: Dict[str, Any] = {"rows": rows}
+        if what_if:
+            body["what_if"] = what_if
+        resp = self._post("/v1/predict", json=body)
+        return resp.json()
+
+    def diff(
+        self,
+        *,
+        dataset_a: list,
+        dataset_b: list,
+        deep: bool = False,
+    ) -> Dict[str, Any]:
+        """POST /v1/diff — compare two dataset versions."""
+        body: Dict[str, Any] = {
+            "dataset_a": dataset_a,
+            "dataset_b": dataset_b,
+            "deep": deep,
+        }
+        resp = self._post("/v1/diff", json=body)
+        return resp.json()
+
     def close(self) -> None:
         """Close the underlying HTTP client."""
         self._client.close()
