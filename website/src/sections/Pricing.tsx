@@ -1,14 +1,13 @@
 import { useEffect, useRef } from 'react';
-import { Check, ArrowRight } from 'lucide-react';
+import { Check, ArrowRight, Lock } from 'lucide-react';
 
 const plans = [
   {
     name: 'Free',
     price: '$0',
-    originalPrice: null,
     period: '/mo',
     description: 'For exploration and small projects.',
-    cta: 'Get started',
+    cta: 'Join the waitlist',
     ctaHref: '#waitlist',
     ctaStyle: 'border border-slate-700 text-white hover:bg-slate-800',
     highlight: false,
@@ -23,15 +22,14 @@ const plans = [
   },
   {
     name: 'Pro',
-    price: '€0',
-    originalPrice: '$99',
-    period: '/mo',
+    price: '$0',
+    period: ' during early access',
     description: 'For teams shipping models weekly.',
-    cta: 'Get early access',
+    cta: 'Request early access',
     ctaHref: '#waitlist',
     ctaStyle: 'cta-gradient text-white hover:opacity-90',
     highlight: true,
-    badge: 'Early Access — Free',
+    badge: 'Early Access — Limited Spots',
     rows: '5M rows/month',
     features: [
       'Everything in Free',
@@ -45,7 +43,6 @@ const plans = [
   {
     name: 'Enterprise',
     price: 'Custom',
-    originalPrice: null,
     period: '',
     description: 'For platform teams and compliance.',
     cta: 'Contact us',
@@ -117,23 +114,6 @@ const Pricing = () => {
     return () => ctx.revert();
   }, []);
 
-  const handleProCheckout = async () => {
-    try {
-      const res = await fetch('/api/create-checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan: 'pro' }),
-      });
-      const data = await res.json();
-      if (data.url) {
-        window.location.href = data.url;
-      }
-    } catch {
-      // Fallback: scroll to waitlist if checkout isn't configured yet
-      document.querySelector('#waitlist')?.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
-
   return (
     <section
       ref={sectionRef}
@@ -149,11 +129,16 @@ const Pricing = () => {
       {/* Headline */}
       <div ref={headlineRef} className="max-w-4xl mx-auto px-4 text-center mb-16">
         <h2 className="text-3xl md:text-5xl font-semibold text-white mb-4">
-          Simple, transparent <span className="gradient-text">pricing</span>
+          Early access <span className="gradient-text">controlled launch</span>
         </h2>
         <p className="text-white/50 text-lg max-w-2xl mx-auto">
-          Start free. Upgrade when you need more power.
+          We're onboarding a limited number of teams to ensure quality and incorporate feedback.
+          All plans are free during early access.
         </p>
+        <div className="mt-4 inline-flex items-center gap-2 bg-blue-500/10 border border-blue-500/20 rounded-full px-4 py-2">
+          <Lock className="w-4 h-4 text-blue-400" />
+          <span className="text-blue-300 text-sm font-medium">Limited spots available</span>
+        </div>
       </div>
 
       {/* Pricing Cards */}
@@ -182,9 +167,6 @@ const Pricing = () => {
               </div>
 
               <div className="mb-6">
-                {plan.originalPrice && (
-                  <span className="text-white/30 text-xl line-through mr-2">{plan.originalPrice}</span>
-                )}
                 <span className="text-white text-4xl font-bold">{plan.price}</span>
                 <span className="text-white/40 text-lg">{plan.period}</span>
               </div>
@@ -202,23 +184,13 @@ const Pricing = () => {
                 ))}
               </ul>
 
-              {plan.ctaHref ? (
-                <a
-                  href={plan.ctaHref}
-                  className={`w-full py-3 rounded-full text-sm font-medium text-center flex items-center justify-center gap-2 transition-all ${plan.ctaStyle}`}
-                >
-                  {plan.cta}
-                  <ArrowRight className="w-4 h-4" />
-                </a>
-              ) : (
-                <button
-                  onClick={handleProCheckout}
-                  className={`w-full py-3 rounded-full text-sm font-medium flex items-center justify-center gap-2 transition-all ${plan.ctaStyle}`}
-                >
-                  {plan.cta}
-                  <ArrowRight className="w-4 h-4" />
-                </button>
-              )}
+              <a
+                href={plan.ctaHref}
+                className={`w-full py-3 rounded-full text-sm font-medium text-center flex items-center justify-center gap-2 transition-all ${plan.ctaStyle}`}
+              >
+                {plan.cta}
+                <ArrowRight className="w-4 h-4" />
+              </a>
             </div>
           ))}
         </div>
