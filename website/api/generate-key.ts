@@ -35,8 +35,9 @@ export function generateLicenseKey(
   // Org hash: first 8 hex chars of SHA-256 of the email
   const orgHash = crypto.createHash('sha256').update(email).digest('hex').slice(0, 8);
 
-  // Expiry: 1 year from now (or custom date)
-  const expiry = expiryDate ?? new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
+  // Expiry: 1 month from now (matches monthly subscription billing cycle)
+  const now = new Date();
+  const expiry = expiryDate ?? new Date(now.getFullYear(), now.getMonth() + 1, now.getDate());
   const expiryStr = expiry.toISOString().slice(0, 10).replace(/-/g, '');
 
   // Message to sign: "TIER|org_hash|YYYYMMDD"

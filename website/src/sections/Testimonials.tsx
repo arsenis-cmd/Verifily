@@ -1,9 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 
+const WAITLIST_URL = 'https://script.google.com/macros/s/AKfycbxuzitWDY1afhKFUth48juLOdr6LkFD-OourulXx5bSS6n4_CFdFxlsXfGhuqbc7j93/exec';
+
 const Testimonials = () => {
   const [email, setEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
   const sectionRef = useRef<HTMLDivElement>(null);
   const headlineRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -109,7 +113,23 @@ const Testimonials = () => {
               <p className="text-green-400 font-medium text-lg">You're on the list!</p>
             ) : (
               <form
-                onSubmit={(e: FormEvent) => { e.preventDefault(); if (email.trim()) setSubmitted(true); }}
+                onSubmit={async (e: FormEvent) => {
+                  e.preventDefault();
+                  if (!email.trim() || submitting) return;
+                  setSubmitting(true);
+                  setError('');
+                  try {
+                    await fetch(WAITLIST_URL, {
+                      method: 'POST',
+                      body: JSON.stringify({ email: email.trim() }),
+                    });
+                    setSubmitted(true);
+                  } catch {
+                    setError('Something went wrong. Please try again.');
+                  } finally {
+                    setSubmitting(false);
+                  }
+                }}
                 className="flex items-center gap-3"
               >
                 <input
@@ -118,16 +138,19 @@ const Testimonials = () => {
                   placeholder="you@company.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="bg-slate-800 border border-slate-700 text-white placeholder-white/30 rounded-full px-6 py-4 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-64"
+                  disabled={submitting}
+                  className="bg-slate-800 border border-slate-700 text-white placeholder-white/30 rounded-full px-6 py-4 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-64 disabled:opacity-50"
                 />
                 <button
                   type="submit"
-                  className="cta-gradient text-white font-medium px-8 py-4 rounded-full hover:opacity-90 transition-opacity"
+                  disabled={submitting}
+                  className="cta-gradient text-white font-medium px-8 py-4 rounded-full hover:opacity-90 transition-opacity disabled:opacity-50"
                 >
-                  Join the waitlist
+                  {submitting ? 'Joining...' : 'Join the waitlist'}
                 </button>
               </form>
             )}
+            {error && <p className="text-red-400 text-sm mt-3">{error}</p>}
           </div>
         </div>
       </div>

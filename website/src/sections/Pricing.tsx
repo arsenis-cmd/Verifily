@@ -5,6 +5,7 @@ const plans = [
   {
     name: 'Free',
     price: '$0',
+    originalPrice: null,
     period: '/mo',
     description: 'For exploration and small projects.',
     cta: 'Get started',
@@ -22,14 +23,15 @@ const plans = [
   },
   {
     name: 'Pro',
-    price: '$99',
+    price: '€0',
+    originalPrice: '$99',
     period: '/mo',
     description: 'For teams shipping models weekly.',
-    cta: 'Start free trial',
-    ctaHref: null, // triggers Stripe Checkout
+    cta: 'Get early access',
+    ctaHref: '#waitlist',
     ctaStyle: 'cta-gradient text-white hover:opacity-90',
     highlight: true,
-    badge: '14-day free trial',
+    badge: 'Early Access — Free',
     rows: '5M rows/month',
     features: [
       'Everything in Free',
@@ -43,6 +45,7 @@ const plans = [
   {
     name: 'Enterprise',
     price: 'Custom',
+    originalPrice: null,
     period: '',
     description: 'For platform teams and compliance.',
     cta: 'Contact us',
@@ -179,6 +182,9 @@ const Pricing = () => {
               </div>
 
               <div className="mb-6">
+                {plan.originalPrice && (
+                  <span className="text-white/30 text-xl line-through mr-2">{plan.originalPrice}</span>
+                )}
                 <span className="text-white text-4xl font-bold">{plan.price}</span>
                 <span className="text-white/40 text-lg">{plan.period}</span>
               </div>
